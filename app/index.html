@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html lang="en" ng-app="de.cismet.uim2020-html5-demonstrator" ng-controller="de.cismet.uim2020-html5-demonstrator.controllers.masterController" class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html lang="en" ng-app="de.cismet.uim2020-html5-demonstrator" ng-controller="de.cismet.uim2020-html5-demonstrator.controllers.masterController" class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html lang="en" ng-app="de.cismet.uim2020-html5-demonstrator" ng-controller="de.cismet.uim2020-html5-demonstrator.controllers.masterController" class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> 
+<html lang="en" 
+      ng-app="de.cismet.uim2020-html5-demonstrator" 
+      ng-controller="masterController" 
+      class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>UIM2020-DI HTML5 Demonstrator</title>
+        <meta name="description" content="UIM2020 Demonstrator Datenintegration">
+        <meta name="content-language" content="en-GB">     
+        <meta name="author" content="Pascal Dihé, cismet GmbH, http://www.cismet.de">	
+	<meta name="date" content="2016-08-26T00:00:00+02:00">
+	<meta http-equiv="imagetoolbar" content="no">     
+	<meta http-equiv="window-target" content="_top">  
+        <meta name="viewport" content="width=1024">
+        <link rel="apple-touch-icon" href="images/apple-touch-icon.png"/>
+        <link rel="icon" type="image/vnd.microsoft.icon" href="images/favicon.ico"/>
+       
+        <!-- build:css() -->
+        <link rel="stylesheet" href="styles/app.css">
+        <!-- endbuild -->
+        
+        <!-- Application related CSS -->
+        <link href="bower_components/html5-boilerplate/dist/css/main.css" rel="stylesheet" type="text/css"/>
+        <link href="bower_components/html5-boilerplate/dist/css/normalize.css" rel="stylesheet" type="text/css"/>
+        <link href="bower_components/bootstrap/dist/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+        <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+        <link href="bower_components/leaflet/dist/leaflet.css" rel="stylesheet" type="text/css"/>
+        <link href="bower_components/leaflet-draw/dist/leaflet.draw.css" rel="stylesheet" type="text/css"/>
+        <link href="bower_components/angular-wizard/dist/angular-wizard.css" rel="stylesheet" type="text/css"/>
+    </head>
+    <body>
+        <ul class="menu">
+            <li><a href="#/recherche">Recherche</a></li>
+            <li><a href="#/auswertung">Auswertung</a></li>
+        </ul>
+
+        <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+
+        <div id="page-content-wrapper">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div data-ui-view></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--[if lt IE 9]>
+          <script src="bower_components/es5-shim/es5-shim.js"></script>
+          <script src="bower_components/json3/lib/json3.min.js"></script>
+          <![endif]-->
+        <!-- bower:js -->
+        <script src="bower_components/html5-boilerplate/dist/js/vendor/modernizr-2.8.3.min.js" type="text/javascript"></script>
+        <script src="bower_components/jquery/dist/jquery.js"></script>
+        <script src="bower_components/angular/angular.js"></script>
+        <script src="bower_components/angular-route/angular-route.js"></script>
+        <script src="bower_components/angular-resource/angular-resource.js" type="text/javascript"></script>
+        <script src="bower_components/angular-animate/angular-animate.js" type="text/javascript"></script>
+        <script src="bower_components/angular-sanitize/angular-sanitize.min.js" type="text/javascript"></script>
+        <script src="bower_components/angular-ui-router/release/angular-ui-router.js" type="text/javascript"></script>
+        
+        <script src="bower_components/angular-strap/dist/angular-strap.js" type="text/javascript"></script>
+        <script src="bower_components/angular-strap/dist/angular-strap.tpl.js" type="text/javascript"></script>
+        <script src="bower_components/angular-bootstrap/ui-bootstrap.js" type="text/javascript"></script>
+        <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js" type="text/javascript"></script>
+        
+        <script src="bower_components/leaflet/dist/leaflet.js" type="text/javascript"></script>
+        <script src="bower_components/wicket/wicket.js" type="text/javascript"></script>
+        <script src="bower_components/wicket/wicket-leaflet.js" type="text/javascript"></script>
+        <script src="bower_components/leaflet-draw/dist/leaflet.draw.js" type="text/javascript"></script>
+        <script src="bower_components/shp/dist/shp.js" type="text/javascript"></script>
+        <script src="bower_components/leaflet-shapefile/leaflet.shpfile.js" type="text/javascript"></script>
+        <script src="bower_components/angular-leaflet-directive/dist/angular-leaflet-directive.js" type="text/javascript"></script>
+
+        <script src="bower_components/angular-wizard/dist/angular-wizard.js" type="text/javascript"></script>
+        <script src="bower_components/myforce-angularjs-dropdown-multiselect/dist/angularjs-dropdown-multiselect.min.js" type="text/javascript"></script>
+        
+        <!-- endbower -->
+
+
+        <!-- build:js() -->
+        <script src="scripts/app.js"></script>
+        <script src="scripts/controllers/_module.js"></script>
+        <script src="scripts/controllers/masterController.js" type="text/javascript"></script>
+        <script src="scripts/controllers/myDirectiveController.js" type="text/javascript"></script>
+        <script src="scripts/directives/_module.js"></script>
+        <script src="scripts/directives/myDirective.js" type="text/javascript"></script>
+        <script src="scripts/services/_module.js"></script>
+        <script src="scripts/services/geoTools.js" type="text/javascript"></script>
+        <script src="scripts/services/myService.js" type="text/javascript"></script>
+        <script src="scripts/filters/_module.js" type="text/javascript"></script>
+        <script src="scripts/factories/_module.js" type="text/javascript"></script>
+        <script src="scripts/factories/appConfigFactory.js" type="text/javascript"></script>
+
+    </body>
+</html>
