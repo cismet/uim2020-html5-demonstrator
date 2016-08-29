@@ -1,4 +1,4 @@
-/* global L */
+/*global angular, L */
 
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
@@ -148,9 +148,9 @@ angular.module(
 
                 var overlays = {
                     "DRAW": layerGroup
-                   // "CLC": roads,
-                   // "Wassermessstellen": cities,
-                   // "ePRTR Emittenten": boundaries
+                            // "CLC": roads,
+                            // "Wassermessstellen": cities,
+                            // "ePRTR Emittenten": boundaries
                 };
                 var lc = L.control.layers({
                     "ESRI StreetMap": watercolor,

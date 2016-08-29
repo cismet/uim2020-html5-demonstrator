@@ -1,0 +1,10 @@
+<#if licenseFirst??>
+${licenseFirst}
+</#if>
+${licensePrefix}Copyright (C) ${date?date?string("yyyy")} cismet GmbH, Saarbruecken, Germany
+${licensePrefix?replace(" +$", "", "r")}
+${licensePrefix}                               ... and it just works.
+${licensePrefix?replace(" +$", "", "r")}
+<#if licenseLast??>
+${licenseLast}
+</#if>
