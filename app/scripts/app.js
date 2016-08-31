@@ -5,9 +5,9 @@ var app = angular.module(
         'de.cismet.uim2020-html5-demonstrator',
         [
             'ngResource', 'ngAnimate', 'ngSanitize',
-            'ui.router', 
-            'ct.ui.router.extras.sticky', 
-            'ct.ui.router.extras.dsr', 
+            'ui.router', 'ui.bootstrap', 'ui.bootstrap.tpls',
+            'ct.ui.router.extras.sticky',
+            'ct.ui.router.extras.dsr',
             'leaflet-directive',
             'mgo-angular-wizard',
             'de.cismet.uim2020-html5-demonstrator.controllers',
@@ -70,8 +70,9 @@ app.config(
                  return deferred.promise;
                  };*/
 
-                $urlRouterProvider.otherwise('/recherche');
-
+                //$urlRouterProvider.when('/analysis', '/analysis/map');
+                $urlRouterProvider.otherwise('/search/map');
+                
 
 
                 /*$stateProvider.state('login', {
@@ -84,23 +85,27 @@ app.config(
                     url: '',
                     views: {
                         'main@': {
-                            template: '<div>{{name}}</div><div>{{main.name}}</div><div ui-view="search" ng-show="$state.includes(\'main.search\')"/>\n\
-                               \n\<div ui-view="analysis" ng-show="$state.includes(\'main.analysis\')"/>',
+                            templateUrl: 'views/main.html',
                             controller: ['$scope',
                                 function ($scope) {
                                     console.log('main instance created');
                                     $scope.name = 'main';
                                     this.name = 'this.main';
                                 }],
-                            controllerAs: 'main'
+                            controllerAs: 'mainVm'
                         }
                     }
                 });
 
 
                 $stateProvider.state('main.search', {
-                    url: '/recherche',
+                    url: '/search',
                     sticky: true,
+                    //deepStateRedirect: true,
+                    deepStateRedirect: {
+                        default: { state: "main.search.map", params: { zoom: "99" } },
+                        params: true
+                    },
                     views: {
                         'search@main': {
                             templateUrl: 'views/search/index.html',
@@ -110,16 +115,60 @@ app.config(
                                     $scope.name = 'main.search';
                                     this.name = 'this.main.search';
                                 }],
-                            controllerAs: 'search'
+                            controllerAs: 'searchVm'
+                        },
+                        'toolbar@main.search': {
+                            templateUrl: 'views/search/toolbar.html',
+                            controller: ['$scope',
+                                function ($scope) {
+                                    console.log('main.search.toolbar instance created');
+                                    $scope.name = 'main.search.toolbar';
+                                    this.name = 'this.main.search.toolbar';
+                                }],
+                            controllerAs: 'toolbarVm'
                         }
                     }
 
                 });
+                
+                $stateProvider.state('main.search.map', {
+                    url: '/map?{center:int}&{zoom:int}',
+                    views: {
+                        'content@main.search': {
+                            templateUrl: 'views/search/map.html',
+                            controller: ['$scope',
+                                function ($scope) {
+                                    console.log('main.search.map instance created');
+                                }],
+                            controllerAs: 'mapVm'
+                        }
+                    }
+                });
+
+                $stateProvider.state('main.search.list', {
+                    url: '/list',
+                    views: {
+                        'content@main.search': {
+                            templateUrl: 'views/search/list.html',
+                            controller: ['$scope',
+                                function ($scope) {
+                                    console.log('main.search.list instance created');
+                                    $scope.name = 'main.search.list';
+                                    this.name = 'this.main.search.list';
+                                }],
+                            controllerAs: 'listVm'
+                        }
+                    }
+                });
 
                 $stateProvider.state('main.analysis', {
-                    url: '/auswertung',
+                    url: '/analysis',
                     sticky: true,
-                    deepStateRedirect: true,
+                    //deepStateRedirect: true,
+                    deepStateRedirect: {
+                        default: { state: "main.analysis.map", params: { zoom: "99" } },
+                        params: true
+                    },
                     views: {
                         'analysis@main': {
                             templateUrl: 'views/analysis/index.html',
@@ -129,8 +178,8 @@ app.config(
                                     $scope.name = 'main.analysis';
                                     this.name = 'this.main.analysis';
                                 }],
-                            controllerAs: 'main.analysis'
-                            
+                            controllerAs: 'analysisVm'
+
                         },
                         'toolbar@main.analysis': {
                             templateUrl: 'views/analysis/toolbar.html',
@@ -140,29 +189,60 @@ app.config(
                                     $scope.name = 'main.analysis.toolbar';
                                     this.name = 'this.main.analysis.toolbar';
                                 }],
-                            controllerAs: 'toolbar'
+                            controllerAs: 'toolbarVm'
                         }
                     }
                 });
 
                 $stateProvider.state('main.analysis.map', {
-                    url: '/karte',
+                    url: '/map?{center:int}&{zoom:int}',
                     views: {
                         'content@main.analysis': {
                             templateUrl: 'views/analysis/map.html',
-                            controller: ['$scope',
-                                function ($scope) {
+                            controller: ['$scope', '$stateParams', '$state',
+                                function ($scope, $stateParams, $state) {
                                     console.log('main.analysis.map instance created');
                                     $scope.name = 'main.analysis.map';
+                                    var _this = this;
                                     this.name = 'this.main.analysis.map';
+                                    this.center = $stateParams.center;
+                                    this.zoom = $stateParams.zoom;
+
+
+                                    $scope.$watch(function () {
+                                        // Return the "result" of the watch expression.
+                                        return(_this.zoom);
+                                    }, function (newZoom, oldZoom) {
+                                        //console.log('newZoom:' + newZoom + " = this.zoom:" + _this.zoom);
+                                        if (_this.zoom && newZoom !== oldZoom) {
+                                            $state.go('main.analysis.map', {'zoom': _this.zoom},
+                                                    {'inherit': true, 'notify': false, 'reload': false}).then(
+                                                    function (state)
+                                                    {
+                                                     console.log(state);
+                                                    });
+                                        } else {
+                                            //console.log('oldZoom:' + oldZoom + " = this.zoom:" + _this.zoom);
+//                                            $state.go('main.analysis.map', {'zoom': undefined},
+//                                                    {'inherit': true, 'notify': false, 'reload': false}).then(function (state) {
+//                                                console.log(state);
+//                                            });
+                                        }
+                                    });
                                 }],
-                            controllerAs: 'main.analysis.map'
+                            controllerAs: 'mapVm'
                         }
+                    },
+                    onEnter: function () {
+                        console.log("enter main.analysis.map");
+                    },
+                    onExit: function () {
+                        console.log("exit main.analysis.map");
                     }
                 });
 
                 $stateProvider.state('main.analysis.list', {
-                    url: '/liste',
+                    url: '/list',
                     views: {
                         'content@main.analysis': {
                             templateUrl: 'views/analysis/list.html',
@@ -172,13 +252,13 @@ app.config(
                                     $scope.name = 'main.analysis.list';
                                     this.name = 'this.main.analysis.list';
                                 }],
-                            controllerAs: 'main.analysis.list'
+                            controllerAs: 'listVm'
                         }
                     }
                 });
 
-                $stateProvider.state('protocol', {
-                    url: '/protokollierung',
+                $stateProvider.state('main.protocol', {
+                    url: '/protocol',
                     sticky: true,
                     templateUrl: 'views/protocol/index.html'
                 });
