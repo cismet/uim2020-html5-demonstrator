@@ -1,2 +1,3 @@
-<div data-ui-view="analysis-toolbar"></div>
-<div data-ui-view="analysis-content"></div>
+<nav data-ui-view="analysis-toolbar" class="navbar navbar-default cs-toolbar" ></nav>
+<div ui-view="analysis-map"     ng-show="$state.includes('main.analysis.map')" class="cs-container"/>
+<div ui-view="analysis-list"    ng-show="$state.includes('main.analysis.list')"/>

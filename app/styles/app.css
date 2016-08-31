@@ -20,37 +20,88 @@
     margin-left: 10px !important;
 }
 
-.cs-map-container {
-        position: fixed;
-        height: 100%;
-        width: 100%;
-    }
+.cs-result-pager {
+    background-color: #ffffff;
+    border-bottom: 1px solid black;
+    height: 34px;
+    display: table;
+}
 
-html {
-    height: 100%;
+.cs-result-pager .pagination {
+    margin: 2px;
+}
+
+.cs-result-pager-title {
+    display: table-cell;
+    vertical-align: middle;
+    padding-left: 10px;
+}
+
+.cs-result-list {
+    margin: 0px !important;
+    flex: 0 0 400px;
+    /*min-width:150px;*/
+}
+
+.cs-result-list .pagination {
+    float:right;
+    margin: 2px;
+    clear:right; 
+}
+
+.cs-result-list .list-group {
+    margin-bottom: 0px;
+    border:none;
+}
+
+.cs-result-list .list-group-item {
+    border:none;
+    padding-top:1px;
+    padding-left: 10px;
+}
+
+.cs-result-list .list-group-item p {
+    margin:0;
+    line-height: normal;
+}
+
+.cs-table {
+    flex:1 1 auto;
+}
+
+.cs-filter {
+    flex:0 0 250px; 
+    border-top: 1px solid #dcdcdc;
 }
 
 .angular-leaflet-map {
-    position: fixed;
-    height: 100%;
-    width: 100%;
+    flex: 4 1 auto;
 }
 
 /* Sticky footer styles
 -------------------------------------------------- */
-html {
-    position: relative;
-    min-height: 100%;
-}
+html,
 body {
-    /* Margin bottom by footer height */
-    margin-bottom: 60px;
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-flow: column;
 }
-.footer {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    /* Set the fixed height of the footer here */
-    height: 60px;
+
+.flex-container-horizontal {
+    flex: 1 1 auto;
+    display: flex;
+    flex-flow: column;
+}
+
+.flex-container-vertical {
+    flex: 1 1 auto;
+    display: flex;
+    flex-flow: row;
+}
+
+footer {
+    flex: 0 1 40px;
     background-color: #f5f5f5;
 }
+
