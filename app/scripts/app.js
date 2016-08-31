@@ -9,6 +9,7 @@ var app = angular.module(
             'ct.ui.router.extras.sticky',
             'ct.ui.router.extras.dsr',
             'leaflet-directive',
+            'ngTable',
             'mgo-angular-wizard',
             'de.cismet.uim2020-html5-demonstrator.controllers',
             'de.cismet.uim2020-html5-demonstrator.directives',
@@ -31,7 +32,7 @@ app.config(
             function ($logProvider, $stateProvider, $urlRouterProvider) {
                 'use strict';
 
-                $logProvider.debugEnabled(true);
+                $logProvider.debugEnabled(false);
 
 
                 /*var resolveResource;
@@ -70,9 +71,10 @@ app.config(
                  return deferred.promise;
                  };*/
 
+                //$urlRouterProvider.when('/search', '/search/map');
                 //$urlRouterProvider.when('/analysis', '/analysis/map');
                 $urlRouterProvider.otherwise('/search/map');
-                
+
 
 
                 /*$stateProvider.state('login', {
@@ -101,10 +103,11 @@ app.config(
                 $stateProvider.state('main.search', {
                     url: '/search',
                     sticky: true,
-                    //deepStateRedirect: true,
                     deepStateRedirect: {
-                        default: { state: "main.search.map", params: { zoom: "99" } },
-                        params: true
+                        default: {
+                            state: "main.search.map",
+                            params: {zoom: "15"}
+                        }
                     },
                     views: {
                         'search@main': {
@@ -117,7 +120,7 @@ app.config(
                                 }],
                             controllerAs: 'searchVm'
                         },
-                        'toolbar@main.search': {
+                        'search-toolbar@main.search': {
                             templateUrl: 'views/search/toolbar.html',
                             controller: ['$scope',
                                 function ($scope) {
@@ -130,16 +133,14 @@ app.config(
                     }
 
                 });
-                
+
                 $stateProvider.state('main.search.map', {
                     url: '/map?{center:int}&{zoom:int}',
+                    sticky: true,
                     views: {
-                        'content@main.search': {
+                        'search-map@main.search': {
                             templateUrl: 'views/search/map.html',
-                            controller: ['$scope',
-                                function ($scope) {
-                                    console.log('main.search.map instance created');
-                                }],
+                            controller: 'mapController',
                             controllerAs: 'mapVm'
                         }
                     }
@@ -147,15 +148,11 @@ app.config(
 
                 $stateProvider.state('main.search.list', {
                     url: '/list',
+                    sticky: true,
                     views: {
-                        'content@main.search': {
+                        'search-list@main.search': {
                             templateUrl: 'views/search/list.html',
-                            controller: ['$scope',
-                                function ($scope) {
-                                    console.log('main.search.list instance created');
-                                    $scope.name = 'main.search.list';
-                                    this.name = 'this.main.search.list';
-                                }],
+                            controller: 'listController',
                             controllerAs: 'listVm'
                         }
                     }
@@ -164,10 +161,11 @@ app.config(
                 $stateProvider.state('main.analysis', {
                     url: '/analysis',
                     sticky: true,
-                    //deepStateRedirect: true,
                     deepStateRedirect: {
-                        default: { state: "main.analysis.map", params: { zoom: "99" } },
-                        params: true
+                        default: {
+                            state: "main.analysis.map",
+                            params: {zoom: "14"}
+                        }
                     },
                     views: {
                         'analysis@main': {
@@ -181,7 +179,7 @@ app.config(
                             controllerAs: 'analysisVm'
 
                         },
-                        'toolbar@main.analysis': {
+                        'analysis-toolbar@main.analysis': {
                             templateUrl: 'views/analysis/toolbar.html',
                             controller: ['$scope',
                                 function ($scope) {
@@ -197,7 +195,7 @@ app.config(
                 $stateProvider.state('main.analysis.map', {
                     url: '/map?{center:int}&{zoom:int}',
                     views: {
-                        'content@main.analysis': {
+                        'analysis-map@main.analysis': {
                             templateUrl: 'views/analysis/map.html',
                             controller: ['$scope', '$stateParams', '$state',
                                 function ($scope, $stateParams, $state) {
@@ -219,7 +217,7 @@ app.config(
                                                     {'inherit': true, 'notify': false, 'reload': false}).then(
                                                     function (state)
                                                     {
-                                                     console.log(state);
+                                                        console.log(state);
                                                     });
                                         } else {
                                             //console.log('oldZoom:' + oldZoom + " = this.zoom:" + _this.zoom);
@@ -244,7 +242,7 @@ app.config(
                 $stateProvider.state('main.analysis.list', {
                     url: '/list',
                     views: {
-                        'content@main.analysis': {
+                        'analysis-list@main.analysis': {
                             templateUrl: 'views/analysis/list.html',
                             controller: ['$scope',
                                 function ($scope) {

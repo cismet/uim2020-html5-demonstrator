@@ -33,7 +33,8 @@
     "leaflet-shapefile": "https://github.com/calvinmetcalf/leaflet.shapefile.git#gh-pages",
     "leaflet-draw": "plugn-leaflet-draw#^0.2.6",
     "wicket": "Wicket#^1.3.2",
-    "ui-router-extras": "0.1.2"
+    "ui-router-extras": "0.1.2",
+    "ng-table": "1.0.0"
   },
   "devDependencies": {
     "angular-mocks": "1.5.8",

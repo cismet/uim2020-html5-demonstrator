@@ -1,10 +1,20 @@
-<!DOCTYPE html>
-<!--
-Copyright (C) 2016 cismet GmbH, Saarbruecken, Germany
-
-                               ... and it just works.
-
--->
-<div>{{name}}</div>
-<div>{{main.search.list.name}}</div>
-<h2>SEARCH LIST</h2>
+<div class="container-fluid">
+    <div class="row" style="height:75%">
+        <div class="col-lg-12">
+            <table ng-table="listVm.tableParams" class="table" show-filter="true">
+                <tr ng-repeat="user in $data">
+                    <td title="'Name'" filter="{ name: 'text'}" sortable="'name'">
+                        {{user.name}}</td>
+                    <td title="'Age'" filter="{ age: 'number'}" sortable="'age'">
+                        {{user.age}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    
+    <div class="row" style="height:25%">
+        <div class="col-lg-12">
+            <h1>FILTER</h1>
+        </div>
+    </div>
+</div>

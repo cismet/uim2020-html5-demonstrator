@@ -33,6 +33,7 @@
         <link href="bower_components/leaflet/dist/leaflet.css" rel="stylesheet" type="text/css"/>
         <link href="bower_components/leaflet-draw/dist/leaflet.draw.css" rel="stylesheet" type="text/css"/>
         <link href="bower_components/angular-wizard/dist/angular-wizard.css" rel="stylesheet" type="text/css"/>
+        <link href="bower_components/ng-table/dist/ng-table.css" rel="stylesheet" type="text/css"/>
     </head>
     <body>
 
@@ -44,7 +45,11 @@
             <div class="container-fluid">
                 <div class="navbar-header">
                     <button type="button" 
-                            class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                            class="navbar-toggle collapsed" 
+                            data-toggle="collapse" 
+                            data-target="#navbar" 
+                            aria-expanded="false" 
+                            aria-controls="navbar">
                         <span class="sr-only">Toggle navigation</span>
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
@@ -118,7 +123,7 @@
 
         <script src="bower_components/angular-wizard/dist/angular-wizard.js" type="text/javascript"></script>
         <script src="bower_components/myforce-angularjs-dropdown-multiselect/dist/angularjs-dropdown-multiselect.min.js" type="text/javascript"></script>
-
+        <script src="bower_components/ng-table/dist/ng-table.js" type="text/javascript"></script>
         <!-- endbower -->
 
 
@@ -126,12 +131,11 @@
         <script src="scripts/app.js"></script>
         <script src="scripts/controllers/_module.js"></script>
         <script src="scripts/controllers/masterController.js" type="text/javascript"></script>
-        <script src="scripts/controllers/myDirectiveController.js" type="text/javascript"></script>
+        <script src="scripts/controllers/mapController.js" type="text/javascript"></script>
+        <script src="scripts/controllers/listController.js" type="text/javascript"></script>
         <script src="scripts/directives/_module.js"></script>
-        <script src="scripts/directives/myDirective.js" type="text/javascript"></script>
         <script src="scripts/services/_module.js"></script>
         <script src="scripts/services/geoTools.js" type="text/javascript"></script>
-        <script src="scripts/services/myService.js" type="text/javascript"></script>
         <script src="scripts/filters/_module.js" type="text/javascript"></script>
         <script src="scripts/factories/_module.js" type="text/javascript"></script>
         <script src="scripts/factories/appConfigFactory.js" type="text/javascript"></script>
