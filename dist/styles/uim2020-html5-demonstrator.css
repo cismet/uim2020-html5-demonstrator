@@ -1,3 +1,119 @@
-/*
- * The 'styles' folder contains all the css files that will automagically be processed during the build process.
- */
+.cs-navbar-top {
+    margin-bottom: 0px !important;
+}
+
+.cs-toolbar {
+    border-top:  0px !important;
+    margin-bottom: 0px !important;
+}
+
+.cs-toolbar-form {
+    margin-bottom: 0px !important;
+    margin-top: 0px !important;
+    margin-left: 14px !important;
+    margin-right: 0px !important;
+    /*border:1px solid black !important;*/
+    background-color: #e7e7e7;
+}
+
+.cs-toolbar-form-action {
+    margin-left: 10px !important;
+}
+
+.cs-result-pager {
+    background-color: #ffffff;
+    border-bottom: 1px solid black;
+    height: 34px;
+    display: table;
+}
+
+.cs-result-pager .pagination {
+    margin: 2px;
+}
+
+.cs-result-pager-title {
+    display: table-cell;
+    vertical-align: middle;
+    padding-left: 10px;
+}
+
+.cs-result-list {
+    margin: 0px !important;
+    -ms-flex: 0 0 400px;
+        flex: 0 0 400px;
+    /*min-width:150px;*/
+}
+
+.cs-result-list .pagination {
+    float:right;
+    margin: 2px;
+    clear:right; 
+}
+
+.cs-result-list .list-group {
+    margin-bottom: 0px;
+    border:none;
+}
+
+.cs-result-list .list-group-item {
+    border:none;
+    padding-top:1px;
+    padding-left: 10px;
+}
+
+.cs-result-list .list-group-item p {
+    margin:0;
+    line-height: normal;
+}
+
+.cs-table {
+    -ms-flex:1 1 auto;
+        flex:1 1 auto;
+}
+
+.cs-filter {
+    -ms-flex:0 0 250px;
+        flex:0 0 250px; 
+    border-top: 1px solid #dcdcdc;
+}
+
+.angular-leaflet-map {
+    -ms-flex: 4 1 auto;
+        flex: 4 1 auto;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html,
+body {
+    height: 100%;
+    margin: 0;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-flow: column;
+        flex-flow: column;
+}
+
+.flex-container-horizontal {
+    -ms-flex: 1 1 auto;
+        flex: 1 1 auto;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-flow: column;
+        flex-flow: column;
+}
+
+.flex-container-vertical {
+    -ms-flex: 1 1 auto;
+        flex: 1 1 auto;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-flow: row;
+        flex-flow: row;
+}
+
+footer {
+    -ms-flex: 0 1 40px;
+        flex: 0 1 40px;
+    background-color: #f5f5f5;
+}
