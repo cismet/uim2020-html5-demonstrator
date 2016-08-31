@@ -5,9 +5,9 @@ var app = angular.module(
         'de.cismet.uim2020-html5-demonstrator',
         [
             'ngResource', 'ngAnimate', 'ngSanitize',
-            'ui.router', 'ui.bootstrap', 'ui.bootstrap.tpls',
-            'ct.ui.router.extras.sticky',
-            'ct.ui.router.extras.dsr',
+            'ui.bootstrap', 'ui.bootstrap.tpls',
+            'ui.router',
+            'ct.ui.router.extras.sticky', 'ct.ui.router.extras.dsr', 'ct.ui.router.extras.previous',
             'leaflet-directive',
             'ngTable',
             'mgo-angular-wizard',
@@ -99,9 +99,25 @@ app.config(
                     }
                 });
 
+                $stateProvider.state('main.authentication', {
+                    url: '/login',
+                    data: {
+                        roles: ['User']
+                    },
+                    views: {
+                        'authentication@main': {
+                            templateUrl: 'views/authentication/login.html',
+                            controller: 'authenticationController',
+                            controllerAs: 'authenticationController'
+                        }
+                    }
+                });
 
                 $stateProvider.state('main.search', {
                     url: '/search',
+                    data: {
+                        roles: ['User']
+                    },
                     sticky: true,
                     deepStateRedirect: {
                         default: {
@@ -136,6 +152,9 @@ app.config(
 
                 $stateProvider.state('main.search.map', {
                     url: '/map?{center:int}&{zoom:int}',
+                    data: {
+                        roles: ['User']
+                    },
                     sticky: true,
                     views: {
                         'search-map@main.search': {
@@ -148,6 +167,9 @@ app.config(
 
                 $stateProvider.state('main.search.list', {
                     url: '/list',
+                    data: {
+                        roles: ['User']
+                    },
                     sticky: true,
                     views: {
                         'search-list@main.search': {
@@ -160,6 +182,9 @@ app.config(
 
                 $stateProvider.state('main.analysis', {
                     url: '/analysis',
+                    data: {
+                        roles: ['User']
+                    },
                     sticky: true,
                     deepStateRedirect: {
                         default: {
@@ -194,6 +219,9 @@ app.config(
 
                 $stateProvider.state('main.analysis.map', {
                     url: '/map?{center:int}&{zoom:int}',
+                    data: {
+                        roles: ['User']
+                    },
                     views: {
                         'analysis-map@main.analysis': {
                             templateUrl: 'views/analysis/map.html',
@@ -241,6 +269,9 @@ app.config(
 
                 $stateProvider.state('main.analysis.list', {
                     url: '/list',
+                    data: {
+                        roles: ['User']
+                    },
                     views: {
                         'analysis-list@main.analysis': {
                             templateUrl: 'views/analysis/list.html',
@@ -257,6 +288,9 @@ app.config(
 
                 $stateProvider.state('main.protocol', {
                     url: '/protocol',
+                    data: {
+                        roles: ['User']
+                    },
                     sticky: true,
                     templateUrl: 'views/protocol/index.html'
                 });
@@ -290,8 +324,10 @@ app.run(
             '$rootScope',
             '$state',
             '$stateParams',
-            '$stickyState',
-            function ($rootScope, $state, $stateParams, $stickyState) {
+            '$previousState',
+            'authenticationService',
+            'autorisationService',
+            function ($rootScope, $state, $stateParams, $previousState, authenticationService, autorisationService) {
                 'use strict';
                 // It's very handy to add references to $state and $stateParams to the $rootScope
                 // so that you can access them from any scope within your applications.For example,
@@ -301,6 +337,31 @@ app.run(
                 $rootScope.$stateParams = $stateParams;
 
                 $rootScope.$on("$stateChangeError", console.log.bind(console));
+
+                $rootScope.$on('$stateChangeStart',
+                        function (event, toState, toParams, fromState, fromParams) {
+
+                            if (toState.name !== 'main.authentication') {
+                                if ((!authenticationService.isIdentityResolved() 
+                                        && !authenticationService.getIdentity()) 
+                                        || !authenticationService.isAuthenticated()) {
+                                    console.warn('user not logged in!');
+                                    event.preventDefault();
+                                    $previousState.memo('authentication');
+                                    $state.go('main.authentication');
+                                } /*else if ($rootScope.toState.data.roles
+                                 && $rootScope.toState.data.roles.length > 0
+                                 && !authenticationService.isInAnyRole($rootScope.toState.data.roles)) {
+                                 
+                                 console.warn('user is not in any role');
+                                 event.preventDefault();
+                                 $previousState.memo('autorisation');
+                                 $state.go('main.accessdenied'); // user is signed in but not authorized for desired state
+                                 }*/
+                            } else {
+                                $previousState.memo('authentication');
+                            }
+                        });
             }
         ]
         );
