@@ -4,8 +4,6 @@
 <!--[if IE 8]>         <html lang="en" ng-app="de.cismet.uim2020-html5-demonstrator" ng-controller="de.cismet.uim2020-html5-demonstrator.controllers.masterController" class="no-js lt-ie9"> <![endif]-->
 <!--[if gt IE 8]><!--> 
 <html lang="en" 
-      ng-app="de.cismet.uim2020-html5-demonstrator" 
-      ng-controller="masterController as masterController" 
       class="no-js"> <!--<![endif]-->
     <head>
         <meta charset="utf-8">
@@ -35,123 +33,134 @@
         <link href="bower_components/leaflet-draw/dist/leaflet.draw.css" rel="stylesheet" type="text/css"/>
         <link href="bower_components/angular-wizard/dist/angular-wizard.css" rel="stylesheet" type="text/css"/>
         <link href="bower_components/ng-table/dist/ng-table.css" rel="stylesheet" type="text/css"/>
+        <link href="bower_components/leaflet-slc/css/styledLayerControl.css" rel="stylesheet" type="text/css"/>
     </head>
-    <body>
-
-        <!--[if lt IE 7]>
-            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
-        <![endif]-->
-        <nav class="navbar navbar-default navbar-static-top cs-navbar-top" >
-            <div class="container-fluid">
-                <div class="navbar-header">
-                    <button type="button" 
-                            class="navbar-toggle collapsed" 
-                            data-toggle="collapse" 
-                            data-target="#navbar" 
-                            aria-expanded="false" 
-                            aria-controls="navbar">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                </div>
-                <div id="navbar" class="collapse navbar-collapse">
-
-                    <ul class="nav navbar-nav navbar-left nav-tabs-justified">
-                        <li  data-ui-sref-active="active">
-                            <a data-ui-sref="main.search">Recherche</a>
-                        </li>
-                        <li data-ui-sref-active="active">
-                            <a data-ui-sref="main.analysis">Auswertung</a>
-                        </li>
-                        <li data-ui-sref-active="active">
-                            <a data-ui-sref="main.protocol">Protokoll</a>
-                        </li>
-                    </ul>
+    <body ng-app="de.cismet.uim2020-html5-demonstrator" 
+          ng-controller="masterController as masterController">
 
 
 
 
-                    <ul class="nav navbar-nav navbar-right">
-                        <li>
-                            <button type="button"
-                                    class="btn navbar-btn" 
-                                    ng-click="masterController.signOut()">Abmelden
-                            </button>
-                        </li>
+   
 
-                        <li>
-                            <img class="cs-navbar-brand" alt="cismet" src="images/cismet.png"/>
-                        </li>
-                    </ul>
-                </div><!-- /.navbar-collapse -->
-            </div><!-- /.container-fluid -->
-        </nav>
-
-        <div data-ui-view="main" class="flex-container-horizontal"></div>
-
-        <footer class="footer alert-success">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-12"><h4>{{data.message}}</h4></div>
-                </div>
+    <!--[if lt IE 7]>
+        <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+    <nav class="navbar navbar-default navbar-static-top cs-navbar-top" >
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" 
+                        class="navbar-toggle collapsed" 
+                        data-toggle="collapse" 
+                        data-target="#navbar" 
+                        aria-expanded="false" 
+                        aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
             </div>
-        </footer>
+            <div id="navbar" class="collapse navbar-collapse">
 
-        <!--[if lt IE 9]>
-          <script src="bower_components/es5-shim/es5-shim.js"></script>
-          <script src="bower_components/json3/lib/json3.min.js"></script>
-          <![endif]-->
-        <!-- bower:js -->
-        <script src="bower_components/jquery/dist/jquery.js"></script>
-        <script src="bower_components/bootstrap/dist/js/bootstrap.min.js" type="text/javascript"></script>
-        <script src="bower_components/angular/angular.js"></script>
-        <script src="bower_components/angular-route/angular-route.js"></script>
-        <script src="bower_components/angular-resource/angular-resource.js" type="text/javascript"></script>
-        <script src="bower_components/angular-animate/angular-animate.js" type="text/javascript"></script>
-        <script src="bower_components/angular-sanitize/angular-sanitize.min.js" type="text/javascript"></script>
-        <script src="bower_components/angular-ui-router/release/angular-ui-router.js" type="text/javascript"></script>
-        <script src="bower_components/ui-router-extras/release/ct-ui-router-extras.js" type="text/javascript"></script>
-
-        <script src="bower_components/angular-bootstrap/ui-bootstrap.js" type="text/javascript"></script>
-        <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js" type="text/javascript"></script>
-
-        <!--
-        <script src="bower_components/angular-strap/dist/angular-strap.js" type="text/javascript"></script>
-        <script src="bower_components/angular-strap/dist/angular-strap.tpl.js" type="text/javascript"></script>
-        -->
-
-        <script src="bower_components/leaflet/dist/leaflet.js" type="text/javascript"></script>
-        <script src="bower_components/wicket/wicket.js" type="text/javascript"></script>
-        <script src="bower_components/wicket/wicket-leaflet.js" type="text/javascript"></script>
-        <script src="bower_components/leaflet-draw/dist/leaflet.draw.js" type="text/javascript"></script>
-        <script src="bower_components/shp/dist/shp.js" type="text/javascript"></script>
-        <script src="bower_components/leaflet-shapefile/leaflet.shpfile.js" type="text/javascript"></script>
-        <script src="bower_components/angular-leaflet-directive/dist/angular-leaflet-directive.js" type="text/javascript"></script>
-
-        <script src="bower_components/angular-wizard/dist/angular-wizard.js" type="text/javascript"></script>
-        <script src="bower_components/myforce-angularjs-dropdown-multiselect/dist/angularjs-dropdown-multiselect.min.js" type="text/javascript"></script>
-        <script src="bower_components/ng-table/dist/ng-table.js" type="text/javascript"></script>
-        <!-- endbower -->
+                <ul class="nav navbar-nav navbar-left nav-tabs-justified">
+                    <li  data-ui-sref-active="active">
+                        <a data-ui-sref="main.search">Recherche</a>
+                    </li>
+                    <li data-ui-sref-active="active">
+                        <a data-ui-sref="main.analysis">Auswertung</a>
+                    </li>
+                    <li data-ui-sref-active="active">
+                        <a data-ui-sref="main.protocol">Protokoll</a>
+                    </li>
+                </ul>
 
 
-        <!-- build:js() -->
-        <script src="scripts/app.js"></script>
-        <script src="scripts/controllers/_module.js"></script>
-        <script src="scripts/controllers/masterController.js" type="text/javascript"></script>
-        <script src="scripts/controllers/authenticationController.js" type="text/javascript"></script>
-        <script src="scripts/controllers/mapController.js" type="text/javascript"></script>
-        <script src="scripts/controllers/listController.js" type="text/javascript"></script>
-        <script src="scripts/directives/_module.js"></script>
-        <script src="scripts/services/_module.js"></script>
-        <script src="scripts/services/configurationService.js"></script>
-        <script src="scripts/services/authenticationService.js" type="text/javascript"></script>
-        <script src="scripts/services/autorisationService.js" type="text/javascript"></script>
-        <script src="scripts/services/geoTools.js" type="text/javascript"></script>
-        <script src="scripts/filters/_module.js" type="text/javascript"></script>
-        <script src="scripts/factories/_module.js" type="text/javascript"></script>
-        <script src="scripts/factories/appConfigFactory.js" type="text/javascript"></script>
 
-    </body>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <button type="button"
+                                class="btn navbar-btn" 
+                                ng-click="masterController.signOut()">Abmelden
+                        </button>
+                    </li>
+
+                    <li>
+                        <img class="cs-navbar-brand" alt="cismet" src="images/cismet.png"/>
+                    </li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+
+    <div data-ui-view="main" class="flex-container-horizontal"></div>
+
+    <footer class="footer alert-success">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12"><h4>{{data.message}}</h4></div>
+            </div>
+        </div>
+    </footer>
+
+    <!--[if lt IE 9]>
+      <script src="bower_components/es5-shim/es5-shim.js"></script>
+      <script src="bower_components/json3/lib/json3.min.js"></script>
+      <![endif]-->
+    <!-- bower:js -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/bootstrap/dist/js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/angular-route/angular-route.js"></script>
+    <script src="bower_components/angular-resource/angular-resource.js" type="text/javascript"></script>
+    <script src="bower_components/angular-animate/angular-animate.js" type="text/javascript"></script>
+    <script src="bower_components/angular-sanitize/angular-sanitize.min.js" type="text/javascript"></script>
+    <script src="bower_components/angular-ui-router/release/angular-ui-router.js" type="text/javascript"></script>
+    <script src="bower_components/ui-router-extras/release/ct-ui-router-extras.js" type="text/javascript"></script>
+
+    <script src="bower_components/angular-bootstrap/ui-bootstrap.js" type="text/javascript"></script>
+    <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js" type="text/javascript"></script>
+
+    <!--
+    <script src="bower_components/angular-strap/dist/angular-strap.js" type="text/javascript"></script>
+    <script src="bower_components/angular-strap/dist/angular-strap.tpl.js" type="text/javascript"></script>
+    -->
+
+    <script src="bower_components/leaflet/dist/leaflet.js" type="text/javascript"></script>
+    <script src="bower_components/wicket/wicket.js" type="text/javascript"></script>
+    <script src="bower_components/wicket/wicket-leaflet.js" type="text/javascript"></script>
+    <script src="bower_components/leaflet-draw/dist/leaflet.draw.js" type="text/javascript"></script>
+    <script src="bower_components/shp/dist/shp.js" type="text/javascript"></script>
+    <script src="bower_components/leaflet-shapefile/leaflet.shpfile.js" type="text/javascript"></script>
+    <script src="bower_components/esri-leaflet/dist/esri-leaflet.js" type="text/javascript"></script>
+    <script src="bower_components/leaflet-slc/src/styledLayerControl.js" type="text/javascript"></script>
+    <script src="bower_components/leaflet-wmts/leaflet-tilelayer-wmts.js" type="text/javascript"></script>
+    <script src="bower_components/angular-leaflet-directive/dist/angular-leaflet-directive.js" type="text/javascript"></script>
+
+    <script src="bower_components/angular-wizard/dist/angular-wizard.js" type="text/javascript"></script>
+    <script src="bower_components/myforce-angularjs-dropdown-multiselect/dist/angularjs-dropdown-multiselect.min.js" type="text/javascript"></script>
+    <script src="bower_components/ng-table/dist/ng-table.js" type="text/javascript"></script>
+    <!-- endbower -->
+
+
+    <!-- build:js() -->
+    <script src="scripts/app.js"></script>
+    <script src="scripts/controllers/_module.js"></script>
+    <script src="scripts/controllers/masterController.js" type="text/javascript"></script>
+    <script src="scripts/controllers/authenticationController.js" type="text/javascript"></script>
+    <script src="scripts/controllers/analysisController.js" type="text/javascript"></script>
+    <script src="scripts/controllers/searchController.js" type="text/javascript"></script>
+    <script src="scripts/controllers/mapController.js" type="text/javascript"></script>
+    <script src="scripts/controllers/listController.js" type="text/javascript"></script>
+    <script src="scripts/directives/_module.js"></script>
+    <script src="scripts/directives/ngSize.js" type="text/javascript"></script>
+    <script src="scripts/services/_module.js"></script>
+    <script src="scripts/services/configurationService.js"></script>
+    <script src="scripts/services/authenticationService.js" type="text/javascript"></script>
+    <script src="scripts/services/autorisationService.js" type="text/javascript"></script>
+    <script src="scripts/services/geoTools.js" type="text/javascript"></script>
+    <script src="scripts/filters/_module.js" type="text/javascript"></script>
+
+</body>
 </html>

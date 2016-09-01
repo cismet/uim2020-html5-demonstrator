@@ -4,18 +4,17 @@
 var app = angular.module(
         'de.cismet.uim2020-html5-demonstrator',
         [
+            'de.cismet.uim2020-html5-demonstrator.controllers',
+            'de.cismet.uim2020-html5-demonstrator.directives',
+            'de.cismet.uim2020-html5-demonstrator.services',
+            'de.cismet.uim2020-html5-demonstrator.filters',
             'ngResource', 'ngAnimate', 'ngSanitize',
             'ui.bootstrap', 'ui.bootstrap.tpls',
             'ui.router',
             'ct.ui.router.extras.sticky', 'ct.ui.router.extras.dsr', 'ct.ui.router.extras.previous',
             'leaflet-directive',
             'ngTable',
-            'mgo-angular-wizard',
-            'de.cismet.uim2020-html5-demonstrator.controllers',
-            'de.cismet.uim2020-html5-demonstrator.directives',
-            'de.cismet.uim2020-html5-demonstrator.services',
-            'de.cismet.uim2020-html5-demonstrator.filters',
-            'de.cismet.uim2020-html5-demonstrator.factories'
+            'mgo-angular-wizard'
         ]
         );
 
@@ -94,7 +93,7 @@ app.config(
                                     $scope.name = 'main';
                                     this.name = 'this.main';
                                 }],
-                            controllerAs: 'mainVm'
+                            controllerAs: 'mainController'
                         }
                     }
                 });
@@ -128,13 +127,8 @@ app.config(
                     views: {
                         'search@main': {
                             templateUrl: 'views/search/index.html',
-                            controller: ['$scope',
-                                function ($scope) {
-                                    console.log('main.search instance created');
-                                    $scope.name = 'main.search';
-                                    this.name = 'this.main.search';
-                                }],
-                            controllerAs: 'searchVm'
+                            controller: 'searchController',
+                            controllerAs: 'searchController'
                         },
                         'search-toolbar@main.search': {
                             templateUrl: 'views/search/toolbar.html',
@@ -144,7 +138,7 @@ app.config(
                                     $scope.name = 'main.search.toolbar';
                                     this.name = 'this.main.search.toolbar';
                                 }],
-                            controllerAs: 'toolbarVm'
+                            controllerAs: 'toolbarController'
                         }
                     }
 
@@ -160,7 +154,7 @@ app.config(
                         'search-map@main.search': {
                             templateUrl: 'views/search/map.html',
                             controller: 'mapController',
-                            controllerAs: 'mapVm'
+                            controllerAs: 'mapController'
                         }
                     }
                 });
@@ -175,7 +169,7 @@ app.config(
                         'search-list@main.search': {
                             templateUrl: 'views/search/list.html',
                             controller: 'listController',
-                            controllerAs: 'listVm'
+                            controllerAs: 'listController'
                         }
                     }
                 });
@@ -195,13 +189,8 @@ app.config(
                     views: {
                         'analysis@main': {
                             templateUrl: 'views/analysis/index.html',
-                            controller: ['$scope',
-                                function ($scope) {
-                                    console.log('main.analysis instance created');
-                                    $scope.name = 'main.analysis';
-                                    this.name = 'this.main.analysis';
-                                }],
-                            controllerAs: 'analysisVm'
+                            controller: 'analysisController',
+                            controllerAs: 'analysisController'
 
                         },
                         'analysis-toolbar@main.analysis': {
@@ -212,7 +201,7 @@ app.config(
                                     $scope.name = 'main.analysis.toolbar';
                                     this.name = 'this.main.analysis.toolbar';
                                 }],
-                            controllerAs: 'toolbarVm'
+                            controllerAs: 'toolbarController'
                         }
                     }
                 });
@@ -256,7 +245,7 @@ app.config(
                                         }*/
                                     });
                                 }],
-                            controllerAs: 'mapVm'
+                            controllerAs: 'mapController'
                         }
                     },
                     onEnter: function () {
@@ -370,6 +359,31 @@ angular.module(
          
     ]
 );
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+/*global angular*/
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.controllers'
+        ).controller(
+        'analysisController',
+        [
+            '$scope',
+            function ($scope) {
+                'use strict';
+
+                $scope.mode = "analysis";
+            }
+        ]
+        );
+
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
@@ -419,18 +433,89 @@ angular.module(
         ]
         );
 
+/*global angular, L */
+
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'mapController',
         [
             '$scope',
-            function ($scope) {
+            'leafletData',
+            'configurationService',
+            function ($scope, leafletData, configurationService) {
                 'use strict';
 
-                console.log('new mapController instance created from ' + $scope.name);
+                var config, layerControl, searchGroup, drawControl;
+                config = configurationService.map;
 
+                // put angular-leaflet config into $scope-soup ...
+                angular.extend($scope, {
+                    layers: {
+                        // don't configure baselayers in angular-leaflet-directive:
+                        // does not synchronise with styledLayerControl!
+                    },
+                    defaults: config.defaults,
+                    center: config.home,
+                    controls: {
+                        scale: true
+                    },
+                    tileLayer: '' // disabled: loads OSM tiles in background even if not visible!
+                });
 
+                layerControl = L.Control.styledLayerControl(
+                        config.basemaps, config.overlays, config.layerControlOptions);
+
+                searchGroup = new L.FeatureGroup();
+
+                drawControl = new L.Control.Draw({
+                    draw: {
+                        polyline: false,
+                        polygon: {
+                            shapeOptions: {
+                                color: '#800000'
+                            },
+                            showArea: true,
+                            metric: true
+                        },
+                        rectangle: {
+                            shapeOptions: {
+                                color: '#800000',
+                                clickable: false
+                            },
+                            metric: true
+                        },
+                        // no circles for starters as not compatible with WKT
+                        circle: false,
+                        marker: false
+                    },
+                    edit: {
+                        featureGroup: searchGroup
+                    }
+                });
+
+                leafletData.getMap('map-' + $scope.mode).then(function (map) {
+
+                    map.addLayer(searchGroup);
+                    map.addControl(drawControl);
+                    map.addControl(layerControl);
+
+                    layerControl.selectLayer(config.defaultLayer);
+
+                    map.on('draw:created', function (event) {
+                        //setSearchGeom(event.layer);
+                    });
+
+                    map.on('draw:deleted', function (event) {
+                        event.layers.eachLayer(function (layer) {
+                            if (layer === $scope.searchGeomLayer) {
+                                //setSearchGeom(null);
+                            }
+                        });
+                    });
+                });
+
+                console.log('map-' + $scope.mode + ' instance created');
             }
         ]
         );
@@ -445,7 +530,7 @@ angular.module(
             '$scope',
             '$state',
             '$previousState',
-            'appConfig',
+            'configurationService',
             'authenticationService',
             'leafletData',
             'geoTools',
@@ -453,7 +538,7 @@ angular.module(
                     $scope,
                     $state,
                     $previousState,
-                    appConfig,
+                    configurationService,
                     authenticationService,
                     leafletData,
                     geoTools
@@ -464,7 +549,7 @@ angular.module(
                         noDrawOptions, writeSpatialCoverage,
                         readSpatialCoverage, drawControlsEnabled, shpfile;
                 _this = this;
-                _this.config = appConfig;
+                _this.config = configurationService;
                 wicket = geoTools.wicket;
                 defaultStyle = geoTools.defaultStyle;
                 defaultDrawOptions = geoTools.defaultDrawOptions;
@@ -472,17 +557,7 @@ angular.module(
                 readSpatialCoverage = geoTools.readSpatialCoverage;
                 writeSpatialCoverage = geoTools.writeSpatialCoverage;
                 fireResize = geoTools.fireResize;
-                $scope.mapData = {};
-                $scope.mapData.center = _this.config.mapView.home;
-                $scope.mapData.defaults = {
-                    tileLayer: _this.config.mapView.backgroundLayer,
-                    //tileLayerOptions: {noWrap: true},
-                    //maxZoom: 14,
-                    attributionControl: true,
-                    minZoom: _this.config.minZoom,
-                    path: defaultStyle
-
-                };
+                
                 //draw control initialisation
                 layerGroup = new L.FeatureGroup();
                 drawControls = new L.Control.Draw({
@@ -638,6 +713,31 @@ angular.module(
         ]
         );
 
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+/*global angular*/
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.controllers'
+        ).controller(
+        'searchController',
+        [
+            '$scope',
+            function ($scope) {
+                'use strict';
+
+                $scope.mode = "search";
+            }
+        ]
+        );
+
 // module initialiser for the directives, shall always be named like that so that concat will pick it up first!
 // however, the actual directives implementations shall be put in their own files
 angular.module(
@@ -649,86 +749,154 @@ angular.module(
 /*global angular*/
 
 angular.module(
-    'de.cismet.uim2020-html5-demonstrator.directives'
-).directive('myDirective',
-    [
+        'de.cismet.uim2020-html5-demonstrator.directives'
+        ).directive('fucfffffffk',
+[
         function () {
-            'use strict';
-
-            return {
+        'use strict';
+                return {
                 restrict: 'E',
-                templateUrl: 'templates/my-directive.html',
-                scope: {},
-                controller: 'myDirectiveController'
-            };
-        }
-    ]);
+                        template: 'FUCKCCCCCCCCC',
+                        scope: {},
+                        controller: ['$scope',
+                                function ($scope) {
+                                console.log('controller myDirective');
+                                }],
+                        link : function ($scope, element, attrs) {
 
+                var handler, exists;
+
+                $rootScope.ngSizeDimensions = (angular.isArray($rootScope.ngSizeDimensions)) ? $rootScope.ngSizeDimensions : [];
+                $rootScope.ngSizeWatch = (angular.isArray($rootScope.ngSizeWatch)) ? $rootScope.ngSizeWatch : [];
+
+                handler = function () {
+                    angular.forEach($rootScope.ngSizeWatch, function (el, i) {
+                        // Dimensions Not Equal?
+                        if ($rootScope.ngSizeDimensions[i][0] !== el.offsetWidth ||
+                                $rootScope.ngSizeDimensions[i][1] !== el.offsetHeight) {
+                            // Update Them
+                            $rootScope.ngSizeDimensions[i] = [el.offsetWidth, el.offsetHeight];
+                            // Update Scope?
+                            $rootScope.$broadcast('size::changed', i);
+                        }
+                    });
+                };
+
+                // Add Element to Chain?
+                exists = false;
+                angular.forEach($rootScope.ngSizeWatch, function (el, i) {
+                    if (el === element[0]) {
+                        exists = i;
+                    }
+                });
+
+                // Ok.
+                if (exists === false) {
+                    $rootScope.ngSizeWatch.push(element[0]);
+                    $rootScope.ngSizeDimensions.push([element[0].offsetWidth, element[0].offsetHeight]);
+                    exists = $rootScope.ngSizeWatch.length - 1;
+                }
+
+                // Update Scope?
+                $scope.$on('size::changed', function (event, i) {
+                    // Relevant to the element attached to *this* directive
+                    if (i === exists) {
+                        $scope.size = {
+                            width: $rootScope.ngSizeDimensions[i][0],
+                            height: $rootScope.ngSizeDimensions[i][1]
+                        };
+                    }
+                });
+
+                // Refresh: 100ms
+                if (!window.ngSizeHandler)
+                    window.ngSizeHandler = setInterval(handler, 100);
+
+                // Window Resize?
+                // angular.element(window).on('resize', handler);
+
+            }
+        };
+    }]);
+/*globals angular*/
 angular.module(
-    'de.cismet.uim2020-html5-demonstrator.factories',
-    [
-    ]
-);
-/* 
- * ***************************************************
- * 
- * cismet GmbH, Saarbruecken, Germany
- * 
- *               ... and it just works.
- * 
- * ***************************************************
- */
+        'de.cismet.uim2020-html5-demonstrator.directives'
+        ).directive('ngSize', [
+    '$rootScope',
+    function ($rootScope) {
+        'use strict';
+        return {
+            restrict: 'A',
+            controller: 
+        [
+            '$scope',
+            function ($scope) {
+                 $scope.size = {};
+                 
+            }],
+            link: function ($scope, element) {
+           
 
-angular.module(
-    'de.cismet.uim2020-html5-demonstrator.factories'
-).factory('appConfig',
-    [function () {
-        'use strict'; 
+                var handler, exists;
 
-        var appConfig = {};
-        
-        appConfig.cidsRestApi = {};
-        appConfig.cidsRestApi.host = 'http://localhost:8890';
-        //appConfig.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
-        //appConfig.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
-        
-        appConfig.searchService = {};
-        appConfig.searchService.username = 'admin@SWITCHON';
-        appConfig.searchService.password = 'cismet';
-        appConfig.searchService.defautLimit = 10;
-        appConfig.searchService.maxLimit = 50;
-        appConfig.searchService.host = appConfig.cidsRestApi.host;
-        
-        appConfig.mapView = {};
-        appConfig.mapView.backgroundLayer = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
-        appConfig.mapView.home = {};
-        appConfig.mapView.home.lat = 49.245166;
-        appConfig.mapView.home.lng = 6.936809;
-        appConfig.mapView.home.zoom = 4;
-        appConfig.mapView.maxBounds = {};
-        appConfig.mapView.maxBounds.southWest = [90, -180]; // top left corner of map
-        appConfig.mapView.maxBounds.northEast = [-90, 180];  // bottom right corner  
-        appConfig.mapView.minZoom = 2;
+                $rootScope.ngSizeDimensions = (angular.isArray($rootScope.ngSizeDimensions)) ? $rootScope.ngSizeDimensions : [];
+                $rootScope.ngSizeWatch = (angular.isArray($rootScope.ngSizeWatch)) ? $rootScope.ngSizeWatch : [];
 
-        appConfig.gui = {};
-        // Development Mode (e.g. enable untested features)
-        appConfig.gui.dev = false;
+                handler = function () {
+                    angular.forEach($rootScope.ngSizeWatch, function (el, i) {
+                        // Dimensions Not Equal?
+                        if ($rootScope.ngSizeDimensions[i][0] !== el.offsetWidth ||
+                                $rootScope.ngSizeDimensions[i][1] !== el.offsetHeight) {
+                            // Update Them
+                            $rootScope.ngSizeDimensions[i] = [el.offsetWidth, el.offsetHeight];
+                            // Update Scope?
+                            $rootScope.$broadcast('size::changed', i);
+                        }
+                    });
+                };
 
-        appConfig.objectInfo = {};
-        appConfig.objectInfo.resourceJsonUrl = 'http://' +
-        appConfig.searchService.username + ':' +
-        appConfig.searchService.password + '@' +
-        appConfig.searchService.host.replace(/.*?:\/\//g, '');
-        appConfig.objectInfo.resourceXmlUrl = 'http://tl-243.xtr.deltares.nl/csw?request=GetRecordById&service=CSW&version=2.0.2&namespace=xmlns%28csw=http://www.opengis.net/cat/csw/2.0.2%29&resultType=results&outputSchema=http://www.isotc211.org/2005/gmd&outputFormat=application/xml&ElementSetName=full&id=';
+                // Add Element to Chain?
+                exists = false;
+                angular.forEach($rootScope.ngSizeWatch, function (el, i) {
+                    if (el === element[0]) {
+                        exists = i;
+                    }
+                });
 
-        appConfig.byod = {};
-        //appConfig.byod.baseUrl = 'http://tl-243.xtr.deltares.nl/byod';
-        appConfig.byod.baseUrl = 'http://switchon.cismet.de/sip-snapshot';
-        
-        appConfig.uploadtool = {};
-        appConfig.uploadtool.baseUrl = 'http://dl-ng003.xtr.deltares.nl';
-        
-        return appConfig;
+                // Ok.
+                if (exists === false) {
+                    $rootScope.ngSizeWatch.push(element[0]);
+                    $rootScope.ngSizeDimensions.push([element[0].offsetWidth, element[0].offsetHeight]);
+                    exists = $rootScope.ngSizeWatch.length - 1;
+                }
+
+                // Update Scope?
+                $scope.$on('size::changed', function (event, i) {
+                    // Relevant to the element attached to *this* directive
+                    if (i === exists) {
+                        if(!$scope.size) {
+                            $scope.size = {};
+                        }
+                        
+                        $scope.size.width = $rootScope.ngSizeDimensions[i][0];
+                        $scope.size.height = $rootScope.ngSizeDimensions[i][1];
+                              
+                        console.log('width: ' + $scope.size.width);
+                        console.log('height: ' +  $scope.size.height);
+                    }
+                });
+
+                // Refresh: 100ms
+                if (!window.ngSizeHandler) {
+                    window.ngSizeHandler = setInterval(handler, 10);
+                }
+                    
+
+                // Window Resize?
+                angular.element(window).on('resize', handler);
+
+            }
+        };
     }]);
 angular.module(
     'de.cismet.uim2020-html5-demonstrator.filters',
@@ -900,57 +1068,120 @@ angular.module(
  * ***************************************************
  */
 
+/*global angular, L */
 angular.module(
-    'de.cismet.uim2020-html5-demonstrator.services'
-).factory('configurationService',
-    [function () {
-        'use strict'; 
+        'de.cismet.uim2020-html5-demonstrator.services'
+        ).factory('configurationService',
+        [function () {
+                'use strict';
 
-        var appConfig = {};
-        
-        appConfig.cidsRestApi = {};
-        appConfig.cidsRestApi.host = 'http://localhost:8890';
-        //appConfig.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
-        //appConfig.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
-        
-        appConfig.searchService = {};
-        appConfig.searchService.username = 'admin@SWITCHON';
-        appConfig.searchService.password = 'cismet';
-        appConfig.searchService.defautLimit = 10;
-        appConfig.searchService.maxLimit = 50;
-        appConfig.searchService.host = appConfig.cidsRestApi.host;
-        
-        appConfig.mapView = {};
-        appConfig.mapView.backgroundLayer = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
-        appConfig.mapView.home = {};
-        appConfig.mapView.home.lat = 49.245166;
-        appConfig.mapView.home.lng = 6.936809;
-        appConfig.mapView.home.zoom = 4;
-        appConfig.mapView.maxBounds = {};
-        appConfig.mapView.maxBounds.southWest = [90, -180]; // top left corner of map
-        appConfig.mapView.maxBounds.northEast = [-90, 180];  // bottom right corner  
-        appConfig.mapView.minZoom = 2;
+                var config = {};
 
-        appConfig.gui = {};
-        // Development Mode (e.g. enable untested features)
-        appConfig.gui.dev = false;
+                config.cidsRestApi = {};
+                config.cidsRestApi.host = 'http://localhost:8890';
+                //config.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
+                //config.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
 
-        appConfig.objectInfo = {};
-        appConfig.objectInfo.resourceJsonUrl = 'http://' +
-        appConfig.searchService.username + ':' +
-        appConfig.searchService.password + '@' +
-        appConfig.searchService.host.replace(/.*?:\/\//g, '');
-        appConfig.objectInfo.resourceXmlUrl = 'http://tl-243.xtr.deltares.nl/csw?request=GetRecordById&service=CSW&version=2.0.2&namespace=xmlns%28csw=http://www.opengis.net/cat/csw/2.0.2%29&resultType=results&outputSchema=http://www.isotc211.org/2005/gmd&outputFormat=application/xml&ElementSetName=full&id=';
+                config.searchService = {};
+                config.searchService.username = 'admin@SWITCHON';
+                config.searchService.password = 'cismet';
+                config.searchService.defautLimit = 10;
+                config.searchService.maxLimit = 50;
+                config.searchService.host = config.cidsRestApi.host;
 
-        appConfig.byod = {};
-        //appConfig.byod.baseUrl = 'http://tl-243.xtr.deltares.nl/byod';
-        appConfig.byod.baseUrl = 'http://switchon.cismet.de/sip-snapshot';
-        
-        appConfig.uploadtool = {};
-        appConfig.uploadtool.baseUrl = 'http://dl-ng003.xtr.deltares.nl';
-        
-        return appConfig;
-    }]);
+                config.map = {};
+
+                config.map.home = {};
+                config.map.home.lat = 47.61;
+                config.map.home.lng = 13.782778;
+                config.map.home.zoom = 8;
+                config.map.maxBounds = {};
+                config.map.maxBounds.southWest = [90, -180]; // top left corner of map
+                config.map.maxBounds.northEast = [-90, 180];  // bottom right corner  
+
+
+
+
+
+                config.map.defaults = {
+                    minZoom: 2,
+                    path: {
+                        weight: 10,
+                        color: '#800000',
+                        opacity: 1
+                    },
+                    controls: {
+                        layers: {
+                            visible: false,
+                            position: 'bottomright',
+                            collapsed: true
+                        }
+                    },
+                    tileLayer: ''
+                };
+
+                /* jshint ignore:start */
+                config.map.layerControlOptions = {
+                    container_width: '300px',
+                    container_maxHeight: '350px',
+                    group_maxHeight: '300px',
+                    exclusive: true
+                };
+                /* jshint ignore:end */
+
+                config.map.defaultLayer = new L.tileLayer("http://{s}.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png", {
+                    subdomains: ['maps', 'maps1', 'maps2', 'maps3', 'maps4'],
+                    attribution: '&copy; <a href="http://basemap.at">Basemap.at</a>, <a href="http://www.isticktoit.net">isticktoit.net</a>'
+                });
+
+                /**
+                 * styledLayerControl baseMaps!
+                 */
+                config.map.basemaps = [
+                    {
+                        groupName: 'Grundkarten',
+                        expanded: true,
+                        layers: {
+                            'Verwaltungsgrundkarte': config.map.defaultLayer,
+                            'ArcGIS Topographic': L.esri.basemapLayer('Topographic'),
+                            /*'OpenTopoMap': new L.TileLayer(
+                             'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                             id: 'mainmap',
+                             attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors, SRTM | Rendering: © <a href="http://opentopomap.org" target="_blank">OpenTopoMap</a> (CC-BY-SA)'
+                             }*/
+                            'OpenStreetMap': new L.TileLayer(
+                                    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                        id: 'mainmap',
+                                        attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors'
+                                    })
+
+                        }
+                    }
+                ];
+
+                config.map.overlays = [];
+
+
+                config.gui = {};
+                // Development Mode (e.g. enable untested features)
+                config.gui.dev = false;
+
+                config.objectInfo = {};
+                config.objectInfo.resourceJsonUrl = 'http://' +
+                        config.searchService.username + ':' +
+                        config.searchService.password + '@' +
+                        config.searchService.host.replace(/.*?:\/\//g, '');
+                config.objectInfo.resourceXmlUrl = 'http://tl-243.xtr.deltares.nl/csw?request=GetRecordById&service=CSW&version=2.0.2&namespace=xmlns%28csw=http://www.opengis.net/cat/csw/2.0.2%29&resultType=results&outputSchema=http://www.isotc211.org/2005/gmd&outputFormat=application/xml&ElementSetName=full&id=';
+
+                config.byod = {};
+                //config.byod.baseUrl = 'http://tl-243.xtr.deltares.nl/byod';
+                config.byod.baseUrl = 'http://switchon.cismet.de/sip-snapshot';
+
+                config.uploadtool = {};
+                config.uploadtool.baseUrl = 'http://dl-ng003.xtr.deltares.nl';
+
+                return config;
+            }]);
 /* 
  * ***************************************************
  * 
