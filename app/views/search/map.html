@@ -1,0 +1,50 @@
+<!--<leaflet id="search-map" 
+         defaults="mapData.defaults" 
+         center="mapData.center"
+         height="600px" width="820px">   
+</leaflet>-->
+
+
+<div class="flex-container-vertical">
+    <div class="cs-result-list">
+        <ul class="list-group">
+            <li class="list-group-item">  
+                <span class="btn-link">ITEM 1
+                </span>
+                <a class="btn-invisible btn-icon pull-right"
+                   href="#/resource/"
+                   title="Show detailed resource information">
+                    <span class="fa fa-info-circle"></span>
+                </a>
+                <p>
+                    <small><small>
+                            description
+                        </small></small>
+                </p>
+            </li>
+
+            <!--
+            <li class="list-group-item" ng-repeat="node in resultSet.$collection">  
+                <span class="btn-link" 
+                      ng-style="{'font-weight': $parent.selectedObject === $index ? 'bold' : 'plain'}"
+                      ng-click="$parent.selectedObject = $index">
+                    {{node.name | txtLen:30:false:'...':true}}
+                </span>
+                <a class="btn-invisible btn-icon pull-right"
+                   href="#/resource/{{node.object.id}}"
+                   title="Show detailed resource information"><i class="glyphicon glyphicon-info-sign"></i>
+                </a>
+                <p>
+                    <small><small>
+                            {{node.object.description| txtLen:80:false:'...':true}}
+                        </small></small>
+                </p>
+            </li>
+            -->
+        </ul>
+    </div>
+
+
+    <leaflet id="map-search"></leaflet>
+
+</div>

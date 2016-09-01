@@ -1,4 +1,4 @@
-/* global L */
+/*global angular, L */
 
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
@@ -6,12 +6,18 @@ angular.module(
         'masterController',
         [
             '$scope',
+            '$state',
+            '$previousState',
             'appConfig',
+            'authenticationService',
             'leafletData',
             'geoTools',
             function (
                     $scope,
+                    $state,
+                    $previousState,
                     appConfig,
+                    authenticationService,
                     leafletData,
                     geoTools
                     ) {
@@ -51,6 +57,11 @@ angular.module(
                 drawControlsEnabled = true;
 
 
+                _this.signOut = function() {
+                    authenticationService.authenticate(null);
+                    $state.go('main.authentication');
+                    $previousState.memo('authentication');
+                  };
 
                 leafletData.getMap('mainmap').then(function (map) {
                     map.addLayer(layerGroup);
@@ -148,9 +159,9 @@ angular.module(
 
                 var overlays = {
                     "DRAW": layerGroup
-                   // "CLC": roads,
-                   // "Wassermessstellen": cities,
-                   // "ePRTR Emittenten": boundaries
+                            // "CLC": roads,
+                            // "Wassermessstellen": cities,
+                            // "ePRTR Emittenten": boundaries
                 };
                 var lc = L.control.layers({
                     "ESRI StreetMap": watercolor,

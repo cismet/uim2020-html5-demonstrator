@@ -1,0 +1,95 @@
+<nav class="navbar navbar-default cs-toolbar" >
+    <div id="search-toolbar" class="collapse navbar-collapse">
+        <div class="nav navbar-nav navbar-left">
+            <button type="button"
+                    data-ui-sref-active="active"
+                    class="btn btn-md navbar-btn" 
+                    data-ui-sref="main.search.map"
+                    title="Karte">
+                <span class="fa fa-map-o"></span>
+            </button>
+            <button type="button"
+                    data-ui-sref-active="active"
+                    class="btn btn-md navbar-btn" 
+                    data-ui-sref="main.search.list"
+                    title="Liste">
+                <span class="fa fa-list"></span>
+            </button>
+        </div>
+
+        <!-- Einschränkungen -->
+        <form class="navbar-form navbar-left cs-toolbar-form">
+            <label>Einschränkungen</label>
+            <div class="btn-group">
+                <button type="button" 
+                        class="btn btn-default navbar-btn dropdown-toggle" 
+                        data-toggle="dropdown">
+                    Gesamter Kartenausschnitt <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a href="#">Gesamter Kartenausschnitt</a></li>
+                    <li><a href="#">Boundingbox Auswahl</a></li>
+                    <li><a href="#">Something else here</a></li>
+                    <li role="separator" class="divider"></li>
+                    <li><a href="#">Separated link</a></li>
+                </ul>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" 
+                        class="btn btn-default navbar-btn dropdown-toggle" 
+                        data-toggle="dropdown">
+                    5 Themen <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a href="#">Alle auswählen</a></li>
+                    <li><a href="#">Alle abwählen</a></li>
+                    <li role="separator" class="divider"></li>
+                    <li><a href="#">Bodenmesstellen</a></li>
+                    <li><a href="#">Grundwassermesstellen</a></li>
+                    <li><a href="#">Wassermesstellen</a></li>
+                    <li><a href="#">ePRTR Emittenten</a></li>
+                    <li><a href="#">Moose</a></li>
+                </ul>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" 
+                        class="btn btn-default navbar-btn dropdown-toggle" 
+                        data-toggle="dropdown">
+                    7 Schadstoffe <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a href="#">Alle auswählen</a></li>
+                    <li><a href="#">Alle abwählen</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Cadmium</a></li>
+                </ul>
+            </div>
+            <button type="submit" class="btn btn-success navbar-btn cs-toolbar-form-action">
+                <span class="fa fa-search"></span>
+            </button>
+        </form>
+
+        <!-- Gazzetteer  -->
+        <form class="navbar-form navbar-left cs-toolbar-form">
+            <label>Gehe zu</label>
+            <div class="btn-group">
+                <button type="button" 
+                        class="btn btn-default navbar-btn dropdown-toggle" 
+                        data-toggle="dropdown">
+                    Tullnerfeld <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a href="#">Tirol</a></li>
+                    <li><a href="#">Vorarlberg</a></li>
+                    <li><a href="#">Wien</a></li>
+                </ul>
+            </div>
+
+            <button type="submit" class="btn btn-success navbar-btn cs-toolbar-form-action">
+                <span class="fa fa-repeat"></span></span>
+            </button>
+        </form>
+    </div>
+</nav>

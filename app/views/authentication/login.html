@@ -1,0 +1,19 @@
+<div class="form-signin-page">
+    <div class="form-signin-wrapper">
+        <form class="form-signin">       
+            <h2 class="form-signin-heading">Bitte melden Sie sich an</h2>
+            <input type="text" class="form-control" name="username" placeholder="Benutzername" required="" autofocus="" />
+            <input type="password" class="form-control" name="password" placeholder="Passwort" required=""/>      
+            <label class="checkbox">
+                <input type="checkbox" checked disabled 
+                       value="remember-me" 
+                       id="rememberMe" name="rememberMe"> Anmeldedaten merken
+            </label>
+            <button class="btn btn-lg btn-primary btn-block" 
+                    type="submit" 
+                    ng-click="authenticationController.signIn()">Login</button>   
+        </form>
+    </div>
+    
+    <h1></h1>
+</div>
