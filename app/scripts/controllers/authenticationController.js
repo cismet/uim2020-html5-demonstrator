@@ -18,9 +18,9 @@ angular.module(
                         roles: ['User']
                     });
 
-                    if ($previousState.get("authentication") 
-                            && $previousState.get("authentication").state
-                            && $previousState.get("authentication").state.name) {
+                    if ($previousState.get("authentication") && 
+                            $previousState.get("authentication").state && 
+                            $previousState.get("authentication").state.name !== 'main.authentication') {
                         $previousState.go('authentication');
                     } else {
                         $state.go('main.search.map');

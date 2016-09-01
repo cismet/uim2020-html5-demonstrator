@@ -17,9 +17,9 @@ angular.module(
                                 .then(function () {
                                     var isAuthenticated = authenticationService.isAuthenticated();
 
-                                    if ($rootScope.toState.data.roles 
-                                            && $rootScope.toState.data.roles.length > 0 
-                                            && !authenticationService.isInAnyRole($rootScope.toState.data.roles)) {
+                                    if ($rootScope.toState.data.roles && 
+                                            $rootScope.toState.data.roles.length > 0 && 
+                                            !authenticationService.isInAnyRole($rootScope.toState.data.roles)) {
                                         if (isAuthenticated) {
                                             console.warn('user is not in any role');
                                             $previousState.memo('autorisation');

@@ -2,6 +2,10 @@
     margin-bottom: 0px !important;
 }
 
+.cs-navbar-brand {
+    padding: 10px;
+}
+
 .cs-toolbar {
     border-top:  0px !important;
     margin-bottom: 0px !important;

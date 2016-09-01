@@ -22,7 +22,8 @@
         <link rel="icon" type="image/vnd.microsoft.icon" href="favicon.ico"/>
 
         <!-- build:css() -->
-        <link rel="stylesheet" href="styles/app.css">
+        <link rel="stylesheet" href="styles/main.css">
+        <link rel="stylesheet" href="styles/form-signin.css">
         <!-- endbuild -->
 
         <!-- Application related CSS -->
@@ -75,14 +76,13 @@
                     <ul class="nav navbar-nav navbar-right">
                         <li>
                             <button type="button"
-                                    class="btn btn-primary  navbar-btn" 
+                                    class="btn navbar-btn" 
                                     ng-click="masterController.signOut()">Abmelden
                             </button>
                         </li>
 
-                        <li><a class="navbar-brand" href="http://www.cismet.de" target="_blank">
-                                <img alt="cismet" src="images/cismet.png"/>
-                            </a>
+                        <li>
+                            <img class="cs-navbar-brand" alt="cismet" src="images/cismet.png"/>
                         </li>
                     </ul>
                 </div><!-- /.navbar-collapse -->

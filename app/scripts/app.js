@@ -247,13 +247,13 @@ app.config(
                                                     {
                                                         console.log(state);
                                                     });
-                                        } else {
-                                            //console.log('oldZoom:' + oldZoom + " = this.zoom:" + _this.zoom);
-//                                            $state.go('main.analysis.map', {'zoom': undefined},
-//                                                    {'inherit': true, 'notify': false, 'reload': false}).then(function (state) {
-//                                                console.log(state);
-//                                            });
-                                        }
+                                        } /*else {
+                                            console.log('oldZoom:' + oldZoom + " = this.zoom:" + _this.zoom);
+                                            $state.go('main.analysis.map', {'zoom': undefined},
+                                                    {'inherit': true, 'notify': false, 'reload': false}).then(function (state) {
+                                                console.log(state);
+                                            });
+                                        }*/
                                     });
                                 }],
                             controllerAs: 'mapVm'
@@ -326,8 +326,7 @@ app.run(
             '$stateParams',
             '$previousState',
             'authenticationService',
-            'autorisationService',
-            function ($rootScope, $state, $stateParams, $previousState, authenticationService, autorisationService) {
+            function ($rootScope, $state, $stateParams, $previousState, authenticationService) {
                 'use strict';
                 // It's very handy to add references to $state and $stateParams to the $rootScope
                 // so that you can access them from any scope within your applications.For example,
@@ -342,9 +341,9 @@ app.run(
                         function (event, toState, toParams, fromState, fromParams) {
 
                             if (toState.name !== 'main.authentication') {
-                                if ((!authenticationService.isIdentityResolved() 
-                                        && !authenticationService.getIdentity()) 
-                                        || !authenticationService.isAuthenticated()) {
+                                if ((!authenticationService.isIdentityResolved() && 
+                                        !authenticationService.getIdentity()) || 
+                                        !authenticationService.isAuthenticated()) {
                                     console.warn('user not logged in!');
                                     event.preventDefault();
                                     $previousState.memo('authentication');
