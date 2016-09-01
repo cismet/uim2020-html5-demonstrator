@@ -8,7 +8,7 @@ angular.module(
             '$scope',
             '$state',
             '$previousState',
-            'appConfig',
+            'configurationService',
             'authenticationService',
             'leafletData',
             'geoTools',
@@ -16,7 +16,7 @@ angular.module(
                     $scope,
                     $state,
                     $previousState,
-                    appConfig,
+                    configurationService,
                     authenticationService,
                     leafletData,
                     geoTools
@@ -27,7 +27,7 @@ angular.module(
                         noDrawOptions, writeSpatialCoverage,
                         readSpatialCoverage, drawControlsEnabled, shpfile;
                 _this = this;
-                _this.config = appConfig;
+                _this.config = configurationService;
                 wicket = geoTools.wicket;
                 defaultStyle = geoTools.defaultStyle;
                 defaultDrawOptions = geoTools.defaultDrawOptions;
@@ -35,17 +35,7 @@ angular.module(
                 readSpatialCoverage = geoTools.readSpatialCoverage;
                 writeSpatialCoverage = geoTools.writeSpatialCoverage;
                 fireResize = geoTools.fireResize;
-                $scope.mapData = {};
-                $scope.mapData.center = _this.config.mapView.home;
-                $scope.mapData.defaults = {
-                    tileLayer: _this.config.mapView.backgroundLayer,
-                    //tileLayerOptions: {noWrap: true},
-                    //maxZoom: 14,
-                    attributionControl: true,
-                    minZoom: _this.config.minZoom,
-                    path: defaultStyle
-
-                };
+                
                 //draw control initialisation
                 layerGroup = new L.FeatureGroup();
                 drawControls = new L.Control.Draw({

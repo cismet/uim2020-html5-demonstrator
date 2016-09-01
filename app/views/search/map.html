@@ -44,7 +44,32 @@
         </ul>
     </div>
 
+    <div id="map-search-container" class="flex-container-horizontal">
+        <leaflet
+            id="map-search" 
+            defaults="defaults" 
+            layers="layers" 
+            lf-center="center" 
+            center="center" 
+            controls="controls"
+            width="100%"
+            height="800px"
+            >
+        </leaflet>
+    </div>
 
-    <leaflet id="map-search"></leaflet>
-
+    <!-- ng-size directive: incredibly hack to set leaflet size -->
+    <!--<div id="map-search-container" class="flex-container-horizontal" ng-size>
+        <leaflet
+            id="map-search" 
+            defaults="defaults" 
+            layers="layers" 
+            lf-center="center" 
+            center="center" 
+            controls="controls"
+            width="100%"
+            height="800px"
+            >
+        </leaflet>
+    </div>-->
 </div>

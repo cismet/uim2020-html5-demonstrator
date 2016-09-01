@@ -8,54 +8,117 @@
  * ***************************************************
  */
 
+/*global angular, L */
 angular.module(
-    'de.cismet.uim2020-html5-demonstrator.services'
-).factory('configurationService',
-    [function () {
-        'use strict'; 
+        'de.cismet.uim2020-html5-demonstrator.services'
+        ).factory('configurationService',
+        [function () {
+                'use strict';
 
-        var appConfig = {};
-        
-        appConfig.cidsRestApi = {};
-        appConfig.cidsRestApi.host = 'http://localhost:8890';
-        //appConfig.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
-        //appConfig.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
-        
-        appConfig.searchService = {};
-        appConfig.searchService.username = 'admin@SWITCHON';
-        appConfig.searchService.password = 'cismet';
-        appConfig.searchService.defautLimit = 10;
-        appConfig.searchService.maxLimit = 50;
-        appConfig.searchService.host = appConfig.cidsRestApi.host;
-        
-        appConfig.mapView = {};
-        appConfig.mapView.backgroundLayer = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
-        appConfig.mapView.home = {};
-        appConfig.mapView.home.lat = 49.245166;
-        appConfig.mapView.home.lng = 6.936809;
-        appConfig.mapView.home.zoom = 4;
-        appConfig.mapView.maxBounds = {};
-        appConfig.mapView.maxBounds.southWest = [90, -180]; // top left corner of map
-        appConfig.mapView.maxBounds.northEast = [-90, 180];  // bottom right corner  
-        appConfig.mapView.minZoom = 2;
+                var config = {};
 
-        appConfig.gui = {};
-        // Development Mode (e.g. enable untested features)
-        appConfig.gui.dev = false;
+                config.cidsRestApi = {};
+                config.cidsRestApi.host = 'http://localhost:8890';
+                //config.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
+                //config.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
 
-        appConfig.objectInfo = {};
-        appConfig.objectInfo.resourceJsonUrl = 'http://' +
-        appConfig.searchService.username + ':' +
-        appConfig.searchService.password + '@' +
-        appConfig.searchService.host.replace(/.*?:\/\//g, '');
-        appConfig.objectInfo.resourceXmlUrl = 'http://tl-243.xtr.deltares.nl/csw?request=GetRecordById&service=CSW&version=2.0.2&namespace=xmlns%28csw=http://www.opengis.net/cat/csw/2.0.2%29&resultType=results&outputSchema=http://www.isotc211.org/2005/gmd&outputFormat=application/xml&ElementSetName=full&id=';
+                config.searchService = {};
+                config.searchService.username = 'admin@SWITCHON';
+                config.searchService.password = 'cismet';
+                config.searchService.defautLimit = 10;
+                config.searchService.maxLimit = 50;
+                config.searchService.host = config.cidsRestApi.host;
 
-        appConfig.byod = {};
-        //appConfig.byod.baseUrl = 'http://tl-243.xtr.deltares.nl/byod';
-        appConfig.byod.baseUrl = 'http://switchon.cismet.de/sip-snapshot';
-        
-        appConfig.uploadtool = {};
-        appConfig.uploadtool.baseUrl = 'http://dl-ng003.xtr.deltares.nl';
-        
-        return appConfig;
-    }]);
+                config.map = {};
+
+                config.map.home = {};
+                config.map.home.lat = 47.61;
+                config.map.home.lng = 13.782778;
+                config.map.home.zoom = 8;
+                config.map.maxBounds = {};
+                config.map.maxBounds.southWest = [90, -180]; // top left corner of map
+                config.map.maxBounds.northEast = [-90, 180];  // bottom right corner  
+
+
+
+
+
+                config.map.defaults = {
+                    minZoom: 2,
+                    path: {
+                        weight: 10,
+                        color: '#800000',
+                        opacity: 1
+                    },
+                    controls: {
+                        layers: {
+                            visible: false,
+                            position: 'bottomright',
+                            collapsed: true
+                        }
+                    },
+                    tileLayer: ''
+                };
+
+                /* jshint ignore:start */
+                config.map.layerControlOptions = {
+                    container_width: '300px',
+                    container_maxHeight: '350px',
+                    group_maxHeight: '300px',
+                    exclusive: true
+                };
+                /* jshint ignore:end */
+
+                config.map.defaultLayer = new L.tileLayer("http://{s}.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png", {
+                    subdomains: ['maps', 'maps1', 'maps2', 'maps3', 'maps4'],
+                    attribution: '&copy; <a href="http://basemap.at">Basemap.at</a>, <a href="http://www.isticktoit.net">isticktoit.net</a>'
+                });
+
+                /**
+                 * styledLayerControl baseMaps!
+                 */
+                config.map.basemaps = [
+                    {
+                        groupName: 'Grundkarten',
+                        expanded: true,
+                        layers: {
+                            'Verwaltungsgrundkarte': config.map.defaultLayer,
+                            'ArcGIS Topographic': L.esri.basemapLayer('Topographic'),
+                            /*'OpenTopoMap': new L.TileLayer(
+                             'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                             id: 'mainmap',
+                             attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors, SRTM | Rendering: © <a href="http://opentopomap.org" target="_blank">OpenTopoMap</a> (CC-BY-SA)'
+                             }*/
+                            'OpenStreetMap': new L.TileLayer(
+                                    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                        id: 'mainmap',
+                                        attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors'
+                                    })
+
+                        }
+                    }
+                ];
+
+                config.map.overlays = [];
+
+
+                config.gui = {};
+                // Development Mode (e.g. enable untested features)
+                config.gui.dev = false;
+
+                config.objectInfo = {};
+                config.objectInfo.resourceJsonUrl = 'http://' +
+                        config.searchService.username + ':' +
+                        config.searchService.password + '@' +
+                        config.searchService.host.replace(/.*?:\/\//g, '');
+                config.objectInfo.resourceXmlUrl = 'http://tl-243.xtr.deltares.nl/csw?request=GetRecordById&service=CSW&version=2.0.2&namespace=xmlns%28csw=http://www.opengis.net/cat/csw/2.0.2%29&resultType=results&outputSchema=http://www.isotc211.org/2005/gmd&outputFormat=application/xml&ElementSetName=full&id=';
+
+                config.byod = {};
+                //config.byod.baseUrl = 'http://tl-243.xtr.deltares.nl/byod';
+                config.byod.baseUrl = 'http://switchon.cismet.de/sip-snapshot';
+
+                config.uploadtool = {};
+                config.uploadtool.baseUrl = 'http://dl-ng003.xtr.deltares.nl';
+
+                return config;
+            }]);

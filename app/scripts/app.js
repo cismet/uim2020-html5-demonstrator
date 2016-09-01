@@ -4,18 +4,17 @@
 var app = angular.module(
         'de.cismet.uim2020-html5-demonstrator',
         [
+            'de.cismet.uim2020-html5-demonstrator.controllers',
+            'de.cismet.uim2020-html5-demonstrator.directives',
+            'de.cismet.uim2020-html5-demonstrator.services',
+            'de.cismet.uim2020-html5-demonstrator.filters',
             'ngResource', 'ngAnimate', 'ngSanitize',
             'ui.bootstrap', 'ui.bootstrap.tpls',
             'ui.router',
             'ct.ui.router.extras.sticky', 'ct.ui.router.extras.dsr', 'ct.ui.router.extras.previous',
             'leaflet-directive',
             'ngTable',
-            'mgo-angular-wizard',
-            'de.cismet.uim2020-html5-demonstrator.controllers',
-            'de.cismet.uim2020-html5-demonstrator.directives',
-            'de.cismet.uim2020-html5-demonstrator.services',
-            'de.cismet.uim2020-html5-demonstrator.filters',
-            'de.cismet.uim2020-html5-demonstrator.factories'
+            'mgo-angular-wizard'
         ]
         );
 
@@ -94,7 +93,7 @@ app.config(
                                     $scope.name = 'main';
                                     this.name = 'this.main';
                                 }],
-                            controllerAs: 'mainVm'
+                            controllerAs: 'mainController'
                         }
                     }
                 });
@@ -128,13 +127,8 @@ app.config(
                     views: {
                         'search@main': {
                             templateUrl: 'views/search/index.html',
-                            controller: ['$scope',
-                                function ($scope) {
-                                    console.log('main.search instance created');
-                                    $scope.name = 'main.search';
-                                    this.name = 'this.main.search';
-                                }],
-                            controllerAs: 'searchVm'
+                            controller: 'searchController',
+                            controllerAs: 'searchController'
                         },
                         'search-toolbar@main.search': {
                             templateUrl: 'views/search/toolbar.html',
@@ -144,7 +138,7 @@ app.config(
                                     $scope.name = 'main.search.toolbar';
                                     this.name = 'this.main.search.toolbar';
                                 }],
-                            controllerAs: 'toolbarVm'
+                            controllerAs: 'toolbarController'
                         }
                     }
 
@@ -160,7 +154,7 @@ app.config(
                         'search-map@main.search': {
                             templateUrl: 'views/search/map.html',
                             controller: 'mapController',
-                            controllerAs: 'mapVm'
+                            controllerAs: 'mapController'
                         }
                     }
                 });
@@ -175,7 +169,7 @@ app.config(
                         'search-list@main.search': {
                             templateUrl: 'views/search/list.html',
                             controller: 'listController',
-                            controllerAs: 'listVm'
+                            controllerAs: 'listController'
                         }
                     }
                 });
@@ -195,13 +189,8 @@ app.config(
                     views: {
                         'analysis@main': {
                             templateUrl: 'views/analysis/index.html',
-                            controller: ['$scope',
-                                function ($scope) {
-                                    console.log('main.analysis instance created');
-                                    $scope.name = 'main.analysis';
-                                    this.name = 'this.main.analysis';
-                                }],
-                            controllerAs: 'analysisVm'
+                            controller: 'analysisController',
+                            controllerAs: 'analysisController'
 
                         },
                         'analysis-toolbar@main.analysis': {
@@ -212,7 +201,7 @@ app.config(
                                     $scope.name = 'main.analysis.toolbar';
                                     this.name = 'this.main.analysis.toolbar';
                                 }],
-                            controllerAs: 'toolbarVm'
+                            controllerAs: 'toolbarController'
                         }
                     }
                 });
@@ -256,7 +245,7 @@ app.config(
                                         }*/
                                     });
                                 }],
-                            controllerAs: 'mapVm'
+                            controllerAs: 'mapController'
                         }
                     },
                     onEnter: function () {
