@@ -1,3 +1,9 @@
 <nav data-ui-view="analysis-toolbar" class="navbar navbar-default cs-toolbar" ></nav>
-<div ui-view="analysis-map"     ng-show="$state.includes('main.analysis.map')" class="cs-container"/>
-<div ui-view="analysis-list"    ng-show="$state.includes('main.analysis.list')"/>
+
+<div ui-view="analysis-map"  
+     class="flex-container-horizontal" 
+     ng-show="analysisController.mode === 'map'"/>
+
+<div ui-view="analysis-list" 
+     class="flex-container-horizontal" 
+     ng-show="analysisController.mode === 'list'"/>

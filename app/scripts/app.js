@@ -9,8 +9,8 @@ var app = angular.module(
             'de.cismet.uim2020-html5-demonstrator.services',
             'de.cismet.uim2020-html5-demonstrator.filters',
             'ngResource', 'ngAnimate', 'ngSanitize',
-            'ui.bootstrap', 'ui.bootstrap.tpls',
-            'ui.router',
+            'ui.bootstrap', 'ui.bootstrap.modal',
+            'ui.router', 'ui.router.modal',
             'ct.ui.router.extras.sticky', 'ct.ui.router.extras.dsr', 'ct.ui.router.extras.previous',
             'leaflet-directive',
             'ngTable',
@@ -32,6 +32,58 @@ app.config(
                 'use strict';
 
                 $logProvider.debugEnabled(false);
+
+                var resolveEntity, showEntityModal;
+                resolveEntity = function ($stateParams) {
+                    console.log("resolve entity " + $stateParams.id + "@" + $stateParams.class);
+                    return {
+                        class: $stateParams.class,
+                        id: $stateParams.id
+                    };
+                };
+                
+                // showEntityModal not needed anymore since we use angular-ui-router-uib-modal
+                showEntityModal = function ($previousState, $uibModal, entityModalInvoker, entity) {
+                    console.log('showEntityModal');
+                    $previousState.memo("entityModalInvoker"); // remember the previous state with memoName "modalInvoker"
+
+                    $uibModal.open({
+                        templateUrl: 'views/entity/modal.html',
+                        backdrop: 'static',
+                        controller: 'entityController',
+                        resolve: {
+                            entityModalInvoker: entityModalInvoker,
+                            entity: entity
+                        },
+                        /*controller:
+                                ['$scope', '$uibModalInstance',
+                                    function ($scope, $uibModalInstance) {
+                                        console.log("$uibModal controller created");
+                                        var isopen = true;
+                                        $uibModalInstance.result.finally(function () {
+                                            isopen = false;
+                                            $previousState.go("entityModalInvoker"); // return to previous state
+                                        });
+                                        $scope.close = function () {
+                                            $uibModalInstance.dismiss('close');
+                                        };
+                                        $scope.$on("$stateChangeStart", function (evt, toState) {
+                                            if (!toState.$$state().includes['modal.entity']) {
+                                                console.log('app::$stateChangeStart::showEntityModal: ' + toState.$$state().name);
+                                                $uibModalInstance.dismiss('close');
+                                            } else {
+                                                console.log('app::$stateChangeStart::showEntityModal: ignore ' + toState.$$state().name);
+                                            }
+                                        });
+                                    }],*/
+                        controllerAs: 'entityController'
+                    });
+                };
+
+
+
+
+
 
 
                 /*var resolveResource;
@@ -83,23 +135,24 @@ app.config(
 
                 $stateProvider.state("main", {
                     abstract: true,
+                    sticky: true,
                     url: '',
                     views: {
-                        'main@': {
+                        'main': {
                             templateUrl: 'views/main.html',
-                            controller: ['$scope',
-                                function ($scope) {
-                                    console.log('main instance created');
-                                    $scope.name = 'main';
-                                    this.name = 'this.main';
-                                }],
+                            controller: 'mainController',
                             controllerAs: 'mainController'
+                        }
+                    },
+                    deepStateRedirect: {
+                        default: {
+                            state: "main.search"
                         }
                     }
                 });
 
                 $stateProvider.state('main.authentication', {
-                    url: '/login',
+                    url: 'login',
                     data: {
                         roles: ['User']
                     },
@@ -152,7 +205,7 @@ app.config(
                     sticky: true,
                     views: {
                         'search-map@main.search': {
-                            templateUrl: 'views/search/map.html',
+                            templateUrl: 'views/shared/map.html',
                             controller: 'mapController',
                             controllerAs: 'mapController'
                         }
@@ -213,65 +266,16 @@ app.config(
                     },
                     views: {
                         'analysis-map@main.analysis': {
-                            templateUrl: 'views/analysis/map.html',
-                            controller: ['$scope', '$stateParams', '$state',
-                                function ($scope, $stateParams, $state) {
-                                    console.log('main.analysis.map instance created');
-                                    $scope.name = 'main.analysis.map';
-                                    var _this = this;
-                                    this.name = 'this.main.analysis.map';
-                                    this.center = $stateParams.center;
-                                    this.zoom = $stateParams.zoom;
-
-
-                                    $scope.$watch(function () {
-                                        // Return the "result" of the watch expression.
-                                        return(_this.zoom);
-                                    }, function (newZoom, oldZoom) {
-                                        //console.log('newZoom:' + newZoom + " = this.zoom:" + _this.zoom);
-                                        if (_this.zoom && newZoom !== oldZoom) {
-                                            $state.go('main.analysis.map', {'zoom': _this.zoom},
-                                                    {'inherit': true, 'notify': false, 'reload': false}).then(
-                                                    function (state)
-                                                    {
-                                                        console.log(state);
-                                                    });
-                                        } /*else {
-                                            console.log('oldZoom:' + oldZoom + " = this.zoom:" + _this.zoom);
-                                            $state.go('main.analysis.map', {'zoom': undefined},
-                                                    {'inherit': true, 'notify': false, 'reload': false}).then(function (state) {
-                                                console.log(state);
-                                            });
-                                        }*/
-                                    });
-                                }],
+                            templateUrl: 'views/shared/map.html',
+                            controller: 'mapController',
                             controllerAs: 'mapController'
                         }
                     },
                     onEnter: function () {
-                        console.log("enter main.analysis.map");
+                        //console.log("enter main.analysis.map");
                     },
                     onExit: function () {
-                        console.log("exit main.analysis.map");
-                    }
-                });
-
-                $stateProvider.state('main.analysis.list', {
-                    url: '/list',
-                    data: {
-                        roles: ['User']
-                    },
-                    views: {
-                        'analysis-list@main.analysis': {
-                            templateUrl: 'views/analysis/list.html',
-                            controller: ['$scope',
-                                function ($scope) {
-                                    console.log('main.analysis.list instance created');
-                                    $scope.name = 'main.analysis.list';
-                                    this.name = 'this.main.analysis.list';
-                                }],
-                            controllerAs: 'listVm'
-                        }
+                        //console.log("exit main.analysis.map");
                     }
                 });
 
@@ -281,9 +285,56 @@ app.config(
                         roles: ['User']
                     },
                     sticky: true,
-                    templateUrl: 'views/protocol/index.html'
+                    deepStateRedirect: true,
+                    templateUrl: 'views/protocol/index.html',
+                    controller: ['$scope',
+                        function ($scope) {
+                            console.log('main.protocol created');
+                            $scope.name = 'main.protocol';
+                            this.name = 'this.main.protocol';
+                        }],
+                    controllerAs: 'protocolController',
+                    views: {
+                        'protocol@main': {
+                            templateUrl: 'views/protocol/index.html'
+                        }
+                    }
+                });
+                
+                $stateProvider.state("modal", {
+                    abstract: true
                 });
 
+                $stateProvider.state('modal.entity', {
+                    url: '/entity/{class:string}/{id:int}',
+                    data: {
+                        roles: ['User']
+                    },
+                    sticky: false,
+                    backdrop: 'static',
+                    template: 'modalstuff',
+                    /*controller: ['$scope',
+                        function ($scope) {
+                            console.log('modal.entity created');
+                            $scope.name = 'modal.entity';
+                            this.name = 'this.modal.entity';
+                        }],*/
+                    //templateUrl: 'views/entity/modal.html',
+                    controller: 'entityController',
+                    controllerAs: 'entityController',
+                    onEnter: showEntityModal,
+                   // modal:true,
+                    resolve: {
+                        entity: [
+                            '$stateParams',
+                            resolveEntity
+                        ],
+                        entityModalInvoker: function ($previousState) {
+                            $previousState.memo('entityModalInvoker');
+                            return $previousState.get('entityModalInvoker');
+                        }
+                    }
+                });
 
                 /*
                  $stateProvider.state('resourceDetail', {
@@ -323,15 +374,16 @@ app.run(
                 // to active whenever 'contacts.list' or one of its decendents is active.
                 $rootScope.$state = $state;
                 $rootScope.$stateParams = $stateParams;
+                //$rootScope.$previousState = $previousState;
 
-                $rootScope.$on("$stateChangeError", console.log.bind(console));
+                //$rootScope.$on("$stateChangeError", console.log.bind(console));
 
                 $rootScope.$on('$stateChangeStart',
                         function (event, toState, toParams, fromState, fromParams) {
 
                             if (toState.name !== 'main.authentication') {
-                                if ((!authenticationService.isIdentityResolved() && 
-                                        !authenticationService.getIdentity()) || 
+                                if ((!authenticationService.isIdentityResolved() &&
+                                        !authenticationService.getIdentity()) ||
                                         !authenticationService.isAuthenticated()) {
                                     console.warn('user not logged in!');
                                     event.preventDefault();
@@ -346,6 +398,15 @@ app.run(
                                  $previousState.memo('autorisation');
                                  $state.go('main.accessdenied'); // user is signed in but not authorized for desired state
                                  }*/
+                                else if (fromState.name === '' && toState.name.split(".").slice(0, 1).pop() === 'modal') {
+                                    // cancel initial transition
+                                    event.preventDefault();
+                                    // Go to the default background state. (Don't update the URL)
+                                    $state.go("main.search.map", undefined, {location: false}).then(function () {
+                                        // OK, background is loaded, now go to the original modalstate
+                                        $state.go(toState, toParams);
+                                    });
+                                }
                             } else {
                                 $previousState.memo('authentication');
                             }

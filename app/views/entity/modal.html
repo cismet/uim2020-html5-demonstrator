@@ -1,0 +1,26 @@
+<div class="modal-content">
+    <div class="modal-header">
+        <button type="button" class="close" ng-click="close()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title">Informationen</h4>
+    </div>
+    <div class="modal-body">
+         <p>Modal contents. </p>
+        StatE: {{class}}:{{id}}
+        <hr>
+        Entity: {{entity.class}}:{{entity.id}}
+        <!-- Not sure why this template works with $modal.open -->
+        <!--<div ui-view="entity" ></div>-->
+        <hr>
+        UI-View:
+        <div ui-view>uiuiuiui</div>
+        mode: {{mode}}<br>
+         name {{name}}<br>
+         {{mainController.selectedStateName}}<br>
+         
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-default" ng-click="close()">Close</button>
+    </div>
+</div><!-- /.modal-content -->
+
+
