@@ -6,13 +6,26 @@ angular.module(
         'mapController',
         [
             '$scope',
+            '$state',
+            '$stateParams',
             'leafletData',
             'configurationService',
-            function ($scope, leafletData, configurationService) {
+            function ($scope, $state, $stateParams, leafletData, configurationService) {
                 'use strict';
 
-                var config, layerControl, searchGroup, drawControl;
+                var mapController, config, layerControl, searchGroup, drawControl,
+                        defaults, center, basemaps, overlays, layerControlOptions;
+
+                mapController = this;
+
                 config = configurationService.map;
+                
+                
+                defaults = angular.copy(config.defaults);
+                center = angular.copy(config.home);
+                basemaps = angular.copy(config.basemaps);
+                overlays = angular.copy(config.overlays);
+                layerControlOptions = angular.copy(config.layerControlOptions);
 
                 // put angular-leaflet config into $scope-soup ...
                 angular.extend($scope, {
@@ -20,8 +33,8 @@ angular.module(
                         // don't configure baselayers in angular-leaflet-directive:
                         // does not synchronise with styledLayerControl!
                     },
-                    defaults: config.defaults,
-                    center: config.home,
+                    defaults:  defaults,
+                    center: center,
                     controls: {
                         scale: true
                     },
@@ -29,7 +42,9 @@ angular.module(
                 });
 
                 layerControl = L.Control.styledLayerControl(
-                        config.basemaps, config.overlays, config.layerControlOptions);
+                        basemaps, 
+                overlays, 
+                layerControlOptions);
 
                 searchGroup = new L.FeatureGroup();
 
@@ -59,13 +74,17 @@ angular.module(
                     }
                 });
 
-                leafletData.getMap('map-' + $scope.mode).then(function (map) {
+                leafletData.getMap($scope.mainController.mode + "-map").then(function (map) {
+
+
+                    console.log("TERROR MAP: " + $scope.mainController.mode + ' map ');
+
 
                     map.addLayer(searchGroup);
                     map.addControl(drawControl);
                     map.addControl(layerControl);
 
-                    layerControl.selectLayer(config.defaultLayer);
+                    layerControl.selectLayer(basemaps[0].layers['Verwaltungsgrundkarte']);
 
                     map.on('draw:created', function (event) {
                         //setSearchGeom(event.layer);
@@ -80,7 +99,32 @@ angular.module(
                     });
                 });
 
-                console.log('map-' + $scope.mode + ' instance created');
-            }
-        ]
+                console.log($scope.mainController.mode + ' map controller instance created');
+
+
+                //mapController.center = $stateParams.center;
+               // mapController.zoom = $stateParams.zoom;
+
+
+                $scope.$watch(function () {
+                    // Return the "result" of the watch expression.
+                    return(mapController.zoom);
+                }, function (newZoom, oldZoom) {
+                    //console.log('newZoom:' + newZoom + " = this.zoom:" + mapController.zoom);
+                    if (mapController.zoom && newZoom !== oldZoom) {
+                        /*$state.go('main.' + $scope.mainController.mode + '.map', {'zoom': mapController.zoom},
+                                {'inherit': true, 'notify': false, 'reload': false}).then(
+                                function (state)
+                                {
+                                    console.log(state);
+                                });*/
+                    } /*else {
+                     console.log('oldZoom:' + oldZoom + " = this.zoom:" + mapController.zoom);
+                     $state.go('main.analysis.map', {'zoom': undefined},
+                     {'inherit': true, 'notify': false, 'reload': false}).then(function (state) {
+                     console.log(state);
+                     });
+                     }*/
+                });
+            }]
         );
