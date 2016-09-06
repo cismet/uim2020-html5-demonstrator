@@ -69,7 +69,7 @@ angular.module(
                     map.setMaxBounds(maxBounds);
                     map.setZoom(center.zoom);
 
-                    //layerControl.selectLayer(basemaps[0].layers[config.defaultLayer]);
+                    layerControl.selectLayer(basemaps[0].layers[config.defaultLayer]);
 
 
                     map.on('draw:created', function (event) {

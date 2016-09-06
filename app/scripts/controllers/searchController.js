@@ -15,11 +15,44 @@ angular.module(
         'searchController',
         [
             '$window', '$timeout', '$scope', '$state', 'leafletData',
-            function ($window, $timeout, $scope, $state, leafletData) {
+            'configurationService', 'dataService',
+            function ($window, $timeout, $scope, $state, leafletData,
+                    configurationService, dataService) {
                 'use strict';
 
                 var searchController, fireResize;
                 searchController = this;
+                
+                // Configurations: 
+                // <editor-fold defaultstate="collapsed" desc="   - Search Controller Selection Box Configuration">
+                searchController.searchThemes = dataService.getSearchThemes();
+                searchController.selectedThemes = [];
+                searchController.searchThemesSettings = angular.extend(
+                        {},
+                        configurationService.multiselect.settings, {
+                            smartButtonMaxItems: 0,
+                            smartButtonTextConverter: function (itemText, originalItem) {
+                                return searchController.selectedThemes.length === 1 ?
+                                        '1 Thema ausgewählt' : '';
+                            }
+                        });
+                searchController.searchThemesTranslationTexts = angular.extend(
+                        {},
+                        configurationService.multiselect.translationTexts, {
+                            buttonDefaultText: 'Themen auswählen',
+                            dynamicButtonTextSuffix: 'Themen ausgewählt'
+                        });          
+                // FIXME: translationTexts not updated in directive
+                // See https://github.com/cismet/uim2020-html5-demonstrator/issues/2
+                searchController.selectEvents = {
+                    onItemSelect: function (item) {
+                        searchController.searchThemesTranslationTexts.dynamicButtonTextSuffix =
+                                searchController.selectedThemes.length === 1 ?
+                                'Thema ausgewählt' : 'Themen ausgewählt';
+                        console.log(searchController.searchThemesTranslationTexts.dynamicButtonTextSuffix);
+                    }
+                };
+                // </editor-fold>
 
                 console.log('searchController instance created');
                 //$scope.name = 'main';
@@ -53,7 +86,7 @@ angular.module(
                         //$scope.mode = $state.current.name.split(".").slice(1, 2).pop();
                         searchController.mode = $state.current.name.split(".").slice(1, 3).pop();
                         //console.log('searchController::mode: ' + searchController.mode);
-                        
+
                         // resize the map on stzate change
                         if (searchController.mode === 'map') {
                             leafletData.getMap('search-map').then(function (map) {

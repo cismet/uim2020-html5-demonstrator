@@ -11,38 +11,36 @@
 /*global angular, L */
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.services'
-        ).factory('configurationService',
+        ).service('configurationService',
         [function () {
                 'use strict';
 
-                var config = {};
+                this.cidsRestApi = {};
+                this.cidsRestApi.host = 'http://localhost:8890';
+                //this.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
+                //this.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
 
-                config.cidsRestApi = {};
-                config.cidsRestApi.host = 'http://localhost:8890';
-                //config.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
-                //config.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
+                this.searchService = {};
+                this.searchService.username = 'admin@SWITCHON';
+                this.searchService.password = 'cismet';
+                this.searchService.defautLimit = 10;
+                this.searchService.maxLimit = 50;
+                this.searchService.host = this.cidsRestApi.host;
 
-                config.searchService = {};
-                config.searchService.username = 'admin@SWITCHON';
-                config.searchService.password = 'cismet';
-                config.searchService.defautLimit = 10;
-                config.searchService.maxLimit = 50;
-                config.searchService.host = config.cidsRestApi.host;
+                this.map = {};
 
-                config.map = {};
-
-                config.map.home = {};
-                config.map.home.lat = 47.61;
-                config.map.home.lng = 13.782778;
-                config.map.home.zoom = 7;
-                config.map.maxBounds = new L.latLngBounds(
+                this.map.home = {};
+                this.map.home.lat = 47.61;
+                this.map.home.lng = 13.782778;
+                this.map.home.zoom = 7;
+                this.map.maxBounds = new L.latLngBounds(
                         L.latLng(46.372299, 9.53079),
                         L.latLng(49.02071, 17.160749));
 
-                config.map.defaults = {
+                this.map.defaults = {
                     minZoom: 7,
                     //maxZoom: 18,
-                    maxBounds: config.map.maxBounds,
+                    maxBounds: this.map.maxBounds,
                     path: {
                         weight: 10,
                         color: '#800000',
@@ -59,7 +57,7 @@ angular.module(
                 };
 
                 /* jshint ignore:start */
-                config.map.layerControlOptions = {
+                this.map.layerControlOptions = {
                     container_width: '300px',
                     container_maxHeight: '350px',
                     group_maxHeight: '300px',
@@ -67,11 +65,11 @@ angular.module(
                 };
                 /* jshint ignore:end */
 
-                config.map.defaultLayer = 'Verwaltungsgrundkarte';
+                this.map.defaultLayer = 'Verwaltungsgrundkarte';
                 /**
                  * styledLayerControl baseMaps!
                  */
-                config.map.basemaps = [
+                this.map.basemaps = [
                     {
                         groupName: 'Grundkarten',
                         expanded: true,
@@ -96,9 +94,9 @@ angular.module(
                     }
                 ];
 
-                config.map.overlays = [];
+                this.map.overlays = [];
 
-                config.map.drawOptions = {
+                this.map.drawOptions = {
                     polyline: false,
                     polygon: {
                         shapeOptions: {
@@ -119,24 +117,24 @@ angular.module(
                     marker: false
                 };
 
+                this.multiselect = {};
 
-                config.gui = {};
-                // Development Mode (e.g. enable untested features)
-                config.gui.dev = false;
+                this.multiselect.settings = {
+                    displayProp: 'name',
+                    idProp: 'classId',
+                    buttonClasses: 'btn btn-default navbar-btn'
+                };
 
-                config.objectInfo = {};
-                config.objectInfo.resourceJsonUrl = 'http://' +
-                        config.searchService.username + ':' +
-                        config.searchService.password + '@' +
-                        config.searchService.host.replace(/.*?:\/\//g, '');
-                config.objectInfo.resourceXmlUrl = 'http://tl-243.xtr.deltares.nl/csw?request=GetRecordById&service=CSW&version=2.0.2&namespace=xmlns%28csw=http://www.opengis.net/cat/csw/2.0.2%29&resultType=results&outputSchema=http://www.isotc211.org/2005/gmd&outputFormat=application/xml&ElementSetName=full&id=';
-
-                config.byod = {};
-                //config.byod.baseUrl = 'http://tl-243.xtr.deltares.nl/byod';
-                config.byod.baseUrl = 'http://switchon.cismet.de/sip-snapshot';
-
-                config.uploadtool = {};
-                config.uploadtool.baseUrl = 'http://dl-ng003.xtr.deltares.nl';
-
-                return config;
+                this.multiselect.translationTexts = {
+                    checkAll: 'Alles auswählen',
+                    uncheckAll: 'Alles abwählen',
+                    enableSearch: 'Suche aktivieren',
+                    disableSearch: 'Suche deaktivieren',
+                    selectionCount: ' ausgewählt',
+                    selectionOf: ' von ',
+                    searchPlaceholder: 'Suche...',
+                    buttonDefaultText: 'Auswählen',
+                    dynamicButtonTextSuffix: 'ausgewählt',
+                    selectGroup: 'Alle auswählen: '
+                };
             }]);

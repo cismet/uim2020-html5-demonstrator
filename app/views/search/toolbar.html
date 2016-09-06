@@ -36,6 +36,17 @@
             </div>
 
             <div class="btn-group">
+                <div ng-dropdown-multiselect=""
+                     options="searchController.searchThemes" 
+                     selected-model="searchController.selectedThemes" 
+                     extra-settings="searchController.searchThemesSettings"
+                     translation-texts="searchController.searchThemesTranslationTexts"
+                     events="searchController.selectEvents">  
+                </div>
+            </div>    
+
+            <!--
+            <div class="btn-group">
                 <button type="button" 
                         class="btn btn-default navbar-btn dropdown-toggle" 
                         data-toggle="dropdown">
@@ -52,6 +63,7 @@
                     <li><a href="#">Moose</a></li>
                 </ul>
             </div>
+            -->
 
             <div class="btn-group">
                 <button type="button" 
