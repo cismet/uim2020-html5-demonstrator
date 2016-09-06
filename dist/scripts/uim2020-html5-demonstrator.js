@@ -9,8 +9,8 @@ var app = angular.module(
             'de.cismet.uim2020-html5-demonstrator.services',
             'de.cismet.uim2020-html5-demonstrator.filters',
             'ngResource', 'ngAnimate', 'ngSanitize',
-            'ui.bootstrap', 'ui.bootstrap.tpls',
-            'ui.router',
+            'ui.bootstrap', 'ui.bootstrap.modal',
+            'ui.router', 'ui.router.modal',
             'ct.ui.router.extras.sticky', 'ct.ui.router.extras.dsr', 'ct.ui.router.extras.previous',
             'leaflet-directive',
             'ngTable',
@@ -33,6 +33,64 @@ app.config(
 
                 $logProvider.debugEnabled(false);
 
+                var resolveEntity, showEntityModal;
+                resolveEntity = function ($stateParams) {
+                    console.log("resolve entity " + $stateParams.id + "@" + $stateParams.class);
+                    return {
+                        class: $stateParams.class,
+                        id: $stateParams.id
+                    };
+                };
+                
+                // <editor-fold defaultstate="collapsed" desc=" showEntityModal() " >
+                /**
+                 * Opens a modal window and remebers the previous state.
+                 * Note: Function not needed anymore since we use angular-ui-router-uib-modal:
+                 * model: true
+                 * 
+                 * @param {type} $previousState
+                 * @param {type} $uibModal
+                 * @param {type} entityModalInvoker
+                 * @param {type} entity
+                 * @returns {undefined}
+                 */
+//                showEntityModal = function ($previousState, $uibModal, entityModalInvoker, entity) {
+//                    console.log('showEntityModal');
+//                    $previousState.memo("entityModalInvoker"); // remember the previous state with memoName "modalInvoker"
+//
+//                    $uibModal.open({
+//                        templateUrl: 'views/entity/modal.html',
+//                        backdrop: 'static',
+//                        controller: 'entityController',
+//                        resolve: {
+//                            entityModalInvoker: entityModalInvoker,
+//                            entity: entity
+//                        },
+//                        /*controller:
+//                                ['$scope', '$uibModalInstance',
+//                                    function ($scope, $uibModalInstance) {
+//                                        console.log("$uibModal controller created");
+//                                        var isopen = true;
+//                                        $uibModalInstance.result.finally(function () {
+//                                            isopen = false;
+//                                            $previousState.go("entityModalInvoker"); // return to previous state
+//                                        });
+//                                        $scope.close = function () {
+//                                            $uibModalInstance.dismiss('close');
+//                                        };
+//                                        $scope.$on("$stateChangeStart", function (evt, toState) {
+//                                            if (!toState.$$state().includes['modal.entity']) {
+//                                                console.log('app::$stateChangeStart::showEntityModal: ' + toState.$$state().name);
+//                                                $uibModalInstance.dismiss('close');
+//                                            } else {
+//                                                console.log('app::$stateChangeStart::showEntityModal: ignore ' + toState.$$state().name);
+//                                            }
+//                                        });
+//                                    }],*/
+//                        controllerAs: 'entityController'
+//                    });
+//                };
+                //</editor-fold>
 
                 /*var resolveResource;
                  resolveResource = function ($stateParams, $q, searchService, shareService) {
@@ -83,23 +141,24 @@ app.config(
 
                 $stateProvider.state("main", {
                     abstract: true,
+                    sticky: true,
                     url: '',
                     views: {
-                        'main@': {
+                        'main': {
                             templateUrl: 'views/main.html',
-                            controller: ['$scope',
-                                function ($scope) {
-                                    console.log('main instance created');
-                                    $scope.name = 'main';
-                                    this.name = 'this.main';
-                                }],
+                            controller: 'mainController',
                             controllerAs: 'mainController'
+                        }
+                    },
+                    deepStateRedirect: {
+                        default: {
+                            state: "main.search"
                         }
                     }
                 });
 
                 $stateProvider.state('main.authentication', {
-                    url: '/login',
+                    url: 'login',
                     data: {
                         roles: ['User']
                     },
@@ -152,7 +211,7 @@ app.config(
                     sticky: true,
                     views: {
                         'search-map@main.search': {
-                            templateUrl: 'views/search/map.html',
+                            templateUrl: 'views/shared/map.html',
                             controller: 'mapController',
                             controllerAs: 'mapController'
                         }
@@ -213,65 +272,16 @@ app.config(
                     },
                     views: {
                         'analysis-map@main.analysis': {
-                            templateUrl: 'views/analysis/map.html',
-                            controller: ['$scope', '$stateParams', '$state',
-                                function ($scope, $stateParams, $state) {
-                                    console.log('main.analysis.map instance created');
-                                    $scope.name = 'main.analysis.map';
-                                    var _this = this;
-                                    this.name = 'this.main.analysis.map';
-                                    this.center = $stateParams.center;
-                                    this.zoom = $stateParams.zoom;
-
-
-                                    $scope.$watch(function () {
-                                        // Return the "result" of the watch expression.
-                                        return(_this.zoom);
-                                    }, function (newZoom, oldZoom) {
-                                        //console.log('newZoom:' + newZoom + " = this.zoom:" + _this.zoom);
-                                        if (_this.zoom && newZoom !== oldZoom) {
-                                            $state.go('main.analysis.map', {'zoom': _this.zoom},
-                                                    {'inherit': true, 'notify': false, 'reload': false}).then(
-                                                    function (state)
-                                                    {
-                                                        console.log(state);
-                                                    });
-                                        } /*else {
-                                            console.log('oldZoom:' + oldZoom + " = this.zoom:" + _this.zoom);
-                                            $state.go('main.analysis.map', {'zoom': undefined},
-                                                    {'inherit': true, 'notify': false, 'reload': false}).then(function (state) {
-                                                console.log(state);
-                                            });
-                                        }*/
-                                    });
-                                }],
+                            templateUrl: 'views/shared/map.html',
+                            controller: 'mapController',
                             controllerAs: 'mapController'
                         }
                     },
                     onEnter: function () {
-                        console.log("enter main.analysis.map");
+                        //console.log("enter main.analysis.map");
                     },
                     onExit: function () {
-                        console.log("exit main.analysis.map");
-                    }
-                });
-
-                $stateProvider.state('main.analysis.list', {
-                    url: '/list',
-                    data: {
-                        roles: ['User']
-                    },
-                    views: {
-                        'analysis-list@main.analysis': {
-                            templateUrl: 'views/analysis/list.html',
-                            controller: ['$scope',
-                                function ($scope) {
-                                    console.log('main.analysis.list instance created');
-                                    $scope.name = 'main.analysis.list';
-                                    this.name = 'this.main.analysis.list';
-                                }],
-                            controllerAs: 'listVm'
-                        }
+                        //console.log("exit main.analysis.map");
                     }
                 });
 
@@ -281,9 +291,55 @@ app.config(
                         roles: ['User']
                     },
                     sticky: true,
-                    templateUrl: 'views/protocol/index.html'
+                    deepStateRedirect: true,
+                    templateUrl: 'views/protocol/index.html',
+                    controller: ['$scope',
+                        function ($scope) {
+                            console.log('main.protocol created');
+                            $scope.name = 'main.protocol';
+                            this.name = 'this.main.protocol';
+                        }],
+                    controllerAs: 'protocolController',
+                    views: {
+                        'protocol@main': {
+                            templateUrl: 'views/protocol/index.html'
+                        }
+                    }
+                });
+                
+                $stateProvider.state("modal", {
+                    abstract: true
                 });
 
+                $stateProvider.state('modal.entity', {
+                    url: '/entity/{class:string}/{id:int}',
+                    data: {
+                        roles: ['User']
+                    },
+                    sticky: false,
+                    backdrop: 'static',
+                    /*controller: ['$scope',
+                        function ($scope) {
+                            console.log('modal.entity created');
+                            $scope.name = 'modal.entity';
+                            this.name = 'this.modal.entity';
+                        }],*/
+                    templateUrl: 'views/entity/modal.html',
+                    controller: 'entityController',
+                    controllerAs: 'entityController',
+                    //onEnter: showEntityModal,
+                    modal:true,
+                    resolve: {
+                        entity: [
+                            '$stateParams',
+                            resolveEntity
+                        ],
+                        entityModalInvoker: function ($previousState) {
+                            $previousState.memo('entityModalInvoker');
+                            return $previousState.get('entityModalInvoker');
+                        }
+                    }
+                });
 
                 /*
                  $stateProvider.state('resourceDetail', {
@@ -323,15 +379,16 @@ app.run(
                 // to active whenever 'contacts.list' or one of its decendents is active.
                 $rootScope.$state = $state;
                 $rootScope.$stateParams = $stateParams;
+                //$rootScope.$previousState = $previousState;
 
-                $rootScope.$on("$stateChangeError", console.log.bind(console));
+                //$rootScope.$on("$stateChangeError", console.log.bind(console));
 
                 $rootScope.$on('$stateChangeStart',
                         function (event, toState, toParams, fromState, fromParams) {
 
                             if (toState.name !== 'main.authentication') {
-                                if ((!authenticationService.isIdentityResolved() && 
-                                        !authenticationService.getIdentity()) || 
+                                if ((!authenticationService.isIdentityResolved() &&
+                                        !authenticationService.getIdentity()) ||
                                         !authenticationService.isAuthenticated()) {
                                     console.warn('user not logged in!');
                                     event.preventDefault();
@@ -346,6 +403,15 @@ app.run(
                                  $previousState.memo('autorisation');
                                  $state.go('main.accessdenied'); // user is signed in but not authorized for desired state
                                  }*/
+                                else if (fromState.name === '' && toState.name.split(".").slice(0, 1).pop() === 'modal') {
+                                    // cancel initial transition
+                                    event.preventDefault();
+                                    // Go to the default background state. (Don't update the URL)
+                                    $state.go("main.search.map", undefined, {location: false}).then(function () {
+                                        // OK, background is loaded, now go to the original modalstate
+                                        $state.go(toState, toParams);
+                                    });
+                                }
                             } else {
                                 $previousState.memo('authentication');
                             }
@@ -375,11 +441,47 @@ angular.module(
         ).controller(
         'analysisController',
         [
-            '$scope',
-            function ($scope) {
+            '$timeout', '$scope', '$state', 'leafletData',
+            function ($timeout, $scope, $state, leafletData) {
                 'use strict';
 
-                $scope.mode = "analysis";
+                var analysisController;
+                analysisController = this;
+                
+                console.log('analysisController instance created');
+                //$scope.name = 'main';
+                //mainController.name = 'this.main';
+                //$scope.mode = 'analysis';
+                analysisController.mode = 'map';
+                
+                    $scope.$on('$stateChangeSuccess', function (toState) {
+                    if ($state.includes("main.analysis") && !$state.is("main.analysis")) {
+                        //$scope.mode = $state.current.name.split(".").slice(1, 2).pop();
+                        analysisController.mode = $state.current.name.split(".").slice(1, 3).pop();
+                        console.log('analysisController::mode: ' + analysisController.mode);
+                        
+                        // resize the map on stzate change
+                        if (analysisController.mode === 'map') {
+                            leafletData.getMap('analysis-map').then(function (map) {
+                                $timeout(function () {
+                                    if (map && map._container.parentElement) {
+                                        if (map._container.parentElement.offsetHeight > 0 &&
+                                                map._container.parentElement.offsetWidth  > 0) {
+                                            $scope.mapHeight = map._container.parentElement.offsetHeight;
+                                            $scope.mapWidth = map._container.parentElement.offsetWidth;
+                                            console.log('analysisController::stateChangeSuccess new size: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
+                                            map.invalidateSize(false);
+
+                                        } else {
+                                            console.warn('analysisController::stateChangeSuccess saved size: ' + $scope.mapWidth + "x" + $scope.mapHeight);
+                                            map.invalidateSize(false);
+                                        }
+                                    }
+                                }, 100);
+                            });
+                        }
+                    }
+                });
             }
         ]
         );
@@ -416,6 +518,78 @@ angular.module(
         ]
         );
 
+/*global angular*/
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.controllers'
+        ).controller(
+        'entityController', [
+            '$scope', '$state', '$stateParams', '$previousState', '$uibModalInstance',
+            'entity', 'entityModalInvoker',
+            function ($scope, $state, $stateParams, $previousState, $uibModalInstance,
+                    entity, entityModalInvoker) {
+                'use strict';
+                //var isopen = true;
+                $scope.class = $stateParams.class;
+                $scope.id = $stateParams.id;
+                $scope.entity = entity;
+
+                console.log('entityController created');
+//                console.log($scope.class + "/" + $scope.id);
+//                console.log($scope.entity);
+//                console.log('$previousState(entityModalInvoker):' + entityModalInvoker.state);
+
+
+
+                $uibModalInstance.result.finally(function () {
+                    //$previousState.go("entityModalInvoker"); // return to previous state
+                    console.log($previousState.get("entityModalInvoker").state);
+                    if ($previousState.get("entityModalInvoker") &&
+                            $previousState.get("entityModalInvoker").state) {
+                        console.log('entityController::close goto $previousState ' + $previousState.get("entityModalInvoker").state.name);
+                        $previousState.go("entityModalInvoker");
+                    } else {
+                        console.log('entityController::close goto default main.search.map');
+                        $state.go('main.search.map');
+                    }
+                });
+                
+
+//                $uibModalInstance.result.finally(function () {
+//                    isopen = false;
+//                    //console.log($previousState.get("entityModalInvoker").state);
+//                    if ($previousState.get("entityModalInvoker") &&
+//                            $previousState.get("entityModalInvoker").state) {
+//                        console.log('entityController::close goto $previousState ' + $previousState.get("entityModalInvoker").state.name);
+//                        $previousState.go("entityModalInvoker");
+//                    } else {
+//                        console.log('entityController::close goto default main.search.map');
+//                        $state.go('main.search.map');
+//                    }
+
+
+
+
+                // return to previous state
+                //    });
+                $scope.close = function () {
+                    console.log('entityController::close');
+                    $uibModalInstance.dismiss('close');
+                };
+
+                $scope.$on("$stateChangeStart", function (evt, toState) {
+                    if (!toState.$$state().includes['modal.entity']) {
+                        console.log('entityController::$stateChangeStart: $uibModalInstance.close');
+                        $uibModalInstance.dismiss('close');
+                    } else {
+                        console.log('entityController::$stateChangeStart: ignore ' + toState);
+                    }
+                });
+            }
+        ]
+        );
+
+
+/*global angular*/
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
@@ -433,6 +607,47 @@ angular.module(
         ]
         );
 
+/*global angular*/
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.controllers'
+        ).controller(
+        'mainController',
+        ['$scope', '$state', '$previousState',
+            function ($scope, $state, $previousState) {
+                'use strict';
+                
+                var mainController;
+                mainController = this;
+                
+                
+                console.log('mainController::main instance created');
+                //$scope.name = 'main';
+                //mainController.name = 'this.main';
+                //$scope.mode = 'search';
+                mainController.mode =  $state.current.name.split(".").slice(1, 2).pop();
+
+
+                $scope.$on('$stateChangeSuccess', function (toState) {
+                    if ($state.includes("main") && !$state.is("main")) {  
+                        //$scope.mode = $state.current.name.split(".").slice(1, 2).pop();
+                        mainController.mode = $state.current.name.split(".").slice(1, 2).pop();
+                        console.log('mainController::mainController.mode: ' +mainController.mode);
+                        
+                        var previousState = $previousState.get();
+                        if(previousState && previousState.state && previousState.state.name) {
+                            mainController.previousStateName = previousState.state.name;
+                        } else {
+                            mainController.previousStateName = undefined;
+                        }
+                    } else {
+                        console.log("mainController::ingoring stateChange '"+ $state.name +"'");
+                    }
+                });
+            }]
+        );
+
+
+
 /*global angular, L */
 
 angular.module(
@@ -441,13 +656,29 @@ angular.module(
         'mapController',
         [
             '$scope',
+            '$state',
+            '$stateParams',
             'leafletData',
             'configurationService',
-            function ($scope, leafletData, configurationService) {
+            function ($scope, $state, $stateParams, leafletData, configurationService) {
                 'use strict';
 
-                var config, layerControl, searchGroup, drawControl;
+                var mapController, config, layerControl, searchGroup, drawControl,
+                        defaults, center, basemaps, overlays, layerControlOptions,
+                        drawOptions, maxBounds;
+
+                mapController = this;
+
                 config = configurationService.map;
+
+
+                defaults = angular.copy(config.defaults);
+                center = angular.copy(config.maxBounds);
+                maxBounds = angular.copy(config.maxBounds);
+                basemaps = angular.copy(config.basemaps);
+                overlays = angular.copy(config.overlays);
+                layerControlOptions = angular.copy(config.layerControlOptions);
+                drawOptions = angular.copy(config.drawOptions);
 
                 // put angular-leaflet config into $scope-soup ...
                 angular.extend($scope, {
@@ -455,8 +686,9 @@ angular.module(
                         // don't configure baselayers in angular-leaflet-directive:
                         // does not synchronise with styledLayerControl!
                     },
-                    defaults: config.defaults,
-                    center: config.home,
+                    defaults: defaults,
+                    center: center,
+                    maxBounds: maxBounds,
                     controls: {
                         scale: true
                     },
@@ -464,43 +696,31 @@ angular.module(
                 });
 
                 layerControl = L.Control.styledLayerControl(
-                        config.basemaps, config.overlays, config.layerControlOptions);
+                        basemaps,
+                        overlays,
+                        layerControlOptions);
 
                 searchGroup = new L.FeatureGroup();
 
                 drawControl = new L.Control.Draw({
-                    draw: {
-                        polyline: false,
-                        polygon: {
-                            shapeOptions: {
-                                color: '#800000'
-                            },
-                            showArea: true,
-                            metric: true
-                        },
-                        rectangle: {
-                            shapeOptions: {
-                                color: '#800000',
-                                clickable: false
-                            },
-                            metric: true
-                        },
-                        // no circles for starters as not compatible with WKT
-                        circle: false,
-                        marker: false
-                    },
+                    draw: drawOptions,
                     edit: {
                         featureGroup: searchGroup
                     }
                 });
 
-                leafletData.getMap('map-' + $scope.mode).then(function (map) {
+                leafletData.getMap($scope.mainController.mode + "-map").then(function (map) {
 
                     map.addLayer(searchGroup);
                     map.addControl(drawControl);
                     map.addControl(layerControl);
 
-                    layerControl.selectLayer(config.defaultLayer);
+                    // not sure why this is needed altough it is already configured in the map directive
+                    map.setMaxBounds(maxBounds);
+                    map.setZoom(center.zoom);
+
+                    //layerControl.selectLayer(basemaps[0].layers[config.defaultLayer]);
+
 
                     map.on('draw:created', function (event) {
                         //setSearchGeom(event.layer);
@@ -515,9 +735,34 @@ angular.module(
                     });
                 });
 
-                console.log('map-' + $scope.mode + ' instance created');
-            }
-        ]
+                console.log($scope.mainController.mode + ' map controller instance created');
+
+
+                //mapController.center = $stateParams.center;
+                // mapController.zoom = $stateParams.zoom;
+
+
+                $scope.$watch(function () {
+                    // Return the "result" of the watch expression.
+                    return(mapController.zoom);
+                }, function (newZoom, oldZoom) {
+                    //console.log('newZoom:' + newZoom + " = this.zoom:" + mapController.zoom);
+                    if (mapController.zoom && newZoom !== oldZoom) {
+                        /*$state.go('main.' + $scope.mainController.mode + '.map', {'zoom': mapController.zoom},
+                         {'inherit': true, 'notify': false, 'reload': false}).then(
+                         function (state)
+                         {
+                         console.log(state);
+                         });*/
+                    } /*else {
+                     console.log('oldZoom:' + oldZoom + " = this.zoom:" + mapController.zoom);
+                     $state.go('main.analysis.map', {'zoom': undefined},
+                     {'inherit': true, 'notify': false, 'reload': false}).then(function (state) {
+                     console.log(state);
+                     });
+                     }*/
+                });
+            }]
         );
 
 /*global angular, L */
@@ -729,11 +974,69 @@ angular.module(
         ).controller(
         'searchController',
         [
-            '$scope',
-            function ($scope) {
+            '$window', '$timeout', '$scope', '$state', 'leafletData',
+            function ($window, $timeout, $scope, $state, leafletData) {
                 'use strict';
 
-                $scope.mode = "search";
+                var searchController, fireResize;
+                searchController = this;
+
+                console.log('searchController instance created');
+                //$scope.name = 'main';
+                //mainController.name = 'this.main';
+                //$scope.mode = 'search';
+                searchController.mode = 'map';
+
+//                var fireResize = function () {
+//                    //$scope.currentHeight = $window.innerHeight - $scope.navbarHeight;
+//                    //$scope.currentWidth = $window.innerWidth - ($scope.toolbarShowing ? $scope.toolbarWidth : 0);
+//                    leafletData.getMap('search-map').then(function (map) {
+//                        if (map && map._container.parentElement) {
+//                            console.log('searchController::fireResize: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
+//                            $scope.mapHeight = map._container.parentElement.offsetHeight;
+//                            $scope.mapWidth = map._container.parentElement.offsetWidth;
+//                            //map.invalidateSize(animate);
+//                        }
+//
+//                    });
+//                };
+//
+//                angular.element($window).bind('resize', function () {
+//                    fireResize(false);
+//                });
+
+
+
+
+                $scope.$on('$stateChangeSuccess', function (toState) {
+                    if ($state.includes("main.search") && !$state.is("main.search")) {
+                        //$scope.mode = $state.current.name.split(".").slice(1, 2).pop();
+                        searchController.mode = $state.current.name.split(".").slice(1, 3).pop();
+                        //console.log('searchController::mode: ' + searchController.mode);
+                        
+                        // resize the map on stzate change
+                        if (searchController.mode === 'map') {
+                            leafletData.getMap('search-map').then(function (map) {
+                                $timeout(function () {
+                                    if (map && map._container.parentElement) {
+                                        if (map._container.parentElement.offsetHeight > 0 &&
+                                                map._container.parentElement.offsetWidth) {
+                                            $scope.mapHeight = map._container.parentElement.offsetHeight;
+                                            $scope.mapWidth = map._container.parentElement.offsetWidth;
+                                            //console.log('searchController::stateChangeSuccess new size: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
+                                            map.invalidateSize(false);
+
+                                        } else {
+                                            //console.warn('searchController::stateChangeSuccess saved size: ' + $scope.mapWidth + "x" + $scope.mapHeight);
+                                            map.invalidateSize(false);
+                                        }
+                                    }
+                                }, 100);
+
+                            });
+                        }
+                    }
+                });
             }
         ]
         );
@@ -746,78 +1049,6 @@ angular.module(
        
     ]
 );
-/*global angular*/
-
-angular.module(
-        'de.cismet.uim2020-html5-demonstrator.directives'
-        ).directive('fucfffffffk',
-[
-        function () {
-        'use strict';
-                return {
-                restrict: 'E',
-                        template: 'FUCKCCCCCCCCC',
-                        scope: {},
-                        controller: ['$scope',
-                                function ($scope) {
-                                console.log('controller myDirective');
-                                }],
-                        link : function ($scope, element, attrs) {
-
-                var handler, exists;
-
-                $rootScope.ngSizeDimensions = (angular.isArray($rootScope.ngSizeDimensions)) ? $rootScope.ngSizeDimensions : [];
-                $rootScope.ngSizeWatch = (angular.isArray($rootScope.ngSizeWatch)) ? $rootScope.ngSizeWatch : [];
-
-                handler = function () {
-                    angular.forEach($rootScope.ngSizeWatch, function (el, i) {
-                        // Dimensions Not Equal?
-                        if ($rootScope.ngSizeDimensions[i][0] !== el.offsetWidth ||
-                                $rootScope.ngSizeDimensions[i][1] !== el.offsetHeight) {
-                            // Update Them
-                            $rootScope.ngSizeDimensions[i] = [el.offsetWidth, el.offsetHeight];
-                            // Update Scope?
-                            $rootScope.$broadcast('size::changed', i);
-                        }
-                    });
-                };
-
-                // Add Element to Chain?
-                exists = false;
-                angular.forEach($rootScope.ngSizeWatch, function (el, i) {
-                    if (el === element[0]) {
-                        exists = i;
-                    }
-                });
-
-                // Ok.
-                if (exists === false) {
-                    $rootScope.ngSizeWatch.push(element[0]);
-                    $rootScope.ngSizeDimensions.push([element[0].offsetWidth, element[0].offsetHeight]);
-                    exists = $rootScope.ngSizeWatch.length - 1;
-                }
-
-                // Update Scope?
-                $scope.$on('size::changed', function (event, i) {
-                    // Relevant to the element attached to *this* directive
-                    if (i === exists) {
-                        $scope.size = {
-                            width: $rootScope.ngSizeDimensions[i][0],
-                            height: $rootScope.ngSizeDimensions[i][1]
-                        };
-                    }
-                });
-
-                // Refresh: 100ms
-                if (!window.ngSizeHandler)
-                    window.ngSizeHandler = setInterval(handler, 100);
-
-                // Window Resize?
-                // angular.element(window).on('resize', handler);
-
-            }
-        };
-    }]);
 /*globals angular*/
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.directives'
@@ -1094,17 +1325,15 @@ angular.module(
                 config.map.home = {};
                 config.map.home.lat = 47.61;
                 config.map.home.lng = 13.782778;
-                config.map.home.zoom = 8;
-                config.map.maxBounds = {};
-                config.map.maxBounds.southWest = [90, -180]; // top left corner of map
-                config.map.maxBounds.northEast = [-90, 180];  // bottom right corner  
-
-
-
-
+                config.map.home.zoom = 7;
+                config.map.maxBounds = new L.latLngBounds(
+                        L.latLng(46.372299, 9.53079),
+                        L.latLng(49.02071, 17.160749));
 
                 config.map.defaults = {
-                    minZoom: 2,
+                    minZoom: 7,
+                    //maxZoom: 18,
+                    maxBounds: config.map.maxBounds,
                     path: {
                         weight: 10,
                         color: '#800000',
@@ -1117,7 +1346,7 @@ angular.module(
                             collapsed: true
                         }
                     },
-                    tileLayer: ''
+                    //tileLayer: '' // if disabled, Leflet will *always* request OSM BG Layer (useful for  Verwaltungsgrundkarte)
                 };
 
                 /* jshint ignore:start */
@@ -1129,11 +1358,7 @@ angular.module(
                 };
                 /* jshint ignore:end */
 
-                config.map.defaultLayer = new L.tileLayer("http://{s}.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png", {
-                    subdomains: ['maps', 'maps1', 'maps2', 'maps3', 'maps4'],
-                    attribution: '&copy; <a href="http://basemap.at">Basemap.at</a>, <a href="http://www.isticktoit.net">isticktoit.net</a>'
-                });
-
+                config.map.defaultLayer = 'Verwaltungsgrundkarte';
                 /**
                  * styledLayerControl baseMaps!
                  */
@@ -1142,7 +1367,10 @@ angular.module(
                         groupName: 'Grundkarten',
                         expanded: true,
                         layers: {
-                            'Verwaltungsgrundkarte': config.map.defaultLayer,
+                            'Verwaltungsgrundkarte': new L.tileLayer("http://{s}.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png", {
+                                subdomains: ['maps', 'maps1', 'maps2', 'maps3', 'maps4'],
+                                attribution: '&copy; <a href="http://basemap.at">Basemap.at</a>, <a href="http://www.isticktoit.net">isticktoit.net</a>'
+                            }),
                             'ArcGIS Topographic': L.esri.basemapLayer('Topographic'),
                             /*'OpenTopoMap': new L.TileLayer(
                              'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
@@ -1160,6 +1388,27 @@ angular.module(
                 ];
 
                 config.map.overlays = [];
+
+                config.map.drawOptions = {
+                    polyline: false,
+                    polygon: {
+                        shapeOptions: {
+                            color: '#800000'
+                        },
+                        showArea: true,
+                        metric: true
+                    },
+                    rectangle: {
+                        shapeOptions: {
+                            color: '#800000',
+                            clickable: false
+                        },
+                        metric: true
+                    },
+                    // no circles for starters as not compatible with WKT
+                    circle: false,
+                    marker: false
+                };
 
 
                 config.gui = {};

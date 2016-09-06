@@ -45,13 +45,14 @@
     </div>
 
     <!-- mapHeight must be set on $scope (e.g. in stateChangeSuccess), otherwise leaflet goes berserk after switching between tabs !!! -->
+    <!-- don't specifiy  layers="layers" -> leaflet will use default OSM BG Layer -->
     <div id="{{mainController.mode}}-map-search-container" class="flex-container-horizontal">
         <leaflet
             id="{{mainController.mode}}-map" 
             defaults="defaults" 
-            layers="layers" 
             lf-center="center" 
             center="center" 
+            maxBounds="maxBounds" 
             controls="controls"
             width="100%"
             height="{{mapHeight}}"
