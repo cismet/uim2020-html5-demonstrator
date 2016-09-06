@@ -34,17 +34,15 @@ angular.module(
                 config.map.home = {};
                 config.map.home.lat = 47.61;
                 config.map.home.lng = 13.782778;
-                config.map.home.zoom = 8;
-                config.map.maxBounds = {};
-                config.map.maxBounds.southWest = [90, -180]; // top left corner of map
-                config.map.maxBounds.northEast = [-90, 180];  // bottom right corner  
-
-
-
-
+                config.map.home.zoom = 7;
+                config.map.maxBounds = new L.latLngBounds(
+                        L.latLng(46.372299, 9.53079),
+                        L.latLng(49.02071, 17.160749));
 
                 config.map.defaults = {
-                    minZoom: 2,
+                    minZoom: 7,
+                    //maxZoom: 18,
+                    maxBounds: config.map.maxBounds,
                     path: {
                         weight: 10,
                         color: '#800000',
@@ -57,7 +55,7 @@ angular.module(
                             collapsed: true
                         }
                     },
-                    tileLayer: ''
+                    //tileLayer: '' // if disabled, Leflet will *always* request OSM BG Layer (useful for  Verwaltungsgrundkarte)
                 };
 
                 /* jshint ignore:start */
@@ -69,11 +67,7 @@ angular.module(
                 };
                 /* jshint ignore:end */
 
-                config.map.defaultLayer = new L.tileLayer("http://{s}.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png", {
-                    subdomains: ['maps', 'maps1', 'maps2', 'maps3', 'maps4'],
-                    attribution: '&copy; <a href="http://basemap.at">Basemap.at</a>, <a href="http://www.isticktoit.net">isticktoit.net</a>'
-                });
-
+                config.map.defaultLayer = 'Verwaltungsgrundkarte';
                 /**
                  * styledLayerControl baseMaps!
                  */
@@ -82,7 +76,10 @@ angular.module(
                         groupName: 'Grundkarten',
                         expanded: true,
                         layers: {
-                            'Verwaltungsgrundkarte': config.map.defaultLayer,
+                            'Verwaltungsgrundkarte': new L.tileLayer("http://{s}.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png", {
+                                subdomains: ['maps', 'maps1', 'maps2', 'maps3', 'maps4'],
+                                attribution: '&copy; <a href="http://basemap.at">Basemap.at</a>, <a href="http://www.isticktoit.net">isticktoit.net</a>'
+                            }),
                             'ArcGIS Topographic': L.esri.basemapLayer('Topographic'),
                             /*'OpenTopoMap': new L.TileLayer(
                              'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
@@ -100,6 +97,27 @@ angular.module(
                 ];
 
                 config.map.overlays = [];
+
+                config.map.drawOptions = {
+                    polyline: false,
+                    polygon: {
+                        shapeOptions: {
+                            color: '#800000'
+                        },
+                        showArea: true,
+                        metric: true
+                    },
+                    rectangle: {
+                        shapeOptions: {
+                            color: '#800000',
+                            clickable: false
+                        },
+                        metric: true
+                    },
+                    // no circles for starters as not compatible with WKT
+                    circle: false,
+                    marker: false
+                };
 
 
                 config.gui = {};

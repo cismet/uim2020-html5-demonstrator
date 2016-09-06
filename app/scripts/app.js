@@ -42,49 +42,55 @@ app.config(
                     };
                 };
                 
-                // showEntityModal not needed anymore since we use angular-ui-router-uib-modal
-                showEntityModal = function ($previousState, $uibModal, entityModalInvoker, entity) {
-                    console.log('showEntityModal');
-                    $previousState.memo("entityModalInvoker"); // remember the previous state with memoName "modalInvoker"
-
-                    $uibModal.open({
-                        templateUrl: 'views/entity/modal.html',
-                        backdrop: 'static',
-                        controller: 'entityController',
-                        resolve: {
-                            entityModalInvoker: entityModalInvoker,
-                            entity: entity
-                        },
-                        /*controller:
-                                ['$scope', '$uibModalInstance',
-                                    function ($scope, $uibModalInstance) {
-                                        console.log("$uibModal controller created");
-                                        var isopen = true;
-                                        $uibModalInstance.result.finally(function () {
-                                            isopen = false;
-                                            $previousState.go("entityModalInvoker"); // return to previous state
-                                        });
-                                        $scope.close = function () {
-                                            $uibModalInstance.dismiss('close');
-                                        };
-                                        $scope.$on("$stateChangeStart", function (evt, toState) {
-                                            if (!toState.$$state().includes['modal.entity']) {
-                                                console.log('app::$stateChangeStart::showEntityModal: ' + toState.$$state().name);
-                                                $uibModalInstance.dismiss('close');
-                                            } else {
-                                                console.log('app::$stateChangeStart::showEntityModal: ignore ' + toState.$$state().name);
-                                            }
-                                        });
-                                    }],*/
-                        controllerAs: 'entityController'
-                    });
-                };
-
-
-
-
-
-
+                // <editor-fold defaultstate="collapsed" desc=" showEntityModal() " >
+                /**
+                 * Opens a modal window and remebers the previous state.
+                 * Note: Function not needed anymore since we use angular-ui-router-uib-modal:
+                 * model: true
+                 * 
+                 * @param {type} $previousState
+                 * @param {type} $uibModal
+                 * @param {type} entityModalInvoker
+                 * @param {type} entity
+                 * @returns {undefined}
+                 */
+//                showEntityModal = function ($previousState, $uibModal, entityModalInvoker, entity) {
+//                    console.log('showEntityModal');
+//                    $previousState.memo("entityModalInvoker"); // remember the previous state with memoName "modalInvoker"
+//
+//                    $uibModal.open({
+//                        templateUrl: 'views/entity/modal.html',
+//                        backdrop: 'static',
+//                        controller: 'entityController',
+//                        resolve: {
+//                            entityModalInvoker: entityModalInvoker,
+//                            entity: entity
+//                        },
+//                        /*controller:
+//                                ['$scope', '$uibModalInstance',
+//                                    function ($scope, $uibModalInstance) {
+//                                        console.log("$uibModal controller created");
+//                                        var isopen = true;
+//                                        $uibModalInstance.result.finally(function () {
+//                                            isopen = false;
+//                                            $previousState.go("entityModalInvoker"); // return to previous state
+//                                        });
+//                                        $scope.close = function () {
+//                                            $uibModalInstance.dismiss('close');
+//                                        };
+//                                        $scope.$on("$stateChangeStart", function (evt, toState) {
+//                                            if (!toState.$$state().includes['modal.entity']) {
+//                                                console.log('app::$stateChangeStart::showEntityModal: ' + toState.$$state().name);
+//                                                $uibModalInstance.dismiss('close');
+//                                            } else {
+//                                                console.log('app::$stateChangeStart::showEntityModal: ignore ' + toState.$$state().name);
+//                                            }
+//                                        });
+//                                    }],*/
+//                        controllerAs: 'entityController'
+//                    });
+//                };
+                //</editor-fold>
 
                 /*var resolveResource;
                  resolveResource = function ($stateParams, $q, searchService, shareService) {
@@ -312,18 +318,17 @@ app.config(
                     },
                     sticky: false,
                     backdrop: 'static',
-                    template: 'modalstuff',
                     /*controller: ['$scope',
                         function ($scope) {
                             console.log('modal.entity created');
                             $scope.name = 'modal.entity';
                             this.name = 'this.modal.entity';
                         }],*/
-                    //templateUrl: 'views/entity/modal.html',
+                    templateUrl: 'views/entity/modal.html',
                     controller: 'entityController',
                     controllerAs: 'entityController',
-                    onEnter: showEntityModal,
-                   // modal:true,
+                    //onEnter: showEntityModal,
+                    modal:true,
                     resolve: {
                         entity: [
                             '$stateParams',
