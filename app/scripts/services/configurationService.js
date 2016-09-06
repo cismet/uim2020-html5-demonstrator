@@ -120,6 +120,7 @@ angular.module(
                 this.multiselect = {};
 
                 this.multiselect.settings = {
+                    styleActive: true,
                     displayProp: 'name',
                     idProp: 'classId',
                     buttonClasses: 'btn btn-default navbar-btn cs-search-multiselect'

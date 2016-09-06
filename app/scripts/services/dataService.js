@@ -60,7 +60,7 @@ angular.module(
                     }
                 };
                 
-                lazyLoadResource('searchPollutants', true);
+                //lazyLoadResource('searchPollutants', true);
 
                 return {
                     getSearchThemes: function () {
@@ -68,6 +68,9 @@ angular.module(
                     },
                     getSearchPollutants: function () {
                         return lazyLoadResource('searchPollutants', true);
+                    },
+                    getGazetteerLocations: function () {
+                        return lazyLoadResource('gazetteerLocations', true);
                     }
                 };
             }]

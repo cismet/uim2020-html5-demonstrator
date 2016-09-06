@@ -10,7 +10,8 @@ angular.module(
             '$stateParams',
             'leafletData',
             'configurationService',
-            function ($scope, $state, $stateParams, leafletData, configurationService) {
+            'sharedDatamodel',
+            function ($scope, $state, $stateParams, leafletData, configurationService, sharedDatamodel) {
                 'use strict';
 
                 var mapController, config, layerControl, searchGroup, drawControl,
@@ -19,8 +20,9 @@ angular.module(
 
                 mapController = this;
 
-                config = configurationService.map;
+                mapController.mode = $scope.mainController.mode;
 
+                config = configurationService.map;
 
                 defaults = angular.copy(config.defaults);
                 center = angular.copy(config.maxBounds);
@@ -91,6 +93,11 @@ angular.module(
                 //mapController.center = $stateParams.center;
                 // mapController.zoom = $stateParams.zoom;
 
+                $scope.$on('gotoLocation()', function (e) {
+                    if (mapController.mode === 'search') {
+                        console.log('gotoLocation(' + sharedDatamodel.selectedGazetteerLocation.name + ')');
+                    }
+                });
 
                 $scope.$watch(function () {
                     // Return the "result" of the watch expression.
@@ -112,5 +119,8 @@ angular.module(
                      });
                      }*/
                 });
+
+                // leak this to parent scope
+                $scope.$parent.mapController = mapController;
             }]
         );

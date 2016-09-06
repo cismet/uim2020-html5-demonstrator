@@ -15,9 +15,9 @@ angular.module(
         'searchController',
         [
             '$window', '$timeout', '$scope', '$state', 'leafletData',
-            'configurationService', 'dataService',
+            'configurationService', 'sharedDatamodel', 'dataService', 
             function ($window, $timeout, $scope, $state, leafletData,
-                    configurationService, dataService) {
+                    configurationService, sharedDatamodel, dataService) {
                 'use strict';
 
                 var searchController, fireResize;
@@ -26,7 +26,7 @@ angular.module(
                 // Configurations: 
                 // <editor-fold defaultstate="collapsed" desc="   - Search Themes Selection Box Configuration">
                 searchController.searchThemes = dataService.getSearchThemes();
-                searchController.selectedSearchThemes = [];
+                searchController.selectedSearchThemes = sharedDatamodel.selectedSearchThemes;
                 searchController.searchThemesSettings = angular.extend(
                         {},
                         configurationService.multiselect.settings, {
@@ -62,7 +62,7 @@ angular.module(
                     });
                 }
 
-                searchController.selectedSearchPollutants = [];
+                searchController.selectedSearchPollutants = sharedDatamodel.selectedSearchPollutants;
                 searchController.searchPollutantsSettings = angular.extend(
                         {},
                         configurationService.multiselect.settings, {
@@ -80,6 +80,37 @@ angular.module(
                         configurationService.multiselect.translationTexts, {
                             buttonDefaultText: 'Schadstoffe auswählen',
                             dynamicButtonTextSuffix: 'Schadstoffe ausgewählt'
+                        });
+                // </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="   - Gazetteer Locations Selection Box Configuration">
+                if (dataService.getGazetteerLocations().$resolved) {
+                    searchController.gazetteerLocations = dataService.getGazetteerLocations();
+                } else {
+                    dataService.getGazetteerLocations().$promise.then(function (gazetteerLocations) {
+                        searchController.gazetteerLocations = gazetteerLocations;
+                    });
+                }
+
+                searchController.selectedGazetteerLocation = sharedDatamodel.selectedGazetteerLocation;
+                searchController.gazetteerLocationsSettings = angular.extend(
+                        {},
+                        configurationService.multiselect.settings, {
+                            styleActive: false,
+                            closeOnSelect: true,
+                            scrollableHeight: '600px',
+                            scrollable: true,
+                            displayProp: 'name',
+                            idProp: '$self',
+                            searchField: 'name',
+                            enableSearch: true,
+                            smartButtonMaxItems:1,
+                            selectionLimit: 1, // -> the selection model will contain a single object instead of array. 
+                            externalIdProp: '' // -> Full Object as model
+                        });
+                searchController.gazetteerLocationsTranslationTexts = angular.extend(
+                        {},
+                        configurationService.multiselect.translationTexts, {
+                            buttonDefaultText: 'Ort auswählen'
                         });
                 // </editor-fold>
 
@@ -107,16 +138,28 @@ angular.module(
 //                    fireResize(false);
 //                });
 
+                
+                
+                searchController.gotoLocation = function() {
+                    // TODO: check if paramters are selected ...
+                    
+                    // check state, activate map if necessary
+                    if(searchController.mode !== 'map') {
+                        $state.go('^.map'); // will go to the sibling map state.
+                        // $state.go('main.search.map');
+                    }
+                    
+                    $scope.$broadcast ('gotoLocation()');
+                };
 
-
-
+                // TODO: put into parent scope?
                 $scope.$on('$stateChangeSuccess', function (toState) {
                     if ($state.includes("main.search") && !$state.is("main.search")) {
                         //$scope.mode = $state.current.name.split(".").slice(1, 2).pop();
                         searchController.mode = $state.current.name.split(".").slice(1, 3).pop();
                         //console.log('searchController::mode: ' + searchController.mode);
 
-                        // resize the map on stzate change
+                        // resize the map on state change
                         if (searchController.mode === 'map') {
                             leafletData.getMap('search-map').then(function (map) {
                                 $timeout(function () {
@@ -134,7 +177,6 @@ angular.module(
                                         }
                                     }
                                 }, 100);
-
                             });
                         }
                     }

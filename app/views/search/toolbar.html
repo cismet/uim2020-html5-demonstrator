@@ -58,21 +58,6 @@
                 </div>
             </div>   
 
-            <!--
-            <div class="btn-group">
-                <button type="button" 
-                        class="btn btn-default navbar-btn dropdown-toggle" 
-                        data-toggle="dropdown">
-                    7 Schadstoffe <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a href="#">Alle auswählen</a></li>
-                    <li><a href="#">Alle abwählen</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#">Cadmium</a></li>
-                </ul>
-            </div>
-            -->
             <button type="submit" class="btn btn-success navbar-btn cs-toolbar-form-action">
                 <span class="fa fa-search"></span>
             </button>
@@ -81,21 +66,23 @@
         <!-- Gazzetteer  -->
         <form class="navbar-form navbar-left cs-toolbar-form  navbar-right">
             <label>Gehe zu</label>
+            
             <div class="btn-group">
-                <button type="button" 
-                        class="btn btn-default navbar-btn dropdown-toggle" 
-                        data-toggle="dropdown">
-                    Tullnerfeld <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a href="#">Tirol</a></li>
-                    <li><a href="#">Vorarlberg</a></li>
-                    <li><a href="#">Wien</a></li>
-                </ul>
+                <div ng-dropdown-multiselect=""
+                     id="gazetteer-locations"
+                     options="searchController.gazetteerLocations" 
+                     selected-model="searchController.selectedGazetteerLocation" 
+                     extra-settings="searchController.gazetteerLocationsSettings"
+                     translation-texts="searchController.gazetteerLocationsTranslationTexts"
+                     group-by="category"> 
+                </div>
             </div>
 
-            <button type="submit" class="btn btn-success navbar-btn cs-toolbar-form-action">
-                <span class="fa fa-repeat"></span></span>
+            <button type="submit" 
+                    class="btn btn-success navbar-btn cs-toolbar-form-action"
+                    ng-disabled="!searchController.selectedGazetteerLocation.$self"
+                    ng-click="searchController.gotoLocation()">
+                <span class="fa fa-repeat"></span>
             </button>
         </form>
     </div>
