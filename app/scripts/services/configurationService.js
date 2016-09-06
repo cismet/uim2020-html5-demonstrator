@@ -122,7 +122,7 @@ angular.module(
                 this.multiselect.settings = {
                     displayProp: 'name',
                     idProp: 'classId',
-                    buttonClasses: 'btn btn-default navbar-btn'
+                    buttonClasses: 'btn btn-default navbar-btn cs-search-multiselect'
                 };
 
                 this.multiselect.translationTexts = {

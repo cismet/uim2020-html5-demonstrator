@@ -27,9 +27,7 @@ angular.module(
                     'mockNodes': 'data/mockNodes.json',
                     'mockObjects': 'data/mockObjects.json'
                 };
-
-
-
+                
                 // cached resource data
                 cachedResources = [];
 
@@ -61,6 +59,8 @@ angular.module(
                         return null;
                     }
                 };
+                
+                lazyLoadResource('searchPollutants', true);
 
                 return {
                     getSearchThemes: function () {

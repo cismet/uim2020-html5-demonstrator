@@ -24,15 +24,15 @@ angular.module(
                 searchController = this;
 
                 // Configurations: 
-                // <editor-fold defaultstate="collapsed" desc="   - Search Controller Selection Box Configuration">
+                // <editor-fold defaultstate="collapsed" desc="   - Search Themes Selection Box Configuration">
                 searchController.searchThemes = dataService.getSearchThemes();
-                searchController.selectedThemes = [];
+                searchController.selectedSearchThemes = [];
                 searchController.searchThemesSettings = angular.extend(
                         {},
                         configurationService.multiselect.settings, {
                             smartButtonMaxItems: 0,
                             smartButtonTextConverter: function (itemText, originalItem) {
-                                return searchController.selectedThemes.length === 1 ?
+                                return searchController.selectedSearchThemes.length === 1 ?
                                         '1 Thema ausgewählt' : '';
                             }
                         });
@@ -47,11 +47,40 @@ angular.module(
                 /*searchController.selectEvents = {
                  onItemSelect: function (item) {
                  searchController.searchThemesTranslationTexts.dynamicButtonTextSuffix =
-                 searchController.selectedThemes.length === 1 ?
+                 searchController.selectedSearchThemes.length === 1 ?
                  'Thema ausgewählt' : 'Themen ausgewählt';
                  console.log(searchController.searchThemesTranslationTexts.dynamicButtonTextSuffix);
                  }
                  };*/
+                // </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="   - Search Pollutants Selection Box Configuration">
+                if (dataService.getSearchPollutants().$resolved) {
+                    searchController.searchPollutants = dataService.getSearchPollutants();
+                } else {
+                    dataService.getSearchPollutants().$promise.then(function (searchPollutants) {
+                        searchController.searchPollutants = searchPollutants;
+                    });
+                }
+
+                searchController.selectedSearchPollutants = [];
+                searchController.searchPollutantsSettings = angular.extend(
+                        {},
+                        configurationService.multiselect.settings, {
+                            scrollableHeight: '600px',
+                            scrollable: true,
+                            displayProp: 'pollutant_name',
+                            idProp: 'pollutant_key',
+                            searchField: 'pollutant_name',
+                            enableSearch: true,
+                            showEnableSearchButton: false,
+                            selectByGroups: ['Metalle und Schwermetalle']
+                        });
+                searchController.searchPollutantsTranslationTexts = angular.extend(
+                        {},
+                        configurationService.multiselect.translationTexts, {
+                            buttonDefaultText: 'Schadstoffe auswählen',
+                            dynamicButtonTextSuffix: 'Schadstoffe ausgewählt'
+                        });
                 // </editor-fold>
 
                 console.log('searchController instance created');

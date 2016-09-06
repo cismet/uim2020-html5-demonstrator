@@ -35,15 +35,30 @@
                 </ul>
             </div>
 
+            <!-- Search Themes -->
             <div class="btn-group">
                 <div ng-dropdown-multiselect=""
+                     id="search-themes"
                      options="searchController.searchThemes" 
-                     selected-model="searchController.selectedThemes" 
+                     selected-model="searchController.selectedSearchThemes" 
                      extra-settings="searchController.searchThemesSettings"
                      translation-texts="searchController.searchThemesTranslationTexts">  
                 </div>
             </div>    
+            
+            <!-- Search Pollutants -->
+            <div class="btn-group">
+                <div ng-dropdown-multiselect=""
+                     id="search-pollutants"
+                     options="searchController.searchPollutants" 
+                     selected-model="searchController.selectedSearchPollutants" 
+                     extra-settings="searchController.searchPollutantsSettings"
+                     translation-texts="searchController.searchPollutantsTranslationTexts"
+                     group-by="pollutantgroup">  
+                </div>
+            </div>   
 
+            <!--
             <div class="btn-group">
                 <button type="button" 
                         class="btn btn-default navbar-btn dropdown-toggle" 
@@ -57,13 +72,14 @@
                     <li><a href="#">Cadmium</a></li>
                 </ul>
             </div>
+            -->
             <button type="submit" class="btn btn-success navbar-btn cs-toolbar-form-action">
                 <span class="fa fa-search"></span>
             </button>
         </form>
 
         <!-- Gazzetteer  -->
-        <form class="navbar-form navbar-left cs-toolbar-form">
+        <form class="navbar-form navbar-left cs-toolbar-form  navbar-right">
             <label>Gehe zu</label>
             <div class="btn-group">
                 <button type="button" 
