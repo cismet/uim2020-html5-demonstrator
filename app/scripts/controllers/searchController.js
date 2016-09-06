@@ -22,7 +22,7 @@ angular.module(
 
                 var searchController, fireResize;
                 searchController = this;
-                
+
                 // Configurations: 
                 // <editor-fold defaultstate="collapsed" desc="   - Search Controller Selection Box Configuration">
                 searchController.searchThemes = dataService.getSearchThemes();
@@ -41,17 +41,17 @@ angular.module(
                         configurationService.multiselect.translationTexts, {
                             buttonDefaultText: 'Themen auswählen',
                             dynamicButtonTextSuffix: 'Themen ausgewählt'
-                        });          
+                        });
                 // FIXME: translationTexts not updated in directive
                 // See https://github.com/cismet/uim2020-html5-demonstrator/issues/2
-                searchController.selectEvents = {
-                    onItemSelect: function (item) {
-                        searchController.searchThemesTranslationTexts.dynamicButtonTextSuffix =
-                                searchController.selectedThemes.length === 1 ?
-                                'Thema ausgewählt' : 'Themen ausgewählt';
-                        console.log(searchController.searchThemesTranslationTexts.dynamicButtonTextSuffix);
-                    }
-                };
+                /*searchController.selectEvents = {
+                 onItemSelect: function (item) {
+                 searchController.searchThemesTranslationTexts.dynamicButtonTextSuffix =
+                 searchController.selectedThemes.length === 1 ?
+                 'Thema ausgewählt' : 'Themen ausgewählt';
+                 console.log(searchController.searchThemesTranslationTexts.dynamicButtonTextSuffix);
+                 }
+                 };*/
                 // </editor-fold>
 
                 console.log('searchController instance created');
