@@ -17,17 +17,17 @@ angular.module(
                 'use strict';
 
                 var staticResourceFiles, cachedResources,
-                        lazyLoadResource, getCountryListFunction;
+                        lazyLoadResource, shuffleArray;
 
                 staticResourceFiles = {
                     'searchThemes': 'data/searchThemes.json',
                     'searchPollutants': 'data/searchPollutants.json',
                     'gazetteerLocations': 'data/gazetteerLocations.json',
                     'filterPollutants': 'data/filterPollutants.json',
-                    'mockNodes': 'data/mockNodes.json',
-                    'mockObjects': 'data/mockObjects.json'
+                    'mockNodes': 'data/resultNodes.json',
+                    'mockObjects': 'data/resultObjects.json'
                 };
-                
+
                 // cached resource data
                 cachedResources = [];
 
@@ -59,7 +59,25 @@ angular.module(
                         return null;
                     }
                 };
-                
+
+                shuffleArray = function (array) {
+                    var m = array.length, t, i;
+
+                    // While there remain elements to shuffle…
+                    while (m) {
+
+                        // Pick a remaining element…
+                        i = Math.floor(Math.random() * m--);
+
+                        // And swap it with the current element.
+                        t = array[m];
+                        array[m] = array[i];
+                        array[i] = t;
+                    }
+
+                    return array;
+                }
+
                 //lazyLoadResource('searchPollutants', true);
 
                 return {
@@ -71,6 +89,14 @@ angular.module(
                     },
                     getGazetteerLocations: function () {
                         return lazyLoadResource('gazetteerLocations', true);
+                    },
+                    getMockNodes: function () {
+                        var mockNodes = lazyLoadResource('mockNodes', true);
+                        if(mockNodes.$resolved) {
+                            shuffleArray(mockNodes);
+                        }
+                        
+                        return mockNodes;
                     }
                 };
             }]

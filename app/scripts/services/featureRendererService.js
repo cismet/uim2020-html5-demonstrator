@@ -18,8 +18,10 @@ angular.module(
             function (configurationService) {
                 'use strict';
 
-                var getFeatureRenderer, getNodeFeatureRenderer, getNodesFeatureRenderers,
-                        defaultStyle, highlightStyle, createGazetteerLocationLayer;
+                var config, getFeatureRenderer, getNodeFeatureRenderer, getNodesFeatureRenderers,
+                        defaultStyle, highlightStyle, createGazetteerLocationLayer, createNodeFeatureLayers;
+
+                config = configurationService.featureRenderer;
 
                 createGazetteerLocationLayer = function (gazetteerLocation) {
                     var wktString, wktObject, geometryCollection;
@@ -27,40 +29,40 @@ angular.module(
                         wktString = gazetteerLocation.area.geo_field;
                         geometryCollection = false;
                     } else if (gazetteerLocation.hasOwnProperty('geometry')) {
-                         wktString = gazetteerLocation.geometry.geo_field;
-                          geometryCollection = true;
+                        wktString = gazetteerLocation.geometry.geo_field;
+                        geometryCollection = true;
                     } else {
                         return null;
                     }
-                    
+
                     wktObject = new Wkt.Wkt();
                     wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
-                    if(geometryCollection === true) {
+                    if (geometryCollection === true) {
                         return wktObject.toObject().getLayers()[0];
                     } else {
                         return wktObject.toObject();
-                    } 
+                    }
                 };
 
                 getNodeFeatureRenderer = function (node, theme) {
-                    if (node.hasOwnProperty('geom')) {
+                    if (node.hasOwnProperty('geometry')) {
                         var wktString, wktObject;
-                        wktString = node.geom;
+                        wktString = node.geometry;
                         wktObject = new Wkt.Wkt();
                         wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
 
-                        var config = {
-                            icon: configurationService.featureRenderer.icons[theme],
+                        var objectConfig = {
+                            icon: config.icons[theme],
                             title: node.name
                         };
 
-                        return wktObject.toObject(config);
+                        return wktObject.toObject(objectConfig);
                     }
                 };
 
 
-                getNodesFeatureRenderers = function (nodes) {
-                    var i, node, theme, featureRender, featureRenders;
+                createNodeFeatureLayers = function (nodes) {
+                    var i, node, theme, featureGroup, featureRender, featureRenders;
                     featureRenders = {};
                     for (i = 0; i < nodes.length; ++i) {
                         node = nodes[i];
@@ -69,10 +71,18 @@ angular.module(
 
                         if (featureRender) {
                             if (!featureRenders.hasOwnProperty(theme)) {
-                                featureRenders[theme] = [];
+                                featureGroup = new L.FeatureGroup();
+                                featureGroup.name = config.layergroupNames[theme];
+                                featureGroup.StyledLayerControl = {
+                                    removable: false,
+                                    visible:false
+                                };
+                                featureRenders[theme] = featureGroup;
+                            } else {
+                                featureGroup = featureRenders[theme];
                             }
 
-                            featureRenders[theme].push(featureRender);
+                            featureRender.addTo(featureGroup);
                         }
                     }
 
@@ -198,7 +208,7 @@ angular.module(
                 };
 
                 return {
-                    getFeatureRenderer: getFeatureRenderer,
+                    createNodeFeatureLayers: createNodeFeatureLayers,
                     createGazetteerLocationLayer: createGazetteerLocationLayer,
                     defaultStyle: defaultStyle,
                     highlightStyle: highlightStyle

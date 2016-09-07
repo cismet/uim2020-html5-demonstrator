@@ -15,12 +15,13 @@ angular.module(
         'searchController',
         [
             '$window', '$timeout', '$scope', '$state', 'leafletData',
-            'configurationService', 'sharedDatamodel', 'dataService', 
+            'configurationService', 'sharedDatamodel', 'dataService',
             function ($window, $timeout, $scope, $state, leafletData,
                     configurationService, sharedDatamodel, dataService) {
                 'use strict';
 
-                var searchController, fireResize;
+                var searchController, fireResize, mapController;
+
                 searchController = this;
 
                 // Configurations: 
@@ -103,7 +104,7 @@ angular.module(
                             idProp: '$self',
                             searchField: 'name',
                             enableSearch: true,
-                            smartButtonMaxItems:1,
+                            smartButtonMaxItems: 1,
                             selectionLimit: 1, // -> the selection model will contain a single object instead of array. 
                             externalIdProp: '' // -> Full Object as model
                         });
@@ -138,18 +139,40 @@ angular.module(
 //                    fireResize(false);
 //                });
 
-                
-                
-                searchController.gotoLocation = function() {
+
+
+                searchController.gotoLocation = function () {
                     // TODO: check if paramters are selected ...
-                    
+
                     // check state, activate map if necessary
-                    if(searchController.mode !== 'map') {
+                    if (searchController.mode !== 'map') {
                         $state.go('^.map'); // will go to the sibling map state.
                         // $state.go('main.search.map');
                     }
+
+                    $scope.$broadcast('gotoLocation()');
+                };
+
+                // FIXME: implement Mock Function
+                searchController.search = function (mockNodes) {
+                    if(!mockNodes) {
+                        mockNodes = dataService.getMockNodes();
+                    }
                     
-                    $scope.$broadcast ('gotoLocation()');
+                    if (mockNodes.$resolved) {
+                        // access controller from child scope leaked into parent scope
+                        sharedDatamodel.resultNodes.length = 0;
+                        sharedDatamodel.resultNodes = mockNodes.slice(0, 20);
+                        sharedDatamodel.analysisNodes.length = 0;
+                        sharedDatamodel.analysisNodes = mockNodes.slice(5, 15);
+                        $scope.$broadcast('searchSuccess()');
+                        
+                        //$scope.mapController.setResultNodes(mockNodes.slice(0, 10));
+                    } else {
+                        mockNodes.$promise.then(function (resolvedMockNodes) {
+                            searchController.search(resolvedMockNodes);
+                        });
+                    }
                 };
 
                 // TODO: put into parent scope?

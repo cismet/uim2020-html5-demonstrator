@@ -158,9 +158,17 @@ angular.module(
                     iconSize: [16, 16]
                 });
                 this.featureRenderer.icons.MOSS = L.icon({
-                    iconUrl: 'icons/grass_16',
+                    iconUrl: 'icons/grass_16.png',
                     iconSize: [16, 16]
                 });
+                
+                this.featureRenderer.layergroupNames = {};
+                this.featureRenderer.layergroupNames.MOSS = 'Moose';
+                this.featureRenderer.layergroupNames.EPRTR_INSTALLATION = 'ePRTR ePRTR Einrichtungen';
+                this.featureRenderer.layergroupNames.WAOW_STATION = 'Wassermesstellen';
+                this.featureRenderer.layergroupNames.WAGW_STATION = 'Grundwassermesstellen';
+                this.featureRenderer.layergroupNames.BORIS_SITE = 'Bodenmesstellen';
+                
 
                 this.multiselect = {};
                 this.multiselect.settings = {

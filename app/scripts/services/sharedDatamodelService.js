@@ -20,4 +20,8 @@ angular.module(
                 this.selectedSearchPollutants = [];
                 this.selectedGazetteerLocation = {};
                 this.selectedSearchGeometry = {};
+                
+                //search results
+                this.resultNodes = [];
+                this.analysisNodes = [];
             }]);

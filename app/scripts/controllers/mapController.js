@@ -60,7 +60,12 @@ angular.module(
                     {
                         groupName: "Aktueller Ort",
                         expanded: true,
-                        layers: { }
+                        layers: {}
+                    },
+                    {
+                        groupName: "Themen",
+                        expanded: true,
+                        layers: {}
                     }
                 ]);
 
@@ -140,8 +145,22 @@ angular.module(
 
                 ///public API functions
 
-                mapController.setNodes = function (nodes) {
-
+                mapController.setResultNodes = function (nodes) {
+                    var layerGroups, theme, featureLayer;
+                    if (nodes !== null) {
+                        layerGroups = featureRendererService.createNodeFeatureLayers(nodes);
+                        for (theme in layerGroups) {
+                            console.log('mapController::setResultNodes for ' + theme);
+                            featureLayer = layerGroups[theme];
+                            // FIXME: clear layers before adding
+                            // FIXME: setVisible to true adds duplicate layers
+                            layerControl.addOverlay(
+                                    featureLayer,
+                                    featureLayer.name, {
+                                        groupName: "Themen"
+                                    });
+                        }
+                    }
                 };
 
                 mapController.setGazetteerLocation = function (gazetteerLocation) {
@@ -167,7 +186,7 @@ angular.module(
                                     gazetteerLocation.name, {
                                         groupName: "Aktueller Ort"
                                     });
-                            
+
                             layerControl.selectLayer(gazetteerLocationLayer);
 
                             leafletData.getMap(mapId).then(function (map) {
@@ -199,6 +218,14 @@ angular.module(
                     if (mapController.mode === 'search') {
                         console.log('mapController::gotoLocation(' + sharedDatamodel.selectedGazetteerLocation.name + ')');
                         mapController.setGazetteerLocation(sharedDatamodel.selectedGazetteerLocation);
+                    }
+                });
+
+                $scope.$on('searchSuccess()', function (e) {
+                    if (mapController.mode === 'search' && sharedDatamodel.resultNodes.length > 0) {
+                        mapController.setResultNodes(sharedDatamodel.resultNodes);
+                    } else if (mapController.mode === 'analysis' && sharedDatamodel.analysisNodes.length > 0) {
+                        mapController.setResultNodes(sharedDatamodel.resultNodes);
                     }
                 });
 

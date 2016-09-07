@@ -1,7 +1,7 @@
 [
     {
         "id": 1,
-        "name": "Bodenmesstellen",
+            "name": "Bodenmesstellen",
         "className": "BORIS_SITE",
         "classId": 21
     }, {
@@ -12,7 +12,7 @@
     }, {
         "id": 3,
         "name": "Wassermesstellen",
-        "className": "WAOW_STATION",
+            "className": "WAOW_STATION",
         "classId": 82
     }, {
         "id": 4,
