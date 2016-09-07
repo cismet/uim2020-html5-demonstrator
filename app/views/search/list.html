@@ -1,15 +1,80 @@
 <div class="cs-table">
-    <table ng-table="listVm.tableParams" class="table" show-filter="true" >
-        <tr ng-repeat="user in $data">
-            <td title="'Name'" filter="{ name: 'text'}" sortable="'name'">
-                {{user.name}}</td>
-            <td title="'Age'" filter="{ age: 'number'}" sortable="'age'">
-                {{user.age}}</td>
+
+    <table ng-table="listController.tableData" 
+           class="table table-condensed table-bordered table-striped"
+           show-filter="false" >
+        <colgroup>
+            <col width="20%" />
+            <col width="20%" />
+            <col width="20%" />
+        </colgroup>
+        <tr ng-repeat="node in $data">
+        
+
+        <td title="'Name'" sortable="'name'">
+            {{node.name}}</td>
+        <td title="'Thema'">
+            {{node.classKey}}</td>
+        <td title="'Beschreibung'">
+            {{node.description}}</td>
         </tr>
     </table>
+
+
+
+
+    <!--<table ng-table="listController.tableData" class="table" show-filter="false" >
+        <colgroup>
+            <col width="20%" />
+            <col width="20%" />
+            <col width="20%" />
+        </colgroup>
+        <tr class="ng-table-group" ng-repeat-start="group in $groups">
+            <td colspan="3">
+                <a href="" ng-click="group.$hideRows = !group.$hideRows">
+                    <span class="glyphicon" 
+                          ng-class="{ 'glyphicon-chevron-right': group.$hideRows, 'glyphicon-chevron-down': !group.$hideRows }"></span>
+                    <strong>{{group.value}}</strong>
+                </a>
+            </td>
+        </tr>
+        
+        <tr ng-hide="group.$hideRows" 
+            ng-repeat="node in group.data" 
+            ng-repeat-end>
+            <td title="'Thema'" groupable="'classKey'" ng-if="false">
+                {{node.classKey}}</td>
+            <td title="'Name'" sortable="'name'" groupable="'name'">
+                {{node.name}}</td>
+            <td title="'Beschreibung'" groupable="'description'">
+                {{node.description}}</td>
+        </tr>
+    </table>-->
+
+    <!--
+    <table ng-table-dynamic="listController.tableData with listController.tableColumns" 
+           class="table table-condensed table-bordered table-hover">
+        <colgroup>
+          <col width="20%" />
+          <col width="30%" />
+          <col width="30%" />
+        </colgroup>
+        <tr class="ng-table-group" ng-repeat-start="group in $groups">
+          <td colspan="{{$groups.visibleColumnCount}}">
+            <a href="" ng-click="group.$hideRows = !group.$hideRows">
+              <span class="glyphicon" ng-class="{ 'glyphicon-chevron-right': group.$hideRows, 'glyphicon-chevron-down': !group.$hideRows }"></span>
+              <strong>{{ group.value }}</strong>
+            </a>
+          </td>
+        </tr>
+        <tr ng-hide="group.$hideRows" ng-repeat="node in group.data" ng-repeat-end>
+          <td ng-repeat="col in $columns">{{node[col.field]}}</td>
+        </tr>
+      </table>    -->
+
 </div>
 
 
 <div class="cs-filter">
-    <h1>FILTER</h1>
+    <center><h1>POST-FILTER</h1></center>
 </div>

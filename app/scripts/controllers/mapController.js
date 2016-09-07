@@ -73,9 +73,6 @@ angular.module(
                     }
                 ]);
 
-
-
-
                 // Map Controls
                 layerControl = L.Control.styledLayerControl(
                         basemaps,
@@ -155,7 +152,7 @@ angular.module(
                     if (node.feature) {
                         leafletMap.setView(node.feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
                     }
-                }
+                };
 
 
                 mapController.setNodes = function (nodes) {

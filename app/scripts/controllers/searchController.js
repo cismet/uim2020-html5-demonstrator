@@ -164,7 +164,7 @@ angular.module(
 
                         sharedDatamodel.resultNodes.length = 0;
                         // must use push() or the referenc ein other controllers is destroyed!
-                        var tmpMockNodes = angular.copy(mockNodes.slice(0, 20));
+                        tmpMockNodes = angular.copy(mockNodes.slice(0, 20));
                         sharedDatamodel.resultNodes.push.apply(sharedDatamodel.resultNodes, tmpMockNodes);
 
                         sharedDatamodel.analysisNodes.length = 0;
@@ -175,7 +175,10 @@ angular.module(
                         $scope.$broadcast('searchSuccess()');
 
                         // access controller from child scope leaked into parent scope
-                        //$scope.mapController.setResultNodes(mockNodes.slice(0, 10));
+                        //$scope.mapController.setNodes(mockNodes.slice(0, 10));
+                        //$scope.listController.setNodes(mockNodes.slice(0, 15));
+
+
                     } else {
                         mockNodes.$promise.then(function (resolvedMockNodes) {
                             searchController.search(resolvedMockNodes);

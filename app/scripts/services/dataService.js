@@ -76,7 +76,7 @@ angular.module(
                     }
 
                     return array;
-                }
+                };
 
                 //lazyLoadResource('searchPollutants', true);
 
