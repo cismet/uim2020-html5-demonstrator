@@ -27,7 +27,12 @@ angular.module(
                 this.searchService.maxLimit = 50;
                 this.searchService.host = this.cidsRestApi.host;
 
+
                 this.map = {};
+
+                this.map.options = {};
+                this.map.options.centerOnSearchGeometry = true;
+                this.map.options.preserveZoomOnCenter = true;
 
                 this.map.home = {};
                 this.map.home.lat = 47.61;
@@ -41,11 +46,11 @@ angular.module(
                     minZoom: 7,
                     //maxZoom: 18,
                     maxBounds: this.map.maxBounds,
-                    path: {
-                        weight: 10,
-                        color: '#800000',
-                        opacity: 1
-                    },
+                    /*path: {
+                     weight: 10,
+                     color: '#800000',
+                     opacity: 1
+                     },*/
                     controls: {
                         layers: {
                             visible: false,
@@ -59,9 +64,10 @@ angular.module(
                 /* jshint ignore:start */
                 this.map.layerControlOptions = {
                     container_width: '300px',
-                    container_maxHeight: '350px',
-                    group_maxHeight: '300px',
-                    exclusive: true
+                    container_height: '600px',
+                    container_maxHeight: '600px',
+                    //group_maxHeight: '300px',
+                    exclusive: false
                 };
                 /* jshint ignore:end */
 
@@ -100,7 +106,8 @@ angular.module(
                     polyline: false,
                     polygon: {
                         shapeOptions: {
-                            color: '#800000'
+                            color: '#800000',
+                            clickable: true
                         },
                         showArea: true,
                         metric: true
@@ -108,7 +115,7 @@ angular.module(
                     rectangle: {
                         shapeOptions: {
                             color: '#800000',
-                            clickable: false
+                            clickable: true
                         },
                         metric: true
                     },
@@ -117,15 +124,51 @@ angular.module(
                     marker: false
                 };
 
-                this.multiselect = {};
+                this.featureRenderer = {};
+                this.featureRenderer.defaultStyle = {
+                    color: '#0000FF',
+                    fill: false,
+                    weight: 2,
+                    riseOnHover: true,
+                    clickable: false
+                };
+                this.featureRenderer.highlightStyle = {
+                    fillOpacity: 0.4,
+                    fill: true,
+                    fillColor: '#1589FF',
+                    riseOnHover: true,
+                    clickable: false
+                };
 
+                this.featureRenderer.icons = {};
+                this.featureRenderer.icons.BORIS_SITE = L.icon({
+                    iconUrl: 'icons/showel_16.png',
+                    iconSize: [16, 16]
+                });
+                this.featureRenderer.icons.WAGW_STATION = L.icon({
+                    iconUrl: 'icons/wagw_16.png',
+                    iconSize: [16, 16]
+                });
+                this.featureRenderer.icons.WAOW_STATION = L.icon({
+                    iconUrl: 'icons/waow_16',
+                    iconSize: [16, 16]
+                });
+                this.featureRenderer.icons.EPRTR_INSTALLATION = L.icon({
+                    iconUrl: 'icons/factory_16.png',
+                    iconSize: [16, 16]
+                });
+                this.featureRenderer.icons.MOSS = L.icon({
+                    iconUrl: 'icons/grass_16',
+                    iconSize: [16, 16]
+                });
+
+                this.multiselect = {};
                 this.multiselect.settings = {
                     styleActive: true,
                     displayProp: 'name',
                     idProp: 'classId',
                     buttonClasses: 'btn btn-default navbar-btn cs-search-multiselect'
                 };
-
                 this.multiselect.translationTexts = {
                     checkAll: 'Alles auswählen',
                     uncheckAll: 'Alles abwählen',

@@ -14,9 +14,10 @@ angular.module(
         ).service('sharedDatamodel',
         [function () {
                 'use strict';
-                
+
                 // search selection
-                this.selectedSearchThemes = [];   
+                this.selectedSearchThemes = [];
                 this.selectedSearchPollutants = [];
                 this.selectedGazetteerLocation = {};
+                this.selectedSearchGeometry = {};
             }]);
