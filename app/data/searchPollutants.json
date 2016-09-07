@@ -48,12 +48,6 @@
         "pollutantgroup": "Düngemittel",
         "pollutantgroup_key": "DNM"
     }, {
-        "pollutant_key": "DNMplus",
-        "pollutant_name": "Sonst. DNM",
-        "pollutant_description": "Sonstige nicht näher spezifizierte Düngemittel",
-        "pollutantgroup": "Düngemittel",
-        "pollutantgroup_key": "DNM"
-    }, {
         "pollutant_key": "N",
         "pollutant_name": "Stickstoff",
         "pollutant_description": "Gesamtstickstoff (N)",
@@ -99,12 +93,6 @@
         "pollutant_key": "PER",
         "pollutant_name": "PER",
         "pollutant_description": "Tetrachlorethen (PER)",
-        "pollutantgroup": "Kohlenwasserstoffe",
-        "pollutantgroup_key": "KWS"
-    }, {
-        "pollutant_key": "KWSplus",
-        "pollutant_name": "Sonst. KWS",
-        "pollutant_description": "Sonstige nicht näher spezifizierte Kohlenwasserstoffe",
         "pollutantgroup": "Kohlenwasserstoffe",
         "pollutantgroup_key": "KWS"
     }, {
@@ -219,12 +207,6 @@
         "pollutant_key": "Hg",
         "pollutant_name": "Quecksilber",
         "pollutant_description": "Quecksilber und Verbindungen (Hg)",
-        "pollutantgroup": "Metalle und Schwermetalle",
-        "pollutantgroup_key": "MET"
-    }, {
-        "pollutant_key": "METplus",
-        "pollutant_name": "Sonst. MET",
-        "pollutant_description": "Sonstige nicht näher spezifizierte Metalle und Schwermetalle",
         "pollutantgroup": "Metalle und Schwermetalle",
         "pollutantgroup_key": "MET"
     }, {
@@ -390,12 +372,6 @@
         "pollutantgroup": "Pestizide",
         "pollutantgroup_key": "PEST"
     }, {
-        "pollutant_key": "PESTplus",
-        "pollutant_name": "Sonst. PEST",
-        "pollutant_description": "Sonstige nicht näher spezifizierte Pestizide",
-        "pollutantgroup": "Pestizide",
-        "pollutantgroup_key": "PEST"
-    }, {
         "pollutant_key": "Toxaphen",
         "pollutant_name": "Toxaphen",
         "pollutant_description": "Toxaphen",
@@ -528,12 +504,6 @@
         "pollutantgroup": "Synthetische Organische Schadstoffe",
         "pollutantgroup_key": "SOSS"
     }, {
-        "pollutant_key": "SYSSplus",
-        "pollutant_name": "Sonst. SYSS",
-        "pollutant_description": "Sonstige nicht näher spezifizierte Synthetische Schadstoffe",
-        "pollutantgroup": "Synthetische Organische Schadstoffe",
-        "pollutantgroup_key": "SOSS"
-    }, {
         "pollutant_key": "Tuluol",
         "pollutant_name": "Toluol",
         "pollutant_description": "Toluol",
@@ -651,12 +621,6 @@
         "pollutant_key": "SOx",
         "pollutant_name": "Schwefeloxid",
         "pollutant_description": "Schwefeloxide (SOx/SO2)",
-        "pollutantgroup": "Treibhausgase und Luftschadstoffe",
-        "pollutantgroup_key": "THGundLSS"
-    }, {
-        "pollutant_key": "THGundLSSplus",
-        "pollutant_name": "Sonst. LSS",
-        "pollutant_description": "Sonstige nicht näher spezifizierte Luftschadstoffe",
         "pollutantgroup": "Treibhausgase und Luftschadstoffe",
         "pollutantgroup_key": "THGundLSS"
     }, {
