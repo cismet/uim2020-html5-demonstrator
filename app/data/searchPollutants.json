@@ -1,0 +1,634 @@
+[
+    {
+        "pollutant_key": "PCDDundPCDF",
+        "pollutant_name": "PCDD+PCDF",
+        "pollutant_description": "PCDD & PCDF (Dioxine & Furane)",
+        "pollutantgroup": "Dioxine und Furane",
+        "pollutantgroup_key": "DXF"
+    }, {
+        "pollutant_key": "Ca",
+        "pollutant_name": "Calcium",
+        "pollutant_description": "Calcium (Ca)",
+        "pollutantgroup": "Düngemittel",
+        "pollutantgroup_key": "DNM"
+    }, {
+        "pollutant_key": "CaCO3",
+        "pollutant_name": "Calciumcarbonat",
+        "pollutant_description": "Calciumcarbonat (CaCO3)",
+        "pollutantgroup": "Düngemittel",
+        "pollutantgroup_key": "DNM"
+    }, {
+        "pollutant_key": "K",
+        "pollutant_name": "Kalium",
+        "pollutant_description": "Kalium (K)",
+        "pollutantgroup": "Düngemittel",
+        "pollutantgroup_key": "DNM"
+    }, {
+        "pollutant_key": "Mg",
+        "pollutant_name": "Magnesium",
+        "pollutant_description": "Magnesium (Mg)",
+        "pollutantgroup": "Düngemittel",
+        "pollutantgroup_key": "DNM"
+    }, {
+        "pollutant_key": "Na",
+        "pollutant_name": "Natrium",
+        "pollutant_description": "Natrium (Na)",
+        "pollutantgroup": "Düngemittel",
+        "pollutantgroup_key": "DNM"
+    }, {
+        "pollutant_key": "P",
+        "pollutant_name": "Phosphor",
+        "pollutant_description": "Gesamtphosphor (P)",
+        "pollutantgroup": "Düngemittel",
+        "pollutantgroup_key": "DNM"
+    }, {
+        "pollutant_key": "S",
+        "pollutant_name": "Schwefel",
+        "pollutant_description": "Schwefel (S)",
+        "pollutantgroup": "Düngemittel",
+        "pollutantgroup_key": "DNM"
+    }, {
+        "pollutant_key": "N",
+        "pollutant_name": "Stickstoff",
+        "pollutant_description": "Gesamtstickstoff (N)",
+        "pollutantgroup": "Düngemittel",
+        "pollutantgroup_key": "DNM"
+    }, {
+        "pollutant_key": "TOC",
+        "pollutant_name": "TOC",
+        "pollutant_description": "Gesamter organischer Kohlenstoff (TOC) (als Gesamt-C oder CSB/3)",
+        "pollutantgroup": "Gesamter organischer Kohlenstoff ",
+        "pollutantgroup_key": "TOC"
+    }, {
+        "pollutant_key": "Anthracen",
+        "pollutant_name": "Anthracen",
+        "pollutant_description": "Anthracen",
+        "pollutantgroup": "Kohlenwasserstoffe",
+        "pollutantgroup_key": "KWS"
+    }, {
+        "pollutant_key": "Benzol",
+        "pollutant_name": "Benzol",
+        "pollutant_description": "Benzol",
+        "pollutantgroup": "Kohlenwasserstoffe",
+        "pollutantgroup_key": "KWS"
+    }, {
+        "pollutant_key": "Naphthalin",
+        "pollutant_name": "Naphthalin",
+        "pollutant_description": "Naphthalin",
+        "pollutantgroup": "Kohlenwasserstoffe",
+        "pollutantgroup_key": "KWS"
+    }, {
+        "pollutant_key": "PCP",
+        "pollutant_name": "PCP",
+        "pollutant_description": "Pentachlorphenol (PCP)",
+        "pollutantgroup": "Kohlenwasserstoffe",
+        "pollutantgroup_key": "KWS"
+    }, {
+        "pollutant_key": "PeCB",
+        "pollutant_name": "Pentachlorbenzol",
+        "pollutant_description": "Pentachlorbenzol",
+        "pollutantgroup": "Kohlenwasserstoffe",
+        "pollutantgroup_key": "KWS"
+    }, {
+        "pollutant_key": "PER",
+        "pollutant_name": "PER",
+        "pollutant_description": "Tetrachlorethen (PER)",
+        "pollutantgroup": "Kohlenwasserstoffe",
+        "pollutantgroup_key": "KWS"
+    }, {
+        "pollutant_key": "TCB",
+        "pollutant_name": "TCB",
+        "pollutant_description": "Trichlorbenzole (TCB)",
+        "pollutantgroup": "Kohlenwasserstoffe",
+        "pollutantgroup_key": "KWS"
+    }, {
+        "pollutant_key": "TCM",
+        "pollutant_name": "TCM",
+        "pollutant_description": "Tetrachlormethan (TCM)",
+        "pollutantgroup": "Kohlenwasserstoffe",
+        "pollutantgroup_key": "KWS"
+    }, {
+        "pollutant_key": "Tetrachlorethan",
+        "pollutant_name": "Tetrachlorethan",
+        "pollutant_description": "1,1,2,2-Tetrachlorethan",
+        "pollutantgroup": "Kohlenwasserstoffe",
+        "pollutantgroup_key": "KWS"
+    }, {
+        "pollutant_key": "Trichlorethan",
+        "pollutant_name": "Trichlorethan",
+        "pollutant_description": "1,1,1-Trichlorethan",
+        "pollutantgroup": "Kohlenwasserstoffe",
+        "pollutantgroup_key": "KWS"
+    }, {
+        "pollutant_key": "Trichlorethylen",
+        "pollutant_name": "Trichlorethylen",
+        "pollutant_description": "Trichlorethylen",
+        "pollutantgroup": "Kohlenwasserstoffe",
+        "pollutantgroup_key": "KWS"
+    }, {
+        "pollutant_key": "Trichlormethan",
+        "pollutant_name": "Trichlormethan",
+        "pollutant_description": "Trichlormethan",
+        "pollutantgroup": "Kohlenwasserstoffe",
+        "pollutantgroup_key": "KWS"
+    }, {
+        "pollutant_key": "Al",
+        "pollutant_name": "Aluminium",
+        "pollutant_description": "Aluminium (Al)",
+        "pollutantgroup": "Metalle und Schwermetalle",
+        "pollutantgroup_key": "MET"
+    }, {
+        "pollutant_key": "Sb",
+        "pollutant_name": "Antimon",
+        "pollutant_description": "Antimon (Sb)",
+        "pollutantgroup": "Metalle und Schwermetalle",
+        "pollutantgroup_key": "MET"
+    }, {
+        "pollutant_key": "As",
+        "pollutant_name": "Arsen",
+        "pollutant_description": "Arsen und Verbindungen (As)",
+        "pollutantgroup": "Metalle und Schwermetalle",
+        "pollutantgroup_key": "MET"
+    }, {
+        "pollutant_key": "Pb",
+        "pollutant_name": "Blei",
+        "pollutant_description": "Blei und Verbindungen (Pb)",
+        "pollutantgroup": "Metalle und Schwermetalle",
+        "pollutantgroup_key": "MET"
+    }, {
+        "pollutant_key": "Cd",
+        "pollutant_name": "Cadmium",
+        "pollutant_description": "Cadmium und Verbindungen (Cd)",
+        "pollutantgroup": "Metalle und Schwermetalle",
+        "pollutantgroup_key": "MET"
+    }, {
+        "pollutant_key": "Cr",
+        "pollutant_name": "Chrom",
+        "pollutant_description": "Chrom und Verbindungen (Cr)",
+        "pollutantgroup": "Metalle und Schwermetalle",
+        "pollutantgroup_key": "MET"
+    }, {
+        "pollutant_key": "Co",
+        "pollutant_name": "Cobalt",
+        "pollutant_description": "Cobalt (Co)",
+        "pollutantgroup": "Metalle und Schwermetalle",
+        "pollutantgroup_key": "MET"
+    }, {
+        "pollutant_key": "Fe",
+        "pollutant_name": "Eisen",
+        "pollutant_description": "Eisen (Fe)",
+        "pollutantgroup": "Metalle und Schwermetalle",
+        "pollutantgroup_key": "MET"
+    }, {
+        "pollutant_key": "Cu",
+        "pollutant_name": "Kupfer",
+        "pollutant_description": "Kupfer und Verbindungen (Cu)",
+        "pollutantgroup": "Metalle und Schwermetalle",
+        "pollutantgroup_key": "MET"
+    }, {
+        "pollutant_key": "Mn",
+        "pollutant_name": "Mangan",
+        "pollutant_description": "Mangan (Mn)",
+        "pollutantgroup": "Metalle und Schwermetalle",
+        "pollutantgroup_key": "MET"
+    }, {
+        "pollutant_key": "Mo",
+        "pollutant_name": "Molybdän",
+        "pollutant_description": "Molybdän (Mo)",
+        "pollutantgroup": "Metalle und Schwermetalle",
+        "pollutantgroup_key": "MET"
+    }, {
+        "pollutant_key": "Ni",
+        "pollutant_name": "Nickel",
+        "pollutant_description": "Nickel und Verbindungen (Ni)",
+        "pollutantgroup": "Metalle und Schwermetalle",
+        "pollutantgroup_key": "MET"
+    }, {
+        "pollutant_key": "Hg",
+        "pollutant_name": "Quecksilber",
+        "pollutant_description": "Quecksilber und Verbindungen (Hg)",
+        "pollutantgroup": "Metalle und Schwermetalle",
+        "pollutantgroup_key": "MET"
+    }, {
+        "pollutant_key": "V",
+        "pollutant_name": "Vanadium",
+        "pollutant_description": "Vanadium (V)",
+        "pollutantgroup": "Metalle und Schwermetalle",
+        "pollutantgroup_key": "MET"
+    }, {
+        "pollutant_key": "Zn",
+        "pollutant_name": "Zink",
+        "pollutant_description": "Zink und Verbindungen (Zn)",
+        "pollutantgroup": "Metalle und Schwermetalle",
+        "pollutantgroup_key": "MET"
+    }, {
+        "pollutant_key": "Sn",
+        "pollutant_name": "Zinn",
+        "pollutant_description": "Zinn (Sn)",
+        "pollutantgroup": "Metalle und Schwermetalle",
+        "pollutantgroup_key": "MET"
+    }, {
+        "pollutant_key": "Alachlor",
+        "pollutant_name": "Alachlor",
+        "pollutant_description": "Alachlor",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "Aldrin",
+        "pollutant_name": "Aldrin",
+        "pollutant_description": "Aldrin",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "Atrazin",
+        "pollutant_name": "Atrazin",
+        "pollutant_description": "Atrazin",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "Chloralkane",
+        "pollutant_name": "Chloralkane",
+        "pollutant_description": "Chloralkane, C10-C13",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "Chlordan",
+        "pollutant_name": "Chlordan",
+        "pollutant_description": "Chlordan",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "Chlordecon",
+        "pollutant_name": "Chlordecon",
+        "pollutant_description": "Chlordecon",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "Chlorfenvinphos",
+        "pollutant_name": "Chlorfenvinphos",
+        "pollutant_description": "Chlorfenvinphos",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "Chlorpyrifos",
+        "pollutant_name": "Chlorpyrifos",
+        "pollutant_description": "Chlorpyrifos",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "DCM",
+        "pollutant_name": "DCM",
+        "pollutant_description": "Dichlormethan (DCM)",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "DDT",
+        "pollutant_name": "DDT",
+        "pollutant_description": "DDT",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "Dieldrin",
+        "pollutant_name": "Dieldrin",
+        "pollutant_description": "Dieldrin",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "Diuron",
+        "pollutant_name": "Diuron",
+        "pollutant_description": "Diuron",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "EDC",
+        "pollutant_name": "EDC",
+        "pollutant_description": "1,2-Dichlorethan (EDC)",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "Endosulfan",
+        "pollutant_name": "Endosulfan",
+        "pollutant_description": "Endosulfan",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "Endrin",
+        "pollutant_name": "Endrin",
+        "pollutant_description": "Endrin",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "AOX",
+        "pollutant_name": "Halogenkohlenwasserstoffe ",
+        "pollutant_description": "Halogenierte organische Verbindungen (als AOX)",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "HCB",
+        "pollutant_name": "HCB",
+        "pollutant_description": "Hexachlorbenzol (HCB)",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "HCBD",
+        "pollutant_name": "HCBD",
+        "pollutant_description": "Hexachlorbutadien (HCBD)",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "HCH",
+        "pollutant_name": "HCH",
+        "pollutant_description": "1,2,3,4,5,6-Hexachlorcyclohexan (HCH)",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "Heptachlor",
+        "pollutant_name": "Heptachlor",
+        "pollutant_description": "Heptachlor",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "Lindan",
+        "pollutant_name": "Lindan",
+        "pollutant_description": "Lindan",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "Mirex",
+        "pollutant_name": "Mirex",
+        "pollutant_description": "Mirex",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "OZV",
+        "pollutant_name": "OZV",
+        "pollutant_description": "Zinnorganische Verbindungen (OZV)",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "Simazin",
+        "pollutant_name": "Simazin",
+        "pollutant_description": "Simazin",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "Toxaphen",
+        "pollutant_name": "Toxaphen",
+        "pollutant_description": "Toxaphen",
+        "pollutantgroup": "Pestizide",
+        "pollutantgroup_key": "PEST"
+    }, {
+        "pollutant_key": "PCB",
+        "pollutant_name": "PCB",
+        "pollutant_description": "Polychlorierte Biphenyle (PCBs)",
+        "pollutantgroup": "Polychlorierte Biphenyle ",
+        "pollutantgroup_key": "PCB"
+    }, {
+        "pollutant_key": "Asbest",
+        "pollutant_name": "Asbest",
+        "pollutant_description": "Asbest",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "Benzoperylen",
+        "pollutant_name": "Benzolperylen",
+        "pollutant_description": "Benzo(g,h,i)perylen",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "Cl",
+        "pollutant_name": "Chlor",
+        "pollutant_description": "Chlor und anorganische Verbindungen (als HCl)",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "Clr",
+        "pollutant_name": "Chloride",
+        "pollutant_description": "Chloride (als Gesamt-Cl)",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "CN",
+        "pollutant_name": "Cyanide",
+        "pollutant_description": "Cyanide (als Gesamt-CN)",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "DEHP",
+        "pollutant_name": "DEHP",
+        "pollutant_description": "Di-(2-ethylhexyl)phthalat (DEHP)",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "Ethylbenzol",
+        "pollutant_name": "Ethylbenzol",
+        "pollutant_description": "Ethylbenzol",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "Ethylenoxid",
+        "pollutant_name": "Ethylenoxid",
+        "pollutant_description": "Ethylenoxid",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "Fluoranthen",
+        "pollutant_name": "Fluoranthen",
+        "pollutant_description": "Fluoranthen",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "Fl",
+        "pollutant_name": "Fluoride",
+        "pollutant_description": "Fluoride (als Gesamt-F)",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "HCN",
+        "pollutant_name": "HCN",
+        "pollutant_description": "Cyanwasserstoff (HCN)",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "Hexabrombiphenyl",
+        "pollutant_name": "Hexabrombiphenyl",
+        "pollutant_description": "Hexabrombiphenyl",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "HF",
+        "pollutant_name": "HFCKW",
+        "pollutant_description": "Fluor und anorganische Verbindungen (als HF)",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "Isodrin",
+        "pollutant_name": "Isodrin",
+        "pollutant_description": "Isodrin",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "Isoproturon",
+        "pollutant_name": "Isoproturon",
+        "pollutant_description": "Isoproturon",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "NPNPEs",
+        "pollutant_name": "NNP/NPE",
+        "pollutant_description": "Nonylphenol und Nonylphenolethoxylate (NP/NPEs)",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "Octylphenole ",
+        "pollutant_name": "Octylphenole ",
+        "pollutant_description": "Octylphenole und Octylphenolethoxylate",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "PAK",
+        "pollutant_name": "PAK",
+        "pollutant_description": "polyzyklische aromatische Kohlenwasserstoffe (PAK)",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "PBDE",
+        "pollutant_name": "PBDE",
+        "pollutant_description": "Bromierte Diphenylether (PBDE)",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "Phenole",
+        "pollutant_name": "Phenole",
+        "pollutant_description": "Phenole (als Gesamt-C)",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "Tuluol",
+        "pollutant_name": "Toluol",
+        "pollutant_description": "Toluol",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "TBT",
+        "pollutant_name": "Tributylzinn",
+        "pollutant_description": "Tributylzinn und Verbindungen",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "Trifluralin",
+        "pollutant_name": "Trifluralin",
+        "pollutant_description": "Trifluralin",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "TPT ",
+        "pollutant_name": "Triphenylzinn",
+        "pollutant_description": "Triphenylzinn und Verbindungen",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "Vinylchlorid",
+        "pollutant_name": "Vinylchlorid",
+        "pollutant_description": "Vinylchlorid",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "Xylole",
+        "pollutant_name": "Xylole",
+        "pollutant_description": "Xylole",
+        "pollutantgroup": "Synthetische Organische Schadstoffe",
+        "pollutantgroup_key": "SOSS"
+    }, {
+        "pollutant_key": "NH3",
+        "pollutant_name": "Ammoniak",
+        "pollutant_description": "Ammoniak (NH3)",
+        "pollutantgroup": "Treibhausgase und Luftschadstoffe",
+        "pollutantgroup_key": "THGundLSS"
+    }, {
+        "pollutant_key": "N2O",
+        "pollutant_name": "Distickoxid",
+        "pollutant_description": "Distickoxid (N2O)",
+        "pollutantgroup": "Treibhausgase und Luftschadstoffe",
+        "pollutantgroup_key": "THGundLSS"
+    }, {
+        "pollutant_key": "FCKW",
+        "pollutant_name": "FCKW",
+        "pollutant_description": "Fluorchlorkohlenwasserstoffe (FCKWs)",
+        "pollutantgroup": "Treibhausgase und Luftschadstoffe",
+        "pollutantgroup_key": "THGundLSS"
+    }, {
+        "pollutant_key": "Halone",
+        "pollutant_name": "Halone",
+        "pollutant_description": "Halone",
+        "pollutantgroup": "Treibhausgase und Luftschadstoffe",
+        "pollutantgroup_key": "THGundLSS"
+    }, {
+        "pollutant_key": "HFCKW",
+        "pollutant_name": "HFCKW",
+        "pollutant_description": "Teilhalogenierte Fluorchlorkohlenwasserstoffe (HFCKW)",
+        "pollutantgroup": "Treibhausgase und Luftschadstoffe",
+        "pollutantgroup_key": "THGundLSS"
+    }, {
+        "pollutant_key": "HFKW",
+        "pollutant_name": "HFKW",
+        "pollutant_description": "Teilfluorierte Kohlenwasserstoffe (HFKWs)",
+        "pollutantgroup": "Treibhausgase und Luftschadstoffe",
+        "pollutantgroup_key": "THGundLSS"
+    }, {
+        "pollutant_key": "CO2",
+        "pollutant_name": "Kohlendioxid",
+        "pollutant_description": "Kohlendioxid (CO2)",
+        "pollutantgroup": "Treibhausgase und Luftschadstoffe",
+        "pollutantgroup_key": "THGundLSS"
+    }, {
+        "pollutant_key": "CO1",
+        "pollutant_name": "Kohlenmonoxid",
+        "pollutant_description": "Kohlenmonoxid (CO)",
+        "pollutantgroup": "Treibhausgase und Luftschadstoffe",
+        "pollutantgroup_key": "THGundLSS"
+    }, {
+        "pollutant_key": "CH4",
+        "pollutant_name": "Methan",
+        "pollutant_description": "Methan (CH4)",
+        "pollutantgroup": "Treibhausgase und Luftschadstoffe",
+        "pollutantgroup_key": "THGundLSS"
+    }, {
+        "pollutant_key": "NMVOC",
+        "pollutant_name": "NMVOC",
+        "pollutant_description": "flüchtige organische Verbindungen ohne Methan (NMVOC)",
+        "pollutantgroup": "Treibhausgase und Luftschadstoffe",
+        "pollutantgroup_key": "THGundLSS"
+    }, {
+        "pollutant_key": "PFKW",
+        "pollutant_name": "PFKWs",
+        "pollutant_description": "Perfluorierte Kohlenwasserstoffe (PFKWs)",
+        "pollutantgroup": "Treibhausgase und Luftschadstoffe",
+        "pollutantgroup_key": "THGundLSS"
+    }, {
+        "pollutant_key": "PM10",
+        "pollutant_name": "PM10",
+        "pollutant_description": "Feinstaub (PM10)",
+        "pollutantgroup": "Treibhausgase und Luftschadstoffe",
+        "pollutantgroup_key": "THGundLSS"
+    }, {
+        "pollutant_key": "SF6",
+        "pollutant_name": "Schwefelhexafluorid",
+        "pollutant_description": "Schwefelhexafluorid (SF6)",
+        "pollutantgroup": "Treibhausgase und Luftschadstoffe",
+        "pollutantgroup_key": "THGundLSS"
+    }, {
+        "pollutant_key": "SOx",
+        "pollutant_name": "Schwefeloxid",
+        "pollutant_description": "Schwefeloxide (SOx/SO2)",
+        "pollutantgroup": "Treibhausgase und Luftschadstoffe",
+        "pollutantgroup_key": "THGundLSS"
+    }, {
+        "pollutant_key": "NOx",
+        "pollutant_name": "Stickoxide",
+        "pollutant_description": "Stickoxide (NO/NO2)",
+        "pollutantgroup": "Treibhausgase und Luftschadstoffe",
+        "pollutantgroup_key": "THGundLSS"
+    }
+]
+

@@ -36,15 +36,17 @@
         <link href="bower_components/leaflet-slc/css/styledLayerControl.css" rel="stylesheet" type="text/css"/>
     </head>
     <body ng-app="de.cismet.uim2020-html5-demonstrator" 
-          ng-controller="masterController as masterController">
+          ng-controller="appController as appController">
 
     <!--[if lt IE 7]>
         <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
+    
+    <!-- MAIN TOOLBAR --------------------------------------------------------->
     <nav class="navbar navbar-default navbar-static-top cs-navbar-top" >
         <div class="container-fluid">
             <div class="navbar-header">
-                <button type="button" 
+                <button type="button"
                         class="navbar-toggle collapsed" 
                         data-toggle="collapse" 
                         data-target="#navbar" 
@@ -78,7 +80,7 @@
                     <li>
                         <button type="button"
                                 class="btn navbar-btn" 
-                                ng-click="masterController.signOut()">Abmelden
+                                ng-click="appController.signOut()">Abmelden
                         </button>                   
                     </li>
 
@@ -90,12 +92,18 @@
         </div><!-- /.container-fluid -->
     </nav>
 
+    <!-- MAIN CONTAINER ------------------------------------------------------->
     <div data-ui-view="main" class="flex-container-horizontal"></div>
 
+    <!-- STATUSBAR ------------------------------------------------------------>
     <footer class="footer alert-success">
         <div class="container">
             <div class="row">
-                <div class="col-lg-12"><h4>{{data.message}}</h4></div>
+                <div class="col-lg-12">
+                    <h4>{{appController.selectedSearchThemes.length}} Themen ausgewählt, 
+                        {{appController.selectedSearchPollutants.length}} Schadstoffe ausgewählt,
+                        {{appController.resultNodes.length}} Suchergebnisse verfügbar</h4>
+                </div>
             </div>
         </div>
     </footer>
@@ -137,7 +145,7 @@
     <script src="bower_components/angular-leaflet-directive/dist/angular-leaflet-directive.js" type="text/javascript"></script>
 
     <script src="bower_components/angular-wizard/dist/angular-wizard.js" type="text/javascript"></script>
-    <script src="bower_components/myforce-angularjs-dropdown-multiselect/dist/angularjs-dropdown-multiselect.min.js" type="text/javascript"></script>
+    <script src="bower_components/myforce-angularjs-dropdown-multiselect/src/angularjs-dropdown-multiselect.js" type="text/javascript"></script>
     <script src="bower_components/ng-table/dist/ng-table.js" type="text/javascript"></script>
     <!-- endbower -->
 
@@ -145,7 +153,7 @@
     <!-- build:js() -->
     <script src="scripts/app.js"></script>
     <script src="scripts/controllers/_module.js"></script>
-    <script src="scripts/controllers/masterController.js" type="text/javascript"></script>
+    <script src="scripts/controllers/appController.js" type="text/javascript"></script>
     <script src="scripts/controllers/mainController.js" type="text/javascript"></script>
     <script src="scripts/controllers/entityController.js" type="text/javascript"></script>
     <script src="scripts/controllers/authenticationController.js" type="text/javascript"></script>
@@ -155,11 +163,13 @@
     <script src="scripts/controllers/listController.js" type="text/javascript"></script>
     <script src="scripts/controllers/entityController.js" type="text/javascript"></script>
     <script src="scripts/directives/_module.js"></script>
-    <script src="scripts/directives/ngSize.js" type="text/javascript"></script>
     <script src="scripts/services/_module.js"></script>
     <script src="scripts/services/configurationService.js"></script>
+    <script src="scripts/services/sharedDatamodelService.js" type="text/javascript"></script>
+    <script src="scripts/services/dataService.js" type="text/javascript"></script>
     <script src="scripts/services/authenticationService.js" type="text/javascript"></script>
     <script src="scripts/services/autorisationService.js" type="text/javascript"></script>
+    <script src="scripts/services/featureRendererService.js" type="text/javascript"></script>
     <script src="scripts/services/geoTools.js" type="text/javascript"></script>
     <script src="scripts/filters/_module.js" type="text/javascript"></script>
 

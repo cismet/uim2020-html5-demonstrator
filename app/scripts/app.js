@@ -13,7 +13,7 @@ var app = angular.module(
             'ui.router', 'ui.router.modal',
             'ct.ui.router.extras.sticky', 'ct.ui.router.extras.dsr', 'ct.ui.router.extras.previous',
             'leaflet-directive',
-            'ngTable',
+            'ngTable', 'angularjs-dropdown-multiselect',
             'mgo-angular-wizard'
         ]
         );

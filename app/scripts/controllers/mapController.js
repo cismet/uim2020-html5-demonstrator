@@ -10,17 +10,32 @@ angular.module(
             '$stateParams',
             'leafletData',
             'configurationService',
-            function ($scope, $state, $stateParams, leafletData, configurationService) {
+            'sharedDatamodel',
+            'featureRendererService',
+            function ($scope, $state, $stateParams, leafletData, configurationService,
+                    sharedDatamodel, featureRendererService) {
                 'use strict';
 
-                var mapController, config, layerControl, searchGroup, drawControl,
+                var leafletMap, mapId, mapController, config, layerControl, searchGeometryLayerGroup, drawControl,
                         defaults, center, basemaps, overlays, layerControlOptions,
-                        drawOptions, maxBounds;
+                        drawOptions, maxBounds, setSearchGeometry, gazetteerLocationLayer;
 
                 mapController = this;
+                mapController.mode = $scope.mainController.mode;
+                mapId = mapController.mode + '-map';
 
                 config = configurationService.map;
 
+
+                // define Layer groups
+                searchGeometryLayerGroup = new L.FeatureGroup();
+                gazetteerLocationLayer = null;
+
+                if (mapController.mode === 'search') {
+                    mapController.nodes = sharedDatamodel.resultNodes;
+                } else if (mapController.mode === 'analysis') {
+                    mapController.nodes = sharedDatamodel.analysisNodes;
+                }
 
                 defaults = angular.copy(config.defaults);
                 center = angular.copy(config.maxBounds);
@@ -45,23 +60,44 @@ angular.module(
                     tileLayer: '' // disabled: loads OSM tiles in background even if not visible!
                 });
 
+                overlays = angular.extend(config.overlays, {}, [
+                    {
+                        groupName: "Aktueller Ort",
+                        expanded: true,
+                        layers: {}
+                    },
+                    {
+                        groupName: "Themen",
+                        expanded: true,
+                        layers: {}
+                    }
+                ]);
+
+
+
+
+                // Map Controls
                 layerControl = L.Control.styledLayerControl(
                         basemaps,
                         overlays,
                         layerControlOptions);
 
-                searchGroup = new L.FeatureGroup();
-
                 drawControl = new L.Control.Draw({
                     draw: drawOptions,
-                    edit: {
-                        featureGroup: searchGroup
-                    }
+                    /*edit: {
+                     featureGroup: searchGeometryLayerGroup
+                     }*/
+                    edit: false,
+                    remove: false
                 });
 
-                leafletData.getMap($scope.mainController.mode + "-map").then(function (map) {
+                // add all to map
+                leafletData.getMap(mapId).then(function (map) {
 
-                    map.addLayer(searchGroup);
+                    leafletMap = map;
+
+                    // add the layers
+                    map.addLayer(searchGeometryLayerGroup);
                     map.addControl(drawControl);
                     map.addControl(layerControl);
 
@@ -69,21 +105,129 @@ angular.module(
                     map.setMaxBounds(maxBounds);
                     map.setZoom(center.zoom);
 
-                    //layerControl.selectLayer(basemaps[0].layers[config.defaultLayer]);
-
+                    layerControl.selectLayer(basemaps[0].layers[config.defaultLayer]);
 
                     map.on('draw:created', function (event) {
-                        //setSearchGeom(event.layer);
+                        setSearchGeometry(event.layer, event.layerType);
                     });
 
                     map.on('draw:deleted', function (event) {
-                        event.layers.eachLayer(function (layer) {
-                            if (layer === $scope.searchGeomLayer) {
-                                //setSearchGeom(null);
-                            }
-                        });
+                        setSearchGeometry(null);
+                    });
+
+                    // FIXME: GazetteerLocationLayer not removed from control
+                    map.on('layerremove', function (layerEvent) {
+                        var removedLayer = layerEvent.layer;
+                        if (removedLayer && removedLayer === gazetteerLocationLayer) {
+                            console.log('mapController::gazetteerLocationLayer removed');
+                            //gazetteerLocationLayer = null;
+                            //layerControl.removeLayer(gazetteerLocationLayer);
+                        }
                     });
                 });
+
+                setSearchGeometry = function (searchGeometryLayer, layerType) {
+                    searchGeometryLayerGroup.clearLayers();
+                    if (searchGeometryLayer !== null) {
+                        searchGeometryLayerGroup.addLayer(searchGeometryLayer);
+                        if (config.options.centerOnSearchGeometry) {
+                            leafletData.getMap(mapId).then(function (map) {
+                                map.fitBounds(searchGeometryLayerGroup.getBounds(), {
+                                    animate: true,
+                                    pan: {animate: true, duration: 0.6},
+                                    zoom: {animate: true},
+                                    maxZoom: config.options.preserveZoomOnCenter ? map.getZoom() : null
+                                });
+                            });
+                        }
+                        searchGeometryLayer.once('click', function (event) {
+                            setSearchGeometry(null);
+                        });
+
+                        // TODO: set sharedDatamodel.selectedSearchGeometry!
+                    }
+                };
+
+
+                ///public API functions
+
+                mapController.gotoNode = function (node) {
+                    if (node.feature) {
+                        leafletMap.setView(node.feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
+                    }
+                }
+
+
+                mapController.setNodes = function (nodes) {
+                    var layerGroups, theme, featureLayer;
+                    if (nodes !== null && nodes.length > 0) {
+                        layerGroups = featureRendererService.createNodeFeatureLayers(nodes);
+                        for (theme in layerGroups) {
+                            console.log('mapController::setResultNodes for ' + theme);
+                            featureLayer = layerGroups[theme];
+                            // FIXME: clear layers before adding
+                            // FIXME: setVisible to true adds duplicate layers
+                            layerControl.addOverlay(
+                                    featureLayer,
+                                    featureLayer.name, {
+                                        groupName: "Themen"
+                                    });
+                        }
+
+                        //mapController.nodes = nodes;
+                    }
+
+                    if (mapController.nodes !== nodes ||
+                            mapController.nodes !== sharedDatamodel.resultNodes ||
+                            sharedDatamodel.resultNodes !== nodes) {
+                        console.error("mapController::nodes reference (t)error!");
+                    }
+                };
+
+                mapController.setGazetteerLocation = function (gazetteerLocation) {
+                    console.log('mapController::setGazetteerLocation');
+                    if (gazetteerLocation !== null) {
+                        // remove old layer
+                        if (gazetteerLocationLayer !== null) {
+                            layerControl.removeLayer(gazetteerLocationLayer);
+                            gazetteerLocationLayer = null;
+                        }
+
+                        gazetteerLocationLayer =
+                                featureRendererService.createGazetteerLocationLayer(gazetteerLocation);
+                        if (gazetteerLocationLayer !== null) {
+                            gazetteerLocationLayer.StyledLayerControl = {
+                                removable: false,
+                                visible: false
+                            };
+
+                            // FIXME: GazetteerLocationLayer added twice!
+                            layerControl.addOverlay(
+                                    gazetteerLocationLayer,
+                                    gazetteerLocation.name, {
+                                        groupName: "Aktueller Ort"
+                                    });
+
+                            layerControl.selectLayer(gazetteerLocationLayer);
+
+                            leafletData.getMap(mapId).then(function (map) {
+                                map.fitBounds(gazetteerLocationLayer.getBounds(), {
+                                    animate: true,
+                                    pan: {animate: true, duration: 0.6},
+                                    zoom: {animate: true},
+                                    maxZoom: null
+                                });
+                            });
+                        } else {
+                            mapController.setGazetteerLocation(null);
+                        }
+                    } else if (gazetteerLocationLayer !== null) {
+                        layerControl.removeLayer(gazetteerLocationLayer);
+                        gazetteerLocationLayer = null;
+                    }
+                };
+
+
 
                 console.log($scope.mainController.mode + ' map controller instance created');
 
@@ -91,6 +235,20 @@ angular.module(
                 //mapController.center = $stateParams.center;
                 // mapController.zoom = $stateParams.zoom;
 
+                $scope.$on('gotoLocation()', function (e) {
+                    if (mapController.mode === 'search') {
+                        console.log('mapController::gotoLocation(' + sharedDatamodel.selectedGazetteerLocation.name + ')');
+                        mapController.setGazetteerLocation(sharedDatamodel.selectedGazetteerLocation);
+                    }
+                });
+
+                $scope.$on('searchSuccess()', function (e) {
+                    if (mapController.mode === 'search' && sharedDatamodel.resultNodes.length > 0) {
+                        mapController.setNodes(sharedDatamodel.resultNodes);
+                    } else if (mapController.mode === 'analysis' && sharedDatamodel.analysisNodes.length > 0) {
+                        mapController.setNodes(sharedDatamodel.resultNodes);
+                    }
+                });
 
                 $scope.$watch(function () {
                     // Return the "result" of the watch expression.
@@ -112,5 +270,8 @@ angular.module(
                      });
                      }*/
                 });
+
+                // leak this to parent scope
+                $scope.$parent.mapController = mapController;
             }]
         );

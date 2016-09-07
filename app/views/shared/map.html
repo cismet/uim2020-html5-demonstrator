@@ -8,18 +8,24 @@
 <div class="flex-container-vertical">
     <div class="cs-result-list">
         <ul class="list-group">
-            <li class="list-group-item">  
-                <span class="btn-link">ITEM 1
+            <li class="list-group-item"
+                ng-repeat="node in mapController.nodes">  
+                <span class="btn-link"
+                      ng-click="mapController.gotoNode(node)">
+                    {{node.name}} 
                 </span>
                 <a class="btn-invisible btn-icon pull-right"
                    href="#/resource/"
-                   title="Show detailed resource information">
+                   title="Informationen zum Object anzeigen">
+                    <span class="fa fa-info-circle"></span>
+                </a>
+                <a class="btn-invisible btn-icon pull-right"
+                   href="#/resource/"
+                   title="Zur Merkliste hinzufügen">
                     <span class="fa fa-info-circle"></span>
                 </a>
                 <p>
-                    <small><small>
-                            description
-                        </small></small>
+                    <small><small>{{node.description}}</small></small>
                 </p>
             </li>
 

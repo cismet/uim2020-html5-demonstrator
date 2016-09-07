@@ -78,6 +78,11 @@
     border-top: 1px solid #dcdcdc;
 }
 
+.cs-search-multiselect {
+    min-width: 200px !important;
+    text-align: left;
+}
+
 .angular-leaflet-map {
     flex: 4 1 auto;
 }
