@@ -16,7 +16,7 @@ angular.module(
                     sharedDatamodel, featureRendererService) {
                 'use strict';
 
-                var mapId, mapController, config, layerControl, searchGeometryLayerGroup, drawControl,
+                var leafletMap, mapId, mapController, config, layerControl, searchGeometryLayerGroup, drawControl,
                         defaults, center, basemaps, overlays, layerControlOptions,
                         drawOptions, maxBounds, setSearchGeometry, gazetteerLocationLayer;
 
@@ -31,7 +31,11 @@ angular.module(
                 searchGeometryLayerGroup = new L.FeatureGroup();
                 gazetteerLocationLayer = null;
 
-
+                if (mapController.mode === 'search') {
+                    mapController.nodes = sharedDatamodel.resultNodes;
+                } else if (mapController.mode === 'analysis') {
+                    mapController.nodes = sharedDatamodel.analysisNodes;
+                }
 
                 defaults = angular.copy(config.defaults);
                 center = angular.copy(config.maxBounds);
@@ -90,6 +94,8 @@ angular.module(
                 // add all to map
                 leafletData.getMap(mapId).then(function (map) {
 
+                    leafletMap = map;
+
                     // add the layers
                     map.addLayer(searchGeometryLayerGroup);
                     map.addControl(drawControl);
@@ -145,9 +151,16 @@ angular.module(
 
                 ///public API functions
 
-                mapController.setResultNodes = function (nodes) {
+                mapController.gotoNode = function (node) {
+                    if (node.feature) {
+                        leafletMap.setView(node.feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
+                    }
+                }
+
+
+                mapController.setNodes = function (nodes) {
                     var layerGroups, theme, featureLayer;
-                    if (nodes !== null) {
+                    if (nodes !== null && nodes.length > 0) {
                         layerGroups = featureRendererService.createNodeFeatureLayers(nodes);
                         for (theme in layerGroups) {
                             console.log('mapController::setResultNodes for ' + theme);
@@ -160,6 +173,14 @@ angular.module(
                                         groupName: "Themen"
                                     });
                         }
+
+                        //mapController.nodes = nodes;
+                    }
+
+                    if (mapController.nodes !== nodes ||
+                            mapController.nodes !== sharedDatamodel.resultNodes ||
+                            sharedDatamodel.resultNodes !== nodes) {
+                        console.error("mapController::nodes reference (t)error!");
                     }
                 };
 
@@ -223,9 +244,9 @@ angular.module(
 
                 $scope.$on('searchSuccess()', function (e) {
                     if (mapController.mode === 'search' && sharedDatamodel.resultNodes.length > 0) {
-                        mapController.setResultNodes(sharedDatamodel.resultNodes);
+                        mapController.setNodes(sharedDatamodel.resultNodes);
                     } else if (mapController.mode === 'analysis' && sharedDatamodel.analysisNodes.length > 0) {
-                        mapController.setResultNodes(sharedDatamodel.resultNodes);
+                        mapController.setNodes(sharedDatamodel.resultNodes);
                     }
                 });
 

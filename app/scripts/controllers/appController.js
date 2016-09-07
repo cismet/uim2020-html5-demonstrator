@@ -26,6 +26,7 @@ angular.module(
 
                 appController.selectedSearchThemes = sharedDatamodel.selectedSearchThemes;
                 appController.selectedSearchPollutants = sharedDatamodel.selectedSearchPollutants;
+                appController.resultNodes = sharedDatamodel.resultNodes;
 
                 appController.signOut = function () {
                     authenticationService.authenticate(null);

@@ -15,6 +15,8 @@ angular.module(
         [function () {
                 'use strict';
 
+                var layerBasemap, layerTopographic, layerOsm;
+
                 this.cidsRestApi = {};
                 this.cidsRestApi.host = 'http://localhost:8890';
                 //this.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
@@ -72,6 +74,27 @@ angular.module(
                 /* jshint ignore:end */
 
                 this.map.defaultLayer = 'Verwaltungsgrundkarte';
+
+
+                layerBasemap = new L.tileLayer("http://{s}.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png", {
+                    subdomains: ['maps', 'maps1', 'maps2', 'maps3', 'maps4'],
+                    attribution: '&copy; <a href="http://basemap.at">Basemap.at</a>, <a href="http://www.isticktoit.net">isticktoit.net</a>'
+                });
+                layerBasemap.name = 'Verwaltungsgrundkarte';
+                layerBasemap.key = 'basemap.at';
+
+                layerTopographic = L.esri.basemapLayer('Topographic');
+                layerTopographic.name = 'ArcGIS Topographic';
+                layerTopographic.key = 'arcgisonline.com';
+
+                layerOsm = new L.TileLayer(
+                        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            id: 'mainmap',
+                            attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors'
+                        });
+                layerOsm.name = 'OpenStreetMap';
+                layerOsm.key = 'openstreetmap.org';
+
                 /**
                  * styledLayerControl baseMaps!
                  */
@@ -80,22 +103,14 @@ angular.module(
                         groupName: 'Grundkarten',
                         expanded: true,
                         layers: {
-                            'Verwaltungsgrundkarte': new L.tileLayer("http://{s}.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png", {
-                                subdomains: ['maps', 'maps1', 'maps2', 'maps3', 'maps4'],
-                                attribution: '&copy; <a href="http://basemap.at">Basemap.at</a>, <a href="http://www.isticktoit.net">isticktoit.net</a>'
-                            }),
-                            'ArcGIS Topographic': L.esri.basemapLayer('Topographic'),
+                            'Verwaltungsgrundkarte': layerBasemap,
+                            'ArcGIS Topographic': layerTopographic,
                             /*'OpenTopoMap': new L.TileLayer(
                              'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
                              id: 'mainmap',
                              attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors, SRTM | Rendering: © <a href="http://opentopomap.org" target="_blank">OpenTopoMap</a> (CC-BY-SA)'
                              }*/
-                            'OpenStreetMap': new L.TileLayer(
-                                    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                        id: 'mainmap',
-                                        attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors'
-                                    })
-
+                            'OpenStreetMap': layerOsm
                         }
                     }
                 ];
@@ -161,14 +176,14 @@ angular.module(
                     iconUrl: 'icons/grass_16.png',
                     iconSize: [16, 16]
                 });
-                
+
                 this.featureRenderer.layergroupNames = {};
                 this.featureRenderer.layergroupNames.MOSS = 'Moose';
                 this.featureRenderer.layergroupNames.EPRTR_INSTALLATION = 'ePRTR ePRTR Einrichtungen';
                 this.featureRenderer.layergroupNames.WAOW_STATION = 'Wassermesstellen';
                 this.featureRenderer.layergroupNames.WAGW_STATION = 'Grundwassermesstellen';
                 this.featureRenderer.layergroupNames.BORIS_SITE = 'Bodenmesstellen';
-                
+
 
                 this.multiselect = {};
                 this.multiselect.settings = {

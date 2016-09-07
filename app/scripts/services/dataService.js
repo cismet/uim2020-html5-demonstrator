@@ -92,10 +92,10 @@ angular.module(
                     },
                     getMockNodes: function () {
                         var mockNodes = lazyLoadResource('mockNodes', true);
-                        if(mockNodes.$resolved) {
+                        if (mockNodes.$resolved) {
                             shuffleArray(mockNodes);
                         }
-                        
+
                         return mockNodes;
                     }
                 };

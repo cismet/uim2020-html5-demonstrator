@@ -155,18 +155,26 @@ angular.module(
 
                 // FIXME: implement Mock Function
                 searchController.search = function (mockNodes) {
-                    if(!mockNodes) {
+                    if (!mockNodes) {
                         mockNodes = dataService.getMockNodes();
                     }
-                    
+
                     if (mockNodes.$resolved) {
-                        // access controller from child scope leaked into parent scope
+                        var tmpMockNodes;
+
                         sharedDatamodel.resultNodes.length = 0;
-                        sharedDatamodel.resultNodes = mockNodes.slice(0, 20);
+                        // must use push() or the referenc ein other controllers is destroyed!
+                        var tmpMockNodes = angular.copy(mockNodes.slice(0, 20));
+                        sharedDatamodel.resultNodes.push.apply(sharedDatamodel.resultNodes, tmpMockNodes);
+
                         sharedDatamodel.analysisNodes.length = 0;
-                        sharedDatamodel.analysisNodes = mockNodes.slice(5, 15);
+                        // make a copy -> 2 map instances -> 2 feature instances needed
+                        tmpMockNodes = angular.copy(mockNodes.slice(5, 15));
+                        sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, tmpMockNodes);
+
                         $scope.$broadcast('searchSuccess()');
-                        
+
+                        // access controller from child scope leaked into parent scope
                         //$scope.mapController.setResultNodes(mockNodes.slice(0, 10));
                     } else {
                         mockNodes.$promise.then(function (resolvedMockNodes) {

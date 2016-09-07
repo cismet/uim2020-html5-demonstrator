@@ -18,13 +18,13 @@ angular.module(
             function (configurationService) {
                 'use strict';
 
-                var config, getFeatureRenderer, getNodeFeatureRenderer, getNodesFeatureRenderers,
+                var config, getFeatureRenderer, createNodeFeatureRenderer,
                         defaultStyle, highlightStyle, createGazetteerLocationLayer, createNodeFeatureLayers;
 
                 config = configurationService.featureRenderer;
 
                 createGazetteerLocationLayer = function (gazetteerLocation) {
-                    var wktString, wktObject, geometryCollection;
+                    var wktString, wktObject, geometryCollection, featureLayer;
                     if (gazetteerLocation.hasOwnProperty('area')) {
                         wktString = gazetteerLocation.area.geo_field;
                         geometryCollection = false;
@@ -37,16 +37,21 @@ angular.module(
 
                     wktObject = new Wkt.Wkt();
                     wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
+
                     if (geometryCollection === true) {
-                        return wktObject.toObject().getLayers()[0];
+                        featureLayer = wktObject.toObject().getLayers()[0];
                     } else {
-                        return wktObject.toObject();
+                        featureLayer = wktObject.toObject();
                     }
+
+                    featureLayer.name = gazetteerLocation.name;
+                    featureLayer.key = 'gazetteerLocation';
+                    return featureLayer;
                 };
 
-                getNodeFeatureRenderer = function (node, theme) {
+                createNodeFeatureRenderer = function (node, theme) {
                     if (node.hasOwnProperty('geometry')) {
-                        var wktString, wktObject;
+                        var wktString, wktObject, featureLayer;
                         wktString = node.geometry;
                         wktObject = new Wkt.Wkt();
                         wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
@@ -56,7 +61,11 @@ angular.module(
                             title: node.name
                         };
 
-                        return wktObject.toObject(objectConfig);
+                        featureLayer = wktObject.toObject(objectConfig);
+                        featureLayer.name = node.name;
+                        featureLayer.key = node.$self;
+                        node.feature = featureLayer;
+                        return featureLayer;
                     }
                 };
 
@@ -67,15 +76,16 @@ angular.module(
                     for (i = 0; i < nodes.length; ++i) {
                         node = nodes[i];
                         theme = node.classKey.split(".").slice(1, 2).pop();
-                        featureRender = getNodeFeatureRenderer(node, theme);
+                        featureRender = createNodeFeatureRenderer(node, theme);
 
                         if (featureRender) {
                             if (!featureRenders.hasOwnProperty(theme)) {
                                 featureGroup = new L.FeatureGroup();
                                 featureGroup.name = config.layergroupNames[theme];
+                                featureGroup.key = theme;
                                 featureGroup.StyledLayerControl = {
                                     removable: false,
-                                    visible:false
+                                    visible: false
                                 };
                                 featureRenders[theme] = featureGroup;
                             } else {
