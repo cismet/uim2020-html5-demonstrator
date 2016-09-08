@@ -77,6 +77,7 @@
                         <li>
                             <button type="button"
                                     class="btn navbar-btn" 
+                                    ng-hide="$state.includes('main.authentication')"
                                     ng-click="appController.signOut()">Abmelden
                             </button>                   
                         </li>
@@ -93,7 +94,10 @@
         <div data-ui-view="main" class="flex-container-horizontal"></div>
 
         <!-- STATUSBAR ------------------------------------------------------------>
-        <footer class="footer alert-success">
+        
+        
+        <footer class="footer alert-success"
+                ng-hide="$state.includes('main.authentication')"/>
             <div class="container">
                 <div class="row">
                     <div class="col-lg-12">

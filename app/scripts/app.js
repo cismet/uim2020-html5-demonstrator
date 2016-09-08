@@ -158,7 +158,7 @@ app.config(
                 });
 
                 $stateProvider.state('main.authentication', {
-                    url: 'login',
+                    url: '/login',
                     data: {
                         roles: ['User']
                     },
@@ -390,7 +390,7 @@ app.run(
                                 if ((!authenticationService.isIdentityResolved() &&
                                         !authenticationService.getIdentity()) ||
                                         !authenticationService.isAuthenticated()) {
-                                    console.warn('user not logged in!');
+                                    console.warn('user not logged in, toState:' + toState.name + ', fromState:' + fromState.name);
                                     event.preventDefault();
                                     $previousState.memo('authentication');
                                     $state.go('main.authentication');

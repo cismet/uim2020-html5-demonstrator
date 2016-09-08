@@ -125,7 +125,10 @@ angular.module(
                             //layerControl.removeLayer(gazetteerLocationLayer);
                         }
                     });
+                    
+                   
                 });
+
 
                 setSearchGeometry = function (searchGeometryLayer, layerType) {
                     searchGeometryLayerGroup.clearLayers();
@@ -165,7 +168,7 @@ angular.module(
                     if (nodes !== null && nodes.length > 0) {
                         layerGroups = featureRendererService.createNodeFeatureLayers(nodes);
                         for (theme in layerGroups) {
-                            console.log('mapController::setResultNodes for ' + theme);
+                            console.log(mapId+'::setResultNodes for ' + theme);
                             featureLayer = layerGroups[theme];
                             // FIXME: clear layers before adding
                             // FIXME: setVisible to true adds duplicate layers
@@ -177,12 +180,6 @@ angular.module(
                         }
 
                         //mapController.nodes = nodes;
-                    }
-
-                    if (mapController.nodes !== nodes ||
-                            mapController.nodes !== sharedDatamodel.resultNodes ||
-                            sharedDatamodel.resultNodes !== nodes) {
-                        console.error("mapController::nodes reference (t)error!");
                     }
                 };
 
@@ -245,10 +242,11 @@ angular.module(
                 });
 
                 $scope.$on('searchSuccess()', function (e) {
+                    console.log(mapId+'::searchSuccess()');
                     if (mapController.mode === 'search' && sharedDatamodel.resultNodes.length > 0) {
                         mapController.setNodes(sharedDatamodel.resultNodes);
                     } else if (mapController.mode === 'analysis' && sharedDatamodel.analysisNodes.length > 0) {
-                        mapController.setNodes(sharedDatamodel.resultNodes);
+                        mapController.setNodes(sharedDatamodel.analysisNodes);
                     }
                 });
 

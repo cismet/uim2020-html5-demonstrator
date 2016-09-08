@@ -17,7 +17,19 @@ angular.module(
                 'use strict';
 
                 var staticResourceFiles, cachedResources,
-                        lazyLoadResource, shuffleArray;
+                        lazyLoadResource, shuffleArray, searchLocations;
+
+                var searchLocations = [
+                    {
+                        name: 'Gesamter Kartenausschnitt',
+                        id: 0,
+                        geometry: null
+                    }, {
+                        name: 'Boundingbox Auswahl',
+                        id: 1,
+                        geometry: null
+                    }
+                ]
 
                 staticResourceFiles = {
                     'searchThemes': 'data/searchThemes.json',
@@ -81,6 +93,9 @@ angular.module(
                 //lazyLoadResource('searchPollutants', true);
 
                 return {
+                    getSearchLocations: function () {
+                        return searchLocations;
+                    },
                     getSearchThemes: function () {
                         return lazyLoadResource('searchThemes', true);
                     },

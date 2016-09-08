@@ -20,6 +20,7 @@ angular.module(
                 this.selectedSearchPollutants = [];
                 this.selectedGazetteerLocation = {};
                 this.selectedSearchGeometry = {};
+                this.selectedSearchLocation = {};
 
                 //search results
                 this.resultNodes = [];

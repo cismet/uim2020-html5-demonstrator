@@ -20,7 +20,8 @@ angular.module(
                     if ($state.includes("main") && !$state.is("main")) {
                         //$scope.mode = $state.current.name.split(".").slice(1, 2).pop();
                         mainController.mode = $state.current.name.split(".").slice(1, 2).pop();
-                        console.log('mainController::mainController.mode: ' + mainController.mode);
+                        console.log('mainController::mainController.mode: ' + mainController.mode + 
+                                '(toState: ' + toState.name + ')');
 
                         var previousState = $previousState.get();
                         if (previousState && previousState.state && previousState.state.name) {
