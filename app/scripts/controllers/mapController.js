@@ -155,6 +155,7 @@ angular.module(
                 mapController.gotoNode = function (node) {
                     if (node.$feature) {
                         leafletMap.setView(node.$feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
+                        node.$feature.togglePopup();
                     }
                 };
 
@@ -205,7 +206,7 @@ angular.module(
                             // FIXME: GazetteerLocationLayer added twice!
                             layerControl.addOverlay(
                                     gazetteerLocationLayer,
-                                    gazetteerLocation.$name, {
+                                    gazetteerLocationLayer.$name, {
                                         groupName: "Aktueller Ort"
                                     });
 

@@ -80,6 +80,26 @@
     border-top: 1px solid #dcdcdc;
 }
 
+.cs-filter-panel {
+    float:left;
+    clear:none;
+    min-height: 230px;
+    max-width: 210px;
+    border-right-color: #999999;
+    border-right-width: 1px;
+    border-right-style: solid;
+    margin: 8px;
+    padding-right: 8px;
+}
+
+.cs-filter-panel.last {
+    border:none;
+    margin-left: 0px;
+    padding-right: 0px;
+}
+
+
+
 .cs-search-multiselect {
     min-width: 200px !important;
     text-align: left;

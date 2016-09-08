@@ -64,6 +64,7 @@ angular.module(
                         };
 
                         featureLayer = wktObject.toObject(objectConfig);
+                        featureLayer.bindPopup(node.name);
                         featureLayer.$name = node.name;
                         featureLayer.$key = node.$self;
                         
