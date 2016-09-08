@@ -618,7 +618,7 @@ angular.module(
                 $scope.$on("$stateChangeStart", function (evt, toState) {
                     if (!toState.$$state().includes['modal.entity']) {
                         console.log('entityController::$stateChangeStart: $uibModalInstance.close');
-                        $uibModalInstance.dismiss('close');
+                       // $uibModalInstance.dismiss('close');
                     } else {
                         console.log('entityController::$stateChangeStart: ignore ' + toState);
                     }
@@ -679,7 +679,7 @@ angular.module(
 
                 ngTableParams = {
                     sorting: {name: 'asc'},
-                    count: 10,
+                    count: 500,
                     /*group: {
                      classKey: 'desc'
                      }*/
@@ -786,10 +786,14 @@ angular.module(
                 searchGeometryLayerGroup = new L.FeatureGroup();
                 gazetteerLocationLayer = null;
 
+
+                mapController.resultNodes = sharedDatamodel.resultNodes;
+                mapController.analysisNodes = sharedDatamodel.analysisNodes;
+
                 if (mapController.mode === 'search') {
-                    mapController.nodes = sharedDatamodel.resultNodes;
+                    mapController.nodes = mapController.resultNodes;
                 } else if (mapController.mode === 'analysis') {
-                    mapController.nodes = sharedDatamodel.analysisNodes;
+                    mapController.nodes = mapController.analysisNodes;
                 }
 
                 defaults = angular.copy(config.defaults);
@@ -904,8 +908,9 @@ angular.module(
                 ///public API functions
 
                 mapController.gotoNode = function (node) {
-                    if (node.feature) {
-                        leafletMap.setView(node.feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
+                    if (node.$feature) {
+                        leafletMap.setView(node.$feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
+                        node.$feature.togglePopup();
                     }
                 };
 
@@ -921,7 +926,7 @@ angular.module(
                             // FIXME: setVisible to true adds duplicate layers
                             layerControl.addOverlay(
                                     featureLayer,
-                                    featureLayer.name, {
+                                    featureLayer.$name, {
                                         groupName: "Themen"
                                     });
                         }
@@ -956,7 +961,7 @@ angular.module(
                             // FIXME: GazetteerLocationLayer added twice!
                             layerControl.addOverlay(
                                     gazetteerLocationLayer,
-                                    gazetteerLocation.name, {
+                                    gazetteerLocationLayer.$name, {
                                         groupName: "Aktueller Ort"
                                     });
 
@@ -1194,13 +1199,14 @@ angular.module(
 
                         sharedDatamodel.resultNodes.length = 0;
                         // must use push() or the referenc ein other controllers is destroyed!
-                        tmpMockNodes = angular.copy(mockNodes.slice(0, 20));
+                        //tmpMockNodes = angular.copy(mockNodes.slice(0, 20));
+                        tmpMockNodes = angular.copy(mockNodes);
                         sharedDatamodel.resultNodes.push.apply(sharedDatamodel.resultNodes, tmpMockNodes);
 
                         sharedDatamodel.analysisNodes.length = 0;
                         // make a copy -> 2 map instances -> 2 feature instances needed
-                        tmpMockNodes = angular.copy(mockNodes.slice(5, 15));
-                        sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, tmpMockNodes);
+                        //tmpMockNodes = angular.copy(mockNodes.slice(5, 15));
+                        //sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, tmpMockNodes);
 
                         $scope.$broadcast('searchSuccess()');
 
@@ -1664,7 +1670,7 @@ angular.module(
                     iconSize: [16, 16]
                 });
                 this.featureRenderer.icons.WAOW_STATION = L.icon({
-                    iconUrl: 'icons/waow_16',
+                    iconUrl: 'icons/waow_16.png',
                     iconSize: [16, 16]
                 });
                 this.featureRenderer.icons.EPRTR_INSTALLATION = L.icon({
@@ -1854,27 +1860,33 @@ angular.module(
                         featureLayer = wktObject.toObject();
                     }
 
-                    featureLayer.name = gazetteerLocation.name;
-                    featureLayer.key = 'gazetteerLocation';
+                    featureLayer.$name = gazetteerLocation.name;
+                    featureLayer.$key = 'gazetteerLocation';
                     return featureLayer;
                 };
 
                 createNodeFeatureRenderer = function (node, theme) {
                     if (node.hasOwnProperty('geometry')) {
-                        var wktString, wktObject, featureLayer;
+                        var wktString, wktObject, featureLayer, icon;
+                        
+                        icon = config.icons[theme];
                         wktString = node.geometry;
                         wktObject = new Wkt.Wkt();
                         wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
 
                         var objectConfig = {
-                            icon: config.icons[theme],
+                            icon: icon,
                             title: node.name
                         };
 
                         featureLayer = wktObject.toObject(objectConfig);
-                        featureLayer.name = node.name;
-                        featureLayer.key = node.$self;
-                        node.feature = featureLayer;
+                        featureLayer.bindPopup(node.name);
+                        featureLayer.$name = node.name;
+                        featureLayer.$key = node.$self;
+                        
+                        node.$feature = featureLayer;
+                        node.$icon = icon.options.iconUrl;
+                        
                         return featureLayer;
                     }
                 };
@@ -1891,8 +1903,8 @@ angular.module(
                         if (featureRender) {
                             if (!featureRenders.hasOwnProperty(theme)) {
                                 featureGroup = new L.FeatureGroup();
-                                featureGroup.name = config.layergroupNames[theme];
-                                featureGroup.key = theme;
+                                featureGroup.$name = config.layergroupNames[theme];
+                                featureGroup.$key = theme;
                                 featureGroup.StyledLayerControl = {
                                     removable: false,
                                     visible: false

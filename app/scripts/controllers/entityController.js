@@ -59,7 +59,7 @@ angular.module(
                 $scope.$on("$stateChangeStart", function (evt, toState) {
                     if (!toState.$$state().includes['modal.entity']) {
                         console.log('entityController::$stateChangeStart: $uibModalInstance.close');
-                        $uibModalInstance.dismiss('close');
+                       // $uibModalInstance.dismiss('close');
                     } else {
                         console.log('entityController::$stateChangeStart: ignore ' + toState);
                     }

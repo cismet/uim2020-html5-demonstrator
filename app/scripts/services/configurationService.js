@@ -165,7 +165,7 @@ angular.module(
                     iconSize: [16, 16]
                 });
                 this.featureRenderer.icons.WAOW_STATION = L.icon({
-                    iconUrl: 'icons/waow_16',
+                    iconUrl: 'icons/waow_16.png',
                     iconSize: [16, 16]
                 });
                 this.featureRenderer.icons.EPRTR_INSTALLATION = L.icon({

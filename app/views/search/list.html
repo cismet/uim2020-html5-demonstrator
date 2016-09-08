@@ -1,22 +1,30 @@
 <div class="cs-table">
-
     <table ng-table="listController.tableData" 
            class="table table-condensed table-bordered table-striped"
            show-filter="false" >
         <colgroup>
+            <col width="15%" />
+            <col width="15%" />
             <col width="20%" />
-            <col width="20%" />
-            <col width="20%" />
+            <col width="50%" />
         </colgroup>
         <tr ng-repeat="node in $data">
-        
 
-        <td title="'Name'" sortable="'name'">
-            {{node.name}}</td>
-        <td title="'Thema'">
-            {{node.classKey}}</td>
-        <td title="'Beschreibung'">
-            {{node.description}}</td>
+
+            <td title="'Name'" sortable="'name'">
+                {{node.name}}
+            </td>
+            <td title="'Thema'" sortable="'className'">
+                {{node.className}}
+            </td>
+            <td title="'Beschreibung'">
+                {{node.description}}
+            </td>
+            <td title="'Schadstoffe'">
+                <span ng-repeat="pollutant in node.pollutants">
+                    <span class="label label-primary">{{pollutant.name}}</span>
+                </span>
+            </td>
         </tr>
     </table>
 
@@ -71,10 +79,103 @@
           <td ng-repeat="col in $columns">{{node[col.field]}}</td>
         </tr>
       </table>    -->
-
 </div>
 
 
 <div class="cs-filter">
-    <center><h1>POST-FILTER</h1></center>
+    <!--<div class="flex-container-horizontal" style="margin:100px">
+        <center><h1>POST-FILTER Platzhalter</h1></center>
+    </div>-->
+
+
+    <div class="cs-filter-panel">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="btn-icon">
+                    <img src="icons/factory_16.png" alt="ePRTR"/>
+                </span>
+                Meldeperiode
+            </div>
+            <div class="panel-body" style="min-width:200px;height:220px">
+                <span class="label label-primary">1999</span>
+                <span class="label label-primary">2000</span>
+                <span class="label label-primary">2001</span>
+                <span class="label label-primary">2002</span>
+                <span class="label label-primary">2003</span>
+                <span class="label label-primary">2004</span>
+                <span class="label label-primary">2005</span>
+                <span class="label label-primary">2006</span>
+                <span class="label label-primary">2007</span>
+                <span class="label label-primary">2008</span>
+                <span class="label label-primary">2009</span>
+                <span class="label label-primary">2010</span>
+                <span class="label label-primary">2010</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="cs-filter-panel">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="btn-icon">
+                    <img src="icons/factory_16.png" alt="ePRTR"/>
+                </span>
+                Freisetzungsart
+            </div>
+            <div class="panel-body" style="min-width:200px;height:220px">
+                <span class="label label-primary">LUFT</span>
+                <span class="label label-primary">WASSER DIREKT</span>
+                <span class="label label-primary">WASSER INDIREKT</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="cs-filter-panel">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="btn-icon">
+                    <img src="icons/showel_16.png" alt="ePRTR"/>
+                </span>
+                Maximalwerte
+            </div>
+            <div class="panel-body" style="min-width:200px;height:220px">
+                <span class="fa fa-plus-circle pull-right" style="color:green"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="cs-filter-panel">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="btn-icon">
+                    <img src="icons/wagw_16.png" alt="ePRTR"/>
+                </span>
+                Maximalwerte
+            </div>
+            <div class="panel-body" style="min-width:200px;height:220px">
+                <span class="fa fa-plus-circle pull-right" style="color:green"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="cs-filter-panel">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="btn-icon">
+                    <img src="icons/waow_16.png" alt="ePRTR"/>
+                </span>
+                Maximalwerte
+            </div>
+            <div class="panel-body" style="min-width:200px;height:220px">
+                <span class="fa fa-plus-circle pull-right" style="color:green"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="cs-filter-panel last">
+        <button class="btn btn-default">Filter anwenden</button>
+        <p>&nbsp;</p>
+        <button class="btn btn-default">Filter löschen</button>
+    </div>
+
 </div>

@@ -1,6 +1,7 @@
 [
     {
         "name": "Baumgarten Turbinen",
+        "className": "ePRTR Einrichtungen",
         "description": "Transport in Rohrfernleitungen",
         "classKey": "/UDM2020-DI.EPRTR_INSTALLATION",
         "objectKey": "/UDM2020-DI.EPRTR_INSTALLATION/1",
@@ -27,6 +28,7 @@
     },
     {
         "name": "Abwasserverband An der Traisen",
+        "className": "ePRTR Einrichtungen",
         "description": "Abfallbehandlung und -beseitigung",
         "classKey": "/UDM2020-DI.EPRTR_INSTALLATION",
         "objectKey": "/UDM2020-DI.EPRTR_INSTALLATION/2",
@@ -74,6 +76,7 @@
     },
     {
         "name": "EVN AG Atomkraftwerk Zwentendorf",
+        "className": "ePRTR Einrichtungen",
         "description": "Elektrizitätserzeugung",
         "classKey": "/UDM2020-DI.EPRTR_INSTALLATION",
         "objectKey": "/UDM2020-DI.EPRTR_INSTALLATION/3",
@@ -108,6 +111,7 @@
             }]
     }, {
         "name": "MVA Dürnrohr",
+        "className": "ePRTR Einrichtungen",
         "description": "Beseitigung nicht gefährlicher Abfälle",
         "classKey": "/UDM2020-DI.EPRTR_INSTALLATION",
         "objectKey": "/UDM2020-DI.EPRTR_INSTALLATION/4",
@@ -151,6 +155,7 @@
             }]
     }, {
         "name": "Zuckerfabrik",
+        "className": "ePRTR Einrichtungen",
         "description": "Herstellung von Zucker",
         "classKey": "/UDM2020-DI.EPRTR_INSTALLATION",
         "objectKey": "/UDM2020-DI.EPRTR_INSTALLATION/5",
@@ -166,7 +171,7 @@
         "LEGACY_CLASS_ID": 201,
         "LEGACY_OBJECT_ID": 5,
         "$self": "/UDM2020-DI.5",
-        "geometry": "SRID=4326;POINT(16.12346649169922 48.35793507630608)",
+        "geometry": "SRID=4326;POINT(16.13346649169922 48.36793507630608)",
         "pollutants": [{
                 "name": "Tuluol",
                 "id": 1
@@ -185,6 +190,7 @@
             }]
     }, {
         "name": "Collini Wien GmbH",
+        "className": "ePRTR Einrichtungen",
         "description": "Oberflächenveredlung und Wärmebehandlung",
         "classKey": "/UDM2020-DI.EPRTR_INSTALLATION",
         "objectKey": "/UDM2020-DI.EPRTR_INSTALLATION/6",
@@ -237,6 +243,7 @@
             }]
     }, {
         "name": "171084",
+        "className": "Bodenmessstellen",
         "description": "Niederösterreichisches Bodenzustandsinventar",
         "classKey": "/UDM2020-DI.BORIS_SITE",
         "objectKey": "/UDM2020-DI.BORIS_SITE/7",
@@ -286,6 +293,7 @@
             }]
     }, {
         "name": "171085",
+        "className": "Bodenmessstellen",
         "description": "Niederösterreichisches Bodenzustandsinventar",
         "classKey": "/UDM2020-DI.BORIS_SITE",
         "objectKey": "/UDM2020-DI.BORIS_SITE/8",
@@ -332,6 +340,7 @@
             }]
     }, {
         "name": "171087",
+        "className": "Bodenmessstellen",
         "description": "Niederösterreichisches Bodenzustandsinventar",
         "classKey": "/UDM2020-DI.BORIS_SITE",
         "objectKey": "/UDM2020-DI.BORIS_SITE/10",
@@ -399,6 +408,7 @@
             }]
     }, {
         "name": "171088",
+        "className": "Bodenmessstellen",
         "description": "Niederösterreichisches Bodenzustandsinventar",
         "classKey": "/UDM2020-DI.BORIS_SITE",
         "objectKey": "/UDM2020-DI.BORIS_SITE/11",
@@ -457,6 +467,7 @@
             }]
     }, {
         "name": "171089",
+        "className": "Bodenmessstellen",
         "description": "Niederösterreichisches Bodenzustandsinventar",
         "classKey": "/UDM2020-DI.BORIS_SITE",
         "objectKey": "/UDM2020-DI.BORIS_SITE/12",
@@ -488,6 +499,7 @@
             }]
     }, {
         "name": "31-1 (Hypnum cupressiforme)",
+        "className": "Moose",
         "description": "Labornummer 10104880",
         "classKey": "/UDM2020-DI.MOSS",
         "objectKey": "/UDM2020-DI.MOSS/13",
@@ -522,6 +534,7 @@
             }]
     }, {
         "name": "38-1 (Abietinella abietina)",
+        "className": "Moose",
         "description": "Labornummer 10104880",
         "classKey": "/UDM2020-DI.MOSS",
         "objectKey": "/UDM2020-DI.MOSS/14",
@@ -547,6 +560,7 @@
             }]
     }, {
         "name": "PG3010062",
+        "className": "Grundwassermessstellen",
         "description": "Grundwassermessstellen, Tullnerfeld [DUJ]",
         "classKey": "/UDM2020-DI.WAGW_STATION",
         "objectKey": "/UDM2020-DI.WAGW_STATION/15",
@@ -572,6 +586,7 @@
             }]
     }, {
         "name": "PG3010072",
+        "className": "Grundwassermessstellen",
         "description": "Grundwassermessstellen, Tullnerfeld [DUJ]",
         "classKey": "/UDM2020-DI.WAGW_STATION",
         "objectKey": "/UDM2020-DI.WAGW_STATION/16",
@@ -621,6 +636,7 @@
             }]
     }, {
         "name": "PG301008",
+        "className": "Grundwassermessstellen",
         "description": "Grundwassermessstellen, Tullnerfeld [DUJ]",
         "classKey": "/UDM2020-DI.WAGW_STATION",
         "objectKey": "/UDM2020-DI.WAGW_STATION/17",
@@ -679,6 +695,7 @@
             }]
     }, {
         "name": "PG31900022",
+        "className": "Grundwassermessstellen",
         "description": "Grundwassermessstellen, Tullnerfeld [DUJ]",
         "classKey": "/UDM2020-DI.WAGW_STATION",
         "objectKey": "/UDM2020-DI.WAGW_STATION/18",
@@ -725,6 +742,7 @@
             }]
     }, {
         "name": "PG31900052",
+        "className": "Grundwassermessstellen",
         "description": "Grundwassermessstellen, Tullnerfeld [DUJ]",
         "classKey": "/UDM2020-DI.WAGW_STATION",
         "objectKey": "/UDM2020-DI.WAGW_STATION/19",
@@ -753,6 +771,7 @@
             }]
     }, {
         "name": "PG31900332",
+        "className": "Grundwassermessstellen",
         "description": "Grundwassermessstellen, Tullnerfeld [DUJ]",
         "classKey": "/UDM2020-DI.WAGW_STATION",
         "objectKey": "/UDM2020-DI.WAGW_STATION/20",
@@ -778,6 +797,7 @@
             }]
     }, {
         "name": "PG31900352",
+        "className": "Grundwassermessstellen",
         "description": "Grundwassermessstellen, Tullnerfeld [DUJ]",
         "classKey": "/UDM2020-DI.WAGW_STATION",
         "objectKey": "/UDM2020-DI.WAGW_STATION/21",
@@ -845,6 +865,7 @@
             }]
     }, {
         "name": "Grunddorf",
+        "className": "Wassermessstellen",
         "description": "Oberflächengewässermessstellen, Moosbach [Große Tulln]",
         "classKey": "/UDM2020-DI.WAOW_STATION",
         "objectKey": "/UDM2020-DI.WAOW_STATION/22",
@@ -870,6 +891,7 @@
             }]
     }, {
         "name": "Tulln 2",
+        "className": "Wassermessstellen",
         "description": "Oberflächengewässermessstellen, Große Tulln/Laabenbach",
         "classKey": "/UDM2020-DI.WAOW_STATION",
         "objectKey": "/UDM2020-DI.WAOW_STATION/23",
@@ -913,6 +935,7 @@
             }]
     }, {
         "name": "Zwentendorf",
+        "className": "Wassermessstellen",
         "description": "Oberflächengewässermessstellen, Kleine Tulln/Koglbach",
         "classKey": "/UDM2020-DI.WAOW_STATION",
         "objectKey": "/UDM2020-DI.WAOW_STATION/24",
@@ -965,6 +988,7 @@
             }]
     }, {
         "name": "Stockerau",
+        "className": "Wassermessstellen",
         "description": "Oberflächengewässermessstellen, Kleine Tulln/Koglbach",
         "classKey": "/UDM2020-DI.WAOW_STATION",
         "objectKey": "/UDM2020-DI.WAOW_STATION/25",

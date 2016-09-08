@@ -49,7 +49,7 @@ angular.module(
 
                 ngTableParams = {
                     sorting: {name: 'asc'},
-                    count: 10,
+                    count: 500,
                     /*group: {
                      classKey: 'desc'
                      }*/

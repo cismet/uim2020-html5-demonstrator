@@ -92,6 +92,7 @@ form-signin-page {
     -ms-flex: 0 0 400px;
         flex: 0 0 400px;
     /*min-width:150px;*/
+    overflow-y: scroll !important;
 }
 
 .cs-result-list .pagination {
@@ -119,6 +120,7 @@ form-signin-page {
 .cs-table {
     -ms-flex:1 1 auto;
         flex:1 1 auto;
+    overflow-y: scroll !important;
 }
 
 .cs-filter {
@@ -126,6 +128,26 @@ form-signin-page {
         flex:0 0 250px; 
     border-top: 1px solid #dcdcdc;
 }
+
+.cs-filter-panel {
+    float:left;
+    clear:none;
+    min-height: 230px;
+    max-width: 210px;
+    border-right-color: #999999;
+    border-right-width: 1px;
+    border-right-style: solid;
+    margin: 8px;
+    padding-right: 8px;
+}
+
+.cs-filter-panel.last {
+    border:none;
+    margin-left: 0px;
+    padding-right: 0px;
+}
+
+
 
 .cs-search-multiselect {
     min-width: 200px !important;
