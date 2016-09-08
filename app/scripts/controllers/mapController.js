@@ -31,10 +31,14 @@ angular.module(
                 searchGeometryLayerGroup = new L.FeatureGroup();
                 gazetteerLocationLayer = null;
 
+
+                mapController.resultNodes = sharedDatamodel.resultNodes;
+                mapController.analysisNodes = sharedDatamodel.analysisNodes;
+
                 if (mapController.mode === 'search') {
-                    mapController.nodes = sharedDatamodel.resultNodes;
+                    mapController.nodes = mapController.resultNodes;
                 } else if (mapController.mode === 'analysis') {
-                    mapController.nodes = sharedDatamodel.analysisNodes;
+                    mapController.nodes = mapController.analysisNodes;
                 }
 
                 defaults = angular.copy(config.defaults);
@@ -149,8 +153,8 @@ angular.module(
                 ///public API functions
 
                 mapController.gotoNode = function (node) {
-                    if (node.feature) {
-                        leafletMap.setView(node.feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
+                    if (node.$feature) {
+                        leafletMap.setView(node.$feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
                     }
                 };
 
@@ -166,7 +170,7 @@ angular.module(
                             // FIXME: setVisible to true adds duplicate layers
                             layerControl.addOverlay(
                                     featureLayer,
-                                    featureLayer.name, {
+                                    featureLayer.$name, {
                                         groupName: "Themen"
                                     });
                         }
@@ -201,7 +205,7 @@ angular.module(
                             // FIXME: GazetteerLocationLayer added twice!
                             layerControl.addOverlay(
                                     gazetteerLocationLayer,
-                                    gazetteerLocation.name, {
+                                    gazetteerLocation.$name, {
                                         groupName: "Aktueller Ort"
                                     });
 

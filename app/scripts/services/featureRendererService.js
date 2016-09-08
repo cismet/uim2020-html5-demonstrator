@@ -44,27 +44,32 @@ angular.module(
                         featureLayer = wktObject.toObject();
                     }
 
-                    featureLayer.name = gazetteerLocation.name;
-                    featureLayer.key = 'gazetteerLocation';
+                    featureLayer.$name = gazetteerLocation.name;
+                    featureLayer.$key = 'gazetteerLocation';
                     return featureLayer;
                 };
 
                 createNodeFeatureRenderer = function (node, theme) {
                     if (node.hasOwnProperty('geometry')) {
-                        var wktString, wktObject, featureLayer;
+                        var wktString, wktObject, featureLayer, icon;
+                        
+                        icon = config.icons[theme];
                         wktString = node.geometry;
                         wktObject = new Wkt.Wkt();
                         wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
 
                         var objectConfig = {
-                            icon: config.icons[theme],
+                            icon: icon,
                             title: node.name
                         };
 
                         featureLayer = wktObject.toObject(objectConfig);
-                        featureLayer.name = node.name;
-                        featureLayer.key = node.$self;
-                        node.feature = featureLayer;
+                        featureLayer.$name = node.name;
+                        featureLayer.$key = node.$self;
+                        
+                        node.$feature = featureLayer;
+                        node.$icon = icon.options.iconUrl;
+                        
                         return featureLayer;
                     }
                 };
@@ -81,8 +86,8 @@ angular.module(
                         if (featureRender) {
                             if (!featureRenders.hasOwnProperty(theme)) {
                                 featureGroup = new L.FeatureGroup();
-                                featureGroup.name = config.layergroupNames[theme];
-                                featureGroup.key = theme;
+                                featureGroup.$name = config.layergroupNames[theme];
+                                featureGroup.$key = theme;
                                 featureGroup.StyledLayerControl = {
                                     removable: false,
                                     visible: false

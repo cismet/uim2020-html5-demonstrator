@@ -9,20 +9,33 @@
     <div class="cs-result-list">
         <ul class="list-group">
             <li class="list-group-item"
-                ng-repeat="node in mapController.nodes">  
+                ng-repeat="node in mapController.nodes track by node.$self">  
+                <span class="btn-icon">
+                    <img src="{{node.$icon}}" alt="{{node.classKey}}">
+                </span>
                 <span class="btn-link"
                       ng-click="mapController.gotoNode(node)">
                     {{node.name}} 
                 </span>
-                <a class="btn-invisible btn-icon pull-right"
-                   href="#/resource/"
-                   title="Informationen zum Object anzeigen">
-                    <span class="fa fa-info-circle"></span>
+                
+                <a class="btn btn-sm btn-icon pull-right"
+                   title="Zur Merkliste hinzufügen"
+                   ng-if="mainController.mode === 'search'"
+                   ng-click="mapController.analysisNodes.push(node)">
+                    <span class="fa fa-plus-circle fa-2x"></span>
                 </a>
-                <a class="btn-invisible btn-icon pull-right"
-                   href="#/resource/"
-                   title="Zur Merkliste hinzufügen">
-                    <span class="fa fa-info-circle"></span>
+                
+                <a class="btn btn-sm btn-icon pull-right"
+                   title="Zur Merkliste hinzufügen"
+                   ng-if="mainController.mode === 'analysis'"
+                   ng-click="mapController.analysisNodes.splice(mapController.analysisNodes.indexOf(node), 1);">
+                    <span class="fa fa-minus-circle fa-2x"></span>
+                </a>
+
+                <a class="btn btn-sm btn-icon pull-right"
+                   data-ui-sref="modal.entity({class: node.classKey.split('.').slice(1, 2).pop(), id:node.LEGACY_OBJECT_ID})"
+                   title="Informationen zum Object anzeigen">
+                    <span class="fa fa-info-circle fa-2x"></span>
                 </a>
                 <p>
                     <small><small>{{node.description}}</small></small>

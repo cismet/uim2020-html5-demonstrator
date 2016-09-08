@@ -164,13 +164,14 @@ angular.module(
 
                         sharedDatamodel.resultNodes.length = 0;
                         // must use push() or the referenc ein other controllers is destroyed!
-                        tmpMockNodes = angular.copy(mockNodes.slice(0, 20));
+                        //tmpMockNodes = angular.copy(mockNodes.slice(0, 20));
+                        tmpMockNodes = angular.copy(mockNodes);
                         sharedDatamodel.resultNodes.push.apply(sharedDatamodel.resultNodes, tmpMockNodes);
 
                         sharedDatamodel.analysisNodes.length = 0;
                         // make a copy -> 2 map instances -> 2 feature instances needed
-                        tmpMockNodes = angular.copy(mockNodes.slice(5, 15));
-                        sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, tmpMockNodes);
+                        //tmpMockNodes = angular.copy(mockNodes.slice(5, 15));
+                        //sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, tmpMockNodes);
 
                         $scope.$broadcast('searchSuccess()');
 
