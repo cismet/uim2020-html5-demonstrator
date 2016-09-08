@@ -14,7 +14,7 @@ var app = angular.module(
             'ct.ui.router.extras.sticky', 'ct.ui.router.extras.dsr', 'ct.ui.router.extras.previous',
             'leaflet-directive',
             'ngTable', 'angularjs-dropdown-multiselect',
-            'mgo-angular-wizard'
+            'mgcrea.ngStrap.tooltip', 'mgcrea.ngStrap.popover','mgo-angular-wizard'
         ]
         );
 
@@ -41,7 +41,7 @@ app.config(
                         id: $stateParams.id
                     };
                 };
-                
+
                 // <editor-fold defaultstate="collapsed" desc=" showEntityModal() " >
                 /**
                  * Opens a modal window and remebers the previous state.
@@ -306,7 +306,7 @@ app.config(
                         }
                     }
                 });
-                
+
                 $stateProvider.state("modal", {
                     abstract: true
                 });
@@ -319,16 +319,16 @@ app.config(
                     sticky: false,
                     backdrop: 'static',
                     /*controller: ['$scope',
-                        function ($scope) {
-                            console.log('modal.entity created');
-                            $scope.name = 'modal.entity';
-                            this.name = 'this.modal.entity';
-                        }],*/
+                     function ($scope) {
+                     console.log('modal.entity created');
+                     $scope.name = 'modal.entity';
+                     this.name = 'this.modal.entity';
+                     }],*/
                     templateUrl: 'views/entity/modal.html',
                     controller: 'entityController',
                     controllerAs: 'entityController',
                     //onEnter: showEntityModal,
-                    modal:true,
+                    modal: true,
                     resolve: {
                         entity: [
                             '$stateParams',
@@ -339,6 +339,18 @@ app.config(
                             return $previousState.get('entityModalInvoker');
                         }
                     }
+                });
+
+                $stateProvider.state('modal.export', {
+                    url: '/export',
+                    data: {
+                        roles: ['User']
+                    },
+                    sticky: false,
+                    templateUrl: 'views/export/modal.html',
+                    controller: 'exportController',
+                    controllerAs: 'exportController',
+                    modal: true
                 });
 
                 /*

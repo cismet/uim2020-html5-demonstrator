@@ -1,0 +1,71 @@
+<div class="popover" tabindex="-1">
+    <div class="arrow"></div>
+    <h1 class="popover-title"><button type="button" 
+                                      class="close" 
+                                      ng-click="$hide()">
+            <span class="fa fa-close"></span>
+        </button>
+        <big><strong>Externe Datenquellen</strong></big></h1>
+
+    <!--<div class="panel-heading">
+        <button type="button" 
+                class="close" 
+                ng-click="$hide()">
+            <span class="fa fa-close"></span>
+        </button>
+        <h4>Externe Datenquellen</h4>
+    </div>-->
+    <div class="popover-content" style="margin:0;padding:0">
+
+
+
+
+
+        <uib-accordion close-others="false" style="margin:0;padding:0">
+            <div uib-accordion-group  is-open="true">
+                <uib-accordion-heading style="border:none">
+                    <div uib-accordion-header style="padding:5px;background-color:#fa39c3">
+                        I can have markup,  too! 
+                        <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-up': !status.open}"></i>
+
+                    </div>
+                </uib-accordion-heading>
+
+
+                <span class="label label-primary">1999</span>
+                <span class="label label-primary">2000</span>
+                <span class="label label-primary">2001</span>
+                <span class="label label-primary">2002</span>
+                <span class="label label-primary">2003</span>
+                <span class="label label-primary">2004</span>
+                <span class="label label-primary">2005</span>
+                <span class="label label-primary">2006</span>
+                <span class="label label-primary">2007</span>
+                <span class="label label-primary">2008</span>
+                <span class="label label-primary">2009</span>
+                <span class="label label-primary">2010</span>
+                <span class="label label-primary">2010</span>
+
+                
+            </div>
+        </uib-accordion>
+
+
+    </div>
+    <div class="panel-footer">
+        <button type="button" 
+                class="btn btn-default" 
+                ng-click="$hide()">
+            OK
+        </button>
+        <button type="button" 
+                class="btn btn-default" 
+                ng-click="popover.saved = true;$hide()">
+            Abbrechen
+        </button>
+
+    </div>
+
+
+</div>
+

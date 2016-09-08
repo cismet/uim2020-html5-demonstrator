@@ -22,6 +22,16 @@ angular.module(
                 'use strict';
                 var appController;
 
+                $scope.popover = {
+                    "title": "Title",
+                    "content": "Hello Popover<br />This is a multiline message!"
+                };
+
+                $scope.tooltip = {
+                    "title": "Hello Tooltip<br />This is a multiline message!",
+                    "checked": false
+                };
+
                 appController = this;
 
                 appController.selectedSearchThemes = sharedDatamodel.selectedSearchThemes;
