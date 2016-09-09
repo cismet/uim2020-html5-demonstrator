@@ -6,15 +6,15 @@
             <col width="15%" />
             <col width="15%" />
             <col width="20%" />
-            <col width="50%" />
+            <col width="46%" />
+            <col width="2%" />
+            <col width="2%" />
         </colgroup>
         <tr ng-repeat="node in $data">
-
-
-            <td title="'Name'" sortable="'name'">
+            <td title="'Name'" data-sortable="'name'">
                 {{node.name}}
             </td>
-            <td title="'Thema'" sortable="'className'">
+            <td title="'Thema'" data-sortable="'className'">
                 {{node.className}}
             </td>
             <td title="'Beschreibung'">
@@ -22,14 +22,26 @@
             </td>
             <td title="'Schadstoffe'">
                 <span ng-repeat="pollutant in node.pollutants">
-                    <span class="label label-primary">{{pollutant.name}}</span>
+                    <span class="label label-warning">{{pollutant.name}}</span>
                 </span>
+            </td>
+            <td title="''">
+                <a class="btn btn-sm btn-icon"
+                   data-ui-sref="modal.entity({class: node.classKey.split('.').slice(1, 2).pop(), id:node.LEGACY_OBJECT_ID})"
+                   title="Informationen zum Object anzeigen">
+                    <span class="fa fa-info-circle fa-2x"></span>
+                </a>
+            </td>
+            <td title="''">
+                <a class="btn btn-sm btn-icon"
+                   title="Zur Merkliste hinzufügen"
+                    ng-click="listController.analysisNodes.push(node)">
+                    <span class="fa fa-plus-circle fa-2x"></span>
+                </a>
+                    
             </td>
         </tr>
     </table>
-
-
-
 
     <!--<table ng-table="listController.tableData" class="table" show-filter="false" >
         <colgroup>

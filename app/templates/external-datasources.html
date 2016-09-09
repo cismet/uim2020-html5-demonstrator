@@ -1,8 +1,14 @@
-<div class="popover" tabindex="-1">
+<div class="popover" 
+     tabindex="-1" 
+     style="min-width:400px" 
+     ng-controller="externalDatasourcesController as externalDatasourcesController"
+     id="externalDatasourcesPopover"
+     name="externalDatasourcesPopover">
     <div class="arrow"></div>
-    <h1 class="popover-title"><button type="button" 
-                                      class="close" 
-                                      ng-click="$hide()">
+    <h1 class="popover-title">
+        <button type="button" 
+                class="close" 
+                ng-click="$hide()">
             <span class="fa fa-close"></span>
         </button>
         <big><strong>Externe Datenquellen</strong></big></h1>
@@ -15,57 +21,96 @@
         </button>
         <h4>Externe Datenquellen</h4>
     </div>-->
-    <div class="popover-content" style="margin:0;padding:0">
+    <div class="popover-content">
 
-
-
-
-
-        <uib-accordion close-others="false" style="margin:0;padding:0">
-            <div uib-accordion-group  is-open="true">
-                <uib-accordion-heading style="border:none">
-                    <div uib-accordion-header style="padding:5px;background-color:#fa39c3">
-                        I can have markup,  too! 
-                        <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-up': !status.open}"></i>
-
+        <uib-accordion close-others="false">
+            <!-- Vorkonfigurierte globale Datenquellen-->
+            <div uib-accordion-group  
+                 ng-init="globalDatasourcesOpen = true" 
+                 is-open="globalDatasourcesOpen">
+                <uib-accordion-heading>
+                    <div uib-accordion-header 
+                         style="margin:0px;padding:8px;background-color:#c6e1ec;color:#3d7489">
+                        Vorkonfigurierte globale Datenquellen
+                        <i class="pull-right glyphicon" 
+                           ng-class="{'glyphicon-chevron-down': globalDatasourcesOpen, 'glyphicon-chevron-up': !globalDatasourcesOpen}">
+                        </i>
                     </div>
                 </uib-accordion-heading>
+                <div class="checkbox" style="width:100%;clear:right"
+                     ng-repeat="globalDatasource in externalDatasourcesController.globalDatasources">
+                    <label class="form-check-label">
+                        <input 
+                            class="form-check-input"
+                            type="checkbox"
+                            name="{{globalDatasource.name}}"
+                            value="globalDatasource"
+                            ng-checked="externalDatasourcesController.selectedGlobalDatasources.indexOf(globalDatasource) > -1"
+                            ng-click="externalDatasourcesController.toggleGlobalDatasourceSelection(globalDatasource)"> 
+                        {{globalDatasource.name}}
+                    </label>
+                </div>
+            </div>
 
+            <!-- Eigene lokale Datenquellen-->
+            <div uib-accordion-group  ng-init="localDatasourcesOpen = true" is-open="localDatasourcesOpen">
+                <uib-accordion-heading>
+                    <div uib-accordion-header 
+                         style="margin:0px;padding:8px;background-color:#c6e1ec;color:#3d7489">
+                        Eigene lokale Datenquellen
+                        <i class="pull-right glyphicon" 
+                           ng-class="{'glyphicon-chevron-down': localDatasourcesOpen, 'glyphicon-chevron-up': !localDatasourcesOpen}">
 
-                <span class="label label-primary">1999</span>
-                <span class="label label-primary">2000</span>
-                <span class="label label-primary">2001</span>
-                <span class="label label-primary">2002</span>
-                <span class="label label-primary">2003</span>
-                <span class="label label-primary">2004</span>
-                <span class="label label-primary">2005</span>
-                <span class="label label-primary">2006</span>
-                <span class="label label-primary">2007</span>
-                <span class="label label-primary">2008</span>
-                <span class="label label-primary">2009</span>
-                <span class="label label-primary">2010</span>
-                <span class="label label-primary">2010</span>
-
-                
+                        </i>
+                    </div>
+                </uib-accordion-heading>
+                <div class="checkbox" style="width:100%;clear:right"
+                     ng-repeat="localDatasource in externalDatasourcesController.localDatasources">
+                    <label class="form-check-label">
+                        <input 
+                            class="form-check-input"
+                            type="checkbox"
+                            name="{{localDatasource.name}}"
+                            value="localDatasource"
+                            ng-checked="externalDatasourcesController.selectedGlobalDatasources.indexOf(localDatasource) > -1"
+                            ng-click="externalDatasourcesController.toggleGlobalDatasourceSelection(localDatasource)"> 
+                        {{localDatasource.name}}
+                    </label>
+                </div>
+                <div class="checkbox" style="width:100%;clear:right">
+                    <label class="form-check-label">
+                        <input 
+                            class="form-check-input"
+                            type="checkbox"
+                            name="uu"
+                            value="localDatasource">
+                        BLAHAAAAAAAAAAAA
+                    </label>
+                    <a class="btn btn-icon pull-right"
+                       title="Zur Merkliste hinzufügen"
+                       ng-click="showModal()">
+                        <span class="fa fa-minus-circle pull-right" style="color:red"></span>
+                    </a>
+                </div>
+                <a class="btn btn-icon pull-right"
+                   title="Zur Merkliste hinzufügen"
+                   ng-click="$hide();externalDatasourcesController.openExternalDatasourceModal()">
+                    <span class="fa fa-plus-circle" style="color:green"></span>
+                </a>
             </div>
         </uib-accordion>
-
-
     </div>
     <div class="panel-footer">
         <button type="button" 
                 class="btn btn-default" 
                 ng-click="$hide()">
             OK
-        </button>
+        </button><!--
         <button type="button" 
                 class="btn btn-default" 
                 ng-click="popover.saved = true;$hide()">
             Abbrechen
-        </button>
-
+        </button>-->
     </div>
-
-
 </div>
 

@@ -14,8 +14,8 @@ angular.module(
         ).controller(
         'analysisController',
         [
-            '$timeout', '$scope', '$state', 'leafletData',
-            function ($timeout, $scope, $state, leafletData) {
+            '$timeout', '$scope', '$state', 'dataService', 'sharedDatamodel','leafletData',
+            function ($timeout, $scope, $state, dataService, sharedDatamodel,leafletData) {
                 'use strict';
 
                 var analysisController;
@@ -26,11 +26,6 @@ angular.module(
                 //mainController.name = 'this.main';
                 //$scope.mode = 'analysis';
                 analysisController.mode = 'map';
-
-                $scope.popover = {
-                    "title": "Title",
-                    "content": "Hello Popover<br />This is a multiline message!"
-                };
 
                 $scope.$on('$stateChangeSuccess', function (toState) {
                     if ($state.includes("main.analysis") && !$state.is("main.analysis")) {

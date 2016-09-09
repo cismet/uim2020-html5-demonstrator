@@ -25,18 +25,8 @@ angular.module(
                 searchController = this;
 
                 // Configurations: 
-                // <editor-fold defaultstate="collapsed" desc="   - Gazetteer Locations Selection Box Configuration">
+                // <editor-fold defaultstate="collapsed" desc="   - Search Locations Selection Box Configuration">
                 // TODO: add coordinates to selectedSearchLocation on selection!
-                searchController.searchLocations = [{
-                        name: 'Gesamter Kartenausschnitt',
-                        id: 0,
-                        geometry: null
-                    }, {
-                        name: 'Boundingbox Auswahl',
-                        id: 1,
-                        geometry: null
-                    }]
-
                 searchController.searchLocations = dataService.getSearchLocations();
                 sharedDatamodel.selectedSearchLocation = angular.copy(searchController.searchLocations[0]);
                 searchController.selectedSearchLocation = sharedDatamodel.selectedSearchLocation;

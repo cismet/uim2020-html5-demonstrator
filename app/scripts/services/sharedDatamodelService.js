@@ -22,7 +22,12 @@ angular.module(
                 this.selectedSearchGeometry = {};
                 this.selectedSearchLocation = {};
 
-                //search results
+                // search results
                 this.resultNodes = [];
                 this.analysisNodes = [];
+                
+                // data import
+                this.selectedGlobalDatasources = [];
+                this.localDatasources = [];
+                this.selectedLocalDatasources = [];
             }]);

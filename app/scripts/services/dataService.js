@@ -19,7 +19,7 @@ angular.module(
                 var staticResourceFiles, cachedResources,
                         lazyLoadResource, shuffleArray, searchLocations;
 
-                var searchLocations = [
+                searchLocations = [
                     {
                         name: 'Gesamter Kartenausschnitt',
                         id: 0,
@@ -29,7 +29,7 @@ angular.module(
                         id: 1,
                         geometry: null
                     }
-                ]
+                ];
 
                 staticResourceFiles = {
                     'searchThemes': 'data/searchThemes.json',
@@ -37,7 +37,8 @@ angular.module(
                     'gazetteerLocations': 'data/gazetteerLocations.json',
                     'filterPollutants': 'data/filterPollutants.json',
                     'mockNodes': 'data/resultNodes.json',
-                    'mockObjects': 'data/resultObjects.json'
+                    'mockObjects': 'data/resultObjects.json',
+                    'globalDatasources': 'data/globalDatasources.json'
                 };
 
                 // cached resource data
@@ -104,6 +105,9 @@ angular.module(
                     },
                     getGazetteerLocations: function () {
                         return lazyLoadResource('gazetteerLocations', true);
+                    },
+                    getGlobalDatasources: function () {
+                        return lazyLoadResource('globalDatasources', true);
                     },
                     getMockNodes: function () {
                         var mockNodes = lazyLoadResource('mockNodes', true);

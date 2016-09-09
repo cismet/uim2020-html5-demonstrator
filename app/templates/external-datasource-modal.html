@@ -1,0 +1,93 @@
+<div class="modal-header">
+    <h3 class="modal-title" id="modal-title">Datenimport</h3>
+</div>
+
+
+<div class="modal-body" id="modal-body">
+    <p>Unterstütztes Format: ESRI Shapefile (.SHP, .DBF) in ZIP Archiv.</p>
+
+    <form name="importForm">
+        
+        
+        <input type="file" ngf-select ng-model="externalDatasourceModalController.importFile" name="importFile"    
+             ngf-max-size="10MB" required
+             ngf-model-invalid="errorFile">
+      <i ng-show="importForm.importFile.$error.required">*required</i><br>
+      <i ng-show="importForm.importFile.$error.maxSize">File too large 
+          {{errorFile.size / 1000000|number:1}}MB: max 2M</i>
+
+      <button ng-disabled="!importForm.$valid" 
+              ng-click="uploadPic(externalDatasourceModalController.importFile)">Submit</button>
+      
+      <span class="progress" ng-show="externalDatasourceModalController.importFile >= 0">
+        <div style="width:{{externalDatasourceModalController.importFile}}%" 
+            ng-bind="externalDatasourceModalController.importFile + '%'"></div>
+      </span>
+      <span ng-show="externalDatasourceModalController.importFile.result">Upload Successful</span>
+      <span class="err" ng-show="errorMsg">{{errorMsg}}</span>
+        
+        
+        
+        
+        <div class="form-group row">
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            <div class="col-xs-10">
+                <input type="file" id="importFile" class="form-control"></input>
+
+                <div class="input-group">
+                    <label class="input-group-btn">
+                        <span class="btn btn-primary">
+                            Datei auswählen: <input type="file" 
+                                                  style="display: 
+                                                  none;" multiple
+                                                  id="importFiles"
+                                                  name="importFiles">
+                        </span>
+                    </label>
+                    <input type="text" class="form-control" readonly>
+                </div>
+
+            </div>
+
+
+            <!--
+            <div class="col-xs-7">
+                <input class="form-control" type="text" id="importFile" value="{{importFile.name}}">
+            </div>
+            -->
+        </div>
+        <div class="form-group row">
+            <div class="col-xs-10">
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input type="checkbox" 
+                               class="form-check-input"
+                               ng-disabled="true">
+                        Diese Datei allen anderen Nutzern zur Verfügung stellen
+                    </label>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer">
+    <button class="btn btn-default"
+            type="button" 
+            ng-click="externalDatasourceModalController.ok()">OK
+    </button>
+    <button 
+        class="btn btn-default" 
+        type="button" 
+        ng-click="externalDatasourceModalController.cancel()">Cancel
+    </button>
+</div>

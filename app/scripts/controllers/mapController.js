@@ -11,9 +11,10 @@ angular.module(
             'leafletData',
             'configurationService',
             'sharedDatamodel',
+            'sharedControllers',
             'featureRendererService',
             function ($scope, $state, $stateParams, leafletData, configurationService,
-                    sharedDatamodel, featureRendererService) {
+                    sharedDatamodel, sharedControllers, featureRendererService) {
                 'use strict';
 
                 var leafletMap, mapId, mapController, config, layerControl, searchGeometryLayerGroup, drawControl,
@@ -37,8 +38,10 @@ angular.module(
 
                 if (mapController.mode === 'search') {
                     mapController.nodes = mapController.resultNodes;
+                    sharedControllers.searchMapController = mapController;
                 } else if (mapController.mode === 'analysis') {
                     mapController.nodes = mapController.analysisNodes;
+                    sharedControllers.analysisMapController = mapController;
                 }
 
                 defaults = angular.copy(config.defaults);
@@ -125,8 +128,8 @@ angular.module(
                             //layerControl.removeLayer(gazetteerLocationLayer);
                         }
                     });
-                    
-                   
+
+
                 });
 
 
@@ -155,6 +158,31 @@ angular.module(
 
                 ///public API functions
 
+
+                mapController.addOverlay = function (layer) {
+                    if (layer.$key && layer.$name) {
+                        var groupName = layer.$groupName ? layer.$groupName : 'Externe Datenquellen';
+                        layerControl.addOverlay(
+                                layer,
+                                layer.$name, {
+                                    groupName: groupName
+                                });
+                    }
+
+                    layerControl.selectLayer(layer);
+
+                    leafletData.getMap(mapId).then(function (map) {
+                        map.fitBounds(layer.getBounds(), {
+                            animate: true,
+                            pan: {animate: true, duration: 0.6},
+                            zoom: {animate: true},
+                            maxZoom: null
+                        });
+                    });
+
+                    layer.addTo(leafletMap);
+                };
+
                 mapController.gotoNode = function (node) {
                     if (node.$feature) {
                         leafletMap.setView(node.$feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
@@ -168,7 +196,7 @@ angular.module(
                     if (nodes !== null && nodes.length > 0) {
                         layerGroups = featureRendererService.createNodeFeatureLayers(nodes);
                         for (theme in layerGroups) {
-                            console.log(mapId+'::setResultNodes for ' + theme);
+                            console.log(mapId + '::setResultNodes for ' + theme);
                             featureLayer = layerGroups[theme];
                             // FIXME: clear layers before adding
                             // FIXME: setVisible to true adds duplicate layers
@@ -242,7 +270,7 @@ angular.module(
                 });
 
                 $scope.$on('searchSuccess()', function (e) {
-                    console.log(mapId+'::searchSuccess()');
+                    console.log(mapId + '::searchSuccess()');
                     if (mapController.mode === 'search' && sharedDatamodel.resultNodes.length > 0) {
                         mapController.setNodes(sharedDatamodel.resultNodes);
                     } else if (mapController.mode === 'analysis' && sharedDatamodel.analysisNodes.length > 0) {
