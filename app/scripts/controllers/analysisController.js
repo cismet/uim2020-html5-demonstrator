@@ -14,8 +14,10 @@ angular.module(
         ).controller(
         'analysisController',
         [
-            '$timeout', '$scope', '$state', 'dataService', 'sharedDatamodel','leafletData',
-            function ($timeout, $scope, $state, dataService, sharedDatamodel,leafletData) {
+            '$timeout', '$scope', '$state', 'dataService', 'sharedDatamodel', 'sharedControllers',
+            'leafletData',
+            function ($timeout, $scope, $state, dataService, sharedDatamodel,
+                    sharedControllers, leafletData) {
                 'use strict';
 
                 var analysisController;
@@ -26,6 +28,11 @@ angular.module(
                 //mainController.name = 'this.main';
                 //$scope.mode = 'analysis';
                 analysisController.mode = 'map';
+
+                analysisController.clearAnalysisNodes = function () {
+                    sharedDatamodel.analysisNodes.length = 0;
+                    sharedControllers.analysisMapController.clearNodes();
+                };
 
                 $scope.$on('$stateChangeSuccess', function (toState) {
                     if ($state.includes("main.analysis") && !$state.is("main.analysis")) {

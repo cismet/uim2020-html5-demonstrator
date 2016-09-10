@@ -137,7 +137,7 @@ angular.module(
 
                             //convertToLayer(reader.result, file.name);
                         }
-                    }
+                    };
 
                     reader.onprogress = function (progressEvent) {
                         if (event.lengthComputable) {
@@ -190,8 +190,8 @@ angular.module(
                 var gl = L.geoJson(geojsonFeature, {
                     onEachFeature: onEachFeature
                 });
-                
-                console.log(gl);
+
+                //console.log(gl);
 
                 convertToLayer = function convertToLayer(buffer, fileName) {
                     console.log('convertToLayer: ' + name);
@@ -200,17 +200,17 @@ angular.module(
                         geojson.fileName = fileName;
                         var shapeFileLayer = L.shapefile(geojson, {
                             onEachFeature: onEachFeature /* function (feature, layer) {
-                                if (feature.properties) {
-                                    layer.bindPopup(Object.keys(feature.properties).map(function (k) {
-                                        return k + ": " + feature.properties[k];
-                                    }).join("<br />"), {
-                                        maxHeight: 200
-                                    });
-                                }
-                                console.log('shpProcessingProgress:' + i++);
-                            }*/
+                             if (feature.properties) {
+                             layer.bindPopup(Object.keys(feature.properties).map(function (k) {
+                             return k + ": " + feature.properties[k];
+                             }).join("<br />"), {
+                             maxHeight: 200
+                             });
+                             }
+                             console.log('shpProcessingProgress:' + i++);
+                             }*/
                         });
-                        
+
 //                        shapeFileLayer = L.geoJson(geojson, {
 //                            onEachFeature: function (feature, layer) {
 //                                if (feature.properties) {
@@ -229,6 +229,10 @@ angular.module(
 
                         shapeFileLayer.$name = fileName;
                         shapeFileLayer.$key = fileName;
+                        shapeFileLayer.StyledLayerControl = {
+                            removable: true,
+                            visible: false
+                        };
                         console.log('addOverlay: ' + fileName);
                         mapController.addOverlay(shapeFileLayer);
                         shapeFileLayer.once("data:loaded", function () {

@@ -18,8 +18,9 @@ angular.module(
             function (configurationService) {
                 'use strict';
 
-                var config, getFeatureRenderer, createNodeFeatureRenderer,
-                        defaultStyle, highlightStyle, createGazetteerLocationLayer, createNodeFeatureLayers;
+                var config, getFeatureRenderer, createNodeFeature, createNodeFeatureRenderer,
+                        defaultStyle, highlightStyle, createGazetteerLocationLayer, 
+                        createNodeFeatureLayers, createNodeFeatureGroups;
 
                 config = configurationService.featureRenderer;
 
@@ -49,9 +50,9 @@ angular.module(
                     return featureLayer;
                 };
 
-                createNodeFeatureRenderer = function (node, theme) {
+                createNodeFeature = function (node, theme) {
                     if (node.hasOwnProperty('geometry')) {
-                        var wktString, wktObject, featureLayer, icon;
+                        var wktString, wktObject, feature, icon;
                         
                         icon = config.icons[theme];
                         wktString = node.geometry;
@@ -63,19 +64,43 @@ angular.module(
                             title: node.name
                         };
 
-                        featureLayer = wktObject.toObject(objectConfig);
-                        featureLayer.bindPopup(node.name);
-                        featureLayer.$name = node.name;
-                        featureLayer.$key = node.$self;
+                        feature = wktObject.toObject(objectConfig);
+                        feature.bindPopup(node.name);
+                        feature.$name = node.name;
+                        feature.$key = node.$self;
+                        feature.$groupKey = theme;
                         
-                        node.$feature = featureLayer;
+                        node.$feature = feature;
                         node.$icon = icon.options.iconUrl;
                         
-                        return featureLayer;
+                        return feature;
                     }
                 };
 
+                createNodeFeatureGroups = function (nodes) {
+                    var i, node, theme, feature, featureGroup, featureGroups;
+                    featureGroups = [];
+                    for (i = 0; i < nodes.length; ++i) {
+                        node = nodes[i];
+                        theme = node.classKey.split(".").slice(1, 2).pop();
+                        feature = createNodeFeature(node, theme);
 
+                        if (feature) {
+                            if (!featureGroups.hasOwnProperty(theme)) {
+                                featureGroup = [];
+                                featureGroups[theme] = featureGroup;
+                            } else {
+                                featureGroup = featureGroups[theme];
+                            }
+
+                            featureGroup.push(feature);
+                        }
+                    }
+
+                    return featureGroups;
+                };
+
+/*
                 createNodeFeatureLayers = function (nodes) {
                     var i, node, theme, featureGroup, featureRender, featureRenders;
                     featureRenders = {};
@@ -103,7 +128,7 @@ angular.module(
                     }
 
                     return featureRenders;
-                };
+                };*/
 
 
                 //L.marker([51.5, -0.09])
@@ -224,7 +249,7 @@ angular.module(
                 };
 
                 return {
-                    createNodeFeatureLayers: createNodeFeatureLayers,
+                    createNodeFeatureGroups: createNodeFeatureGroups,
                     createGazetteerLocationLayer: createGazetteerLocationLayer,
                     defaultStyle: defaultStyle,
                     highlightStyle: highlightStyle
