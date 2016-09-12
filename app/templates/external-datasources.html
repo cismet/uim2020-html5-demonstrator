@@ -27,7 +27,8 @@
             <!-- Vorkonfigurierte globale Datenquellen-->
             <div uib-accordion-group  
                  ng-init="globalDatasourcesOpen = true" 
-                 is-open="globalDatasourcesOpen">
+                 is-open="globalDatasourcesOpen"
+                 ng-class="{'text-muted': isDisabled}">
                 <uib-accordion-heading>
                     <div uib-accordion-header 
                          style="margin:0px;padding:8px;background-color:#c6e1ec;color:#3d7489">
@@ -45,7 +46,7 @@
                             type="checkbox"
                             name="{{globalDatasource.name}}"
                             value="globalDatasource"
-                            ng-checked="externalDatasourcesController.selectedGlobalDatasources.indexOf(globalDatasource) > -1"
+                            ng-checked="globalDatasource.$layer && globalDatasource.$layer.$selected"
                             ng-click="externalDatasourcesController.toggleGlobalDatasourceSelection(globalDatasource)"> 
                         {{globalDatasource.name}}
                     </label>
@@ -72,29 +73,19 @@
                             type="checkbox"
                             name="{{localDatasource.name}}"
                             value="localDatasource"
-                            ng-checked="externalDatasourcesController.selectedGlobalDatasources.indexOf(localDatasource) > -1"
+                            ng-checked="localDatasource.$layer && localDatasource.$layer.$selected"
                             ng-click="externalDatasourcesController.toggleGlobalDatasourceSelection(localDatasource)"> 
                         {{localDatasource.name}}
                     </label>
-                </div>
-                <div class="checkbox" style="width:100%;clear:right">
-                    <label class="form-check-label">
-                        <input 
-                            class="form-check-input"
-                            type="checkbox"
-                            name="uu"
-                            value="localDatasource">
-                        BLAHAAAAAAAAAAAA
-                    </label>
-                    <a class="btn btn-icon pull-right"
-                       title="Zur Merkliste hinzufügen"
-                       ng-click="showModal()">
+                     <a class="btn btn-icon pull-right"
+                       title="Lokale Datenquelle entfernen"
+                       ng-click="externalDatasourcesController.removeLocalDatasource(localDatasource)">
                         <span class="fa fa-minus-circle pull-right" style="color:red"></span>
                     </a>
                 </div>
                 <a class="btn btn-icon pull-right"
-                   title="Zur Merkliste hinzufügen"
-                   ng-click="$hide();externalDatasourcesController.openExternalDatasourceModal()">
+                   title="Neue lokale Datenquelle hinzufügen"
+                   ng-click="externalDatasourcesController.addLocalDatasource(localDatasource)">
                     <span class="fa fa-plus-circle" style="color:green"></span>
                 </a>
             </div>

@@ -116,8 +116,9 @@ angular.module(
                 esriTopographicBasemapLayer.$groupName = configurationService.map.layerGroupMappings['basemaps'];
                 esriTopographicBasemapLayer.$groupKey = 'basemaps';
 
+                //'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png'
                 openTopoBasemapLayer = new L.TileLayer(
-                        'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                        'http://opentopomap.org/{z}/{x}/{y}.png', {
                             attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors, SRTM | Rendering: © <a href="http://opentopomap.org" target="_blank">OpenTopoMap</a> (CC-BY-SA)'
                         });
                 openTopoBasemapLayer.$name = configurationService.map.layerMappings['opentopomap_org'];
@@ -242,7 +243,7 @@ angular.module(
                     polyline: false,
                     polygon: {
                         shapeOptions: {
-                            color: '#800000',
+                            color: '#006d2c',
                             clickable: true
                         },
                         showArea: true,
@@ -250,7 +251,7 @@ angular.module(
                     },
                     rectangle: {
                         shapeOptions: {
-                            color: '#800000',
+                            color: '#006d2c',
                             clickable: true
                         },
                         metric: true
@@ -269,6 +270,13 @@ angular.module(
                 };
 
                 configurationService.featureRenderer = {};
+                configurationService.featureRenderer.gazetteerStyle = {
+                    color: '#dadaeb',
+                    fill: false,
+                    weight: 1,
+                    riseOnHover: false,
+                    clickable: false
+                };
                 configurationService.featureRenderer.defaultStyle = {
                     color: '#0000FF',
                     fill: false,

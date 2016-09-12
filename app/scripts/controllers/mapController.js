@@ -159,14 +159,67 @@ angular.module(
 //
 //                }
 
+                mapController.unSelectOverlayByKey = function (layerKey) {
+                    if (layerKey &&
+                            layerControlMappings[layerKey] &&
+                            layerControl._Layers[layerControlMappings[layerKey]]) {
+
+                        mapController.unSelectOverlayByKey(layerControl._Layers[layerControlMappings[layerKey]]);
+                    } else {
+                        console.warn("mapController::unSelectOverlayByKey: unknown key '" + layerKey + "'");
+                    }
+                };
+
+                mapController.unSelectOverlay = function (layer) {
+                    layerControl.unSelectOverlay(layer);
+                };
+
+                mapController.selectOverlayByKey = function (layerKey) {
+                    if (layerKey &&
+                            layerControlMappings[layerKey] &&
+                            layerControl._Layers[layerControlMappings[layerKey]]) {
+
+                        mapController.selectOverlay(layerControl._Layers[layerControlMappings[layerKey]]);
+                    } else {
+                        console.warn("mapController::selectOverlayByKey: unknown key '" + layerKey + "'");
+                    }
+                };
+
+                mapController.selectOverlay = function (layer) {
+                    layerControl.selectLayer(layer);
+
+                    leafletMap.fitBounds(layer.getBounds(), {
+                        animate: true,
+                        pan: {animate: true, duration: 0.6},
+                        zoom: {animate: true},
+                        maxZoom: null
+                    });
+                };
+
+                mapController.removeOverlayByKey = function (layerKey) {
+                    if (layerKey &&
+                            layerControlMappings[layerKey] &&
+                            layerControl._Layers[layerControlMappings[layerKey]]) {
+
+                        mapController.removeOverlay(layerControl._Layers[layerControlMappings[layerKey]]);
+                    } else {
+                        console.warn("mapController::removeOverlayByKey: unknown key '" + layerKey + "'");
+                    }
+                };
+
+                mapController.removeOverlay = function (layer) {
+                    mapController.unselectOverlay(layer);
+                    layerControl.removeOverlay(layer);
+                };
+
                 mapController.addOverlay = function (layer) {
                     if (mapController.mode === 'analysis') {
                         if (layer.$key && layer.$name) {
 
                             layerControlMappings[layer.$key] =
                                     L.stamp(layer);
-                            
-                            console.log('mapController::addOverlay: ' + layer.$name + ' (' + layerControlMappings[layer.$key] + ')');
+
+                            //console.log('mapController::addOverlay: ' + layer.$name + ' (' + layerControlMappings[layer.$key] + ')');
 
                             var groupName = layer.$groupName ? layer.$groupName : config.layerGroupMappings['external'];
                             layerControl.addOverlay(
@@ -175,15 +228,8 @@ angular.module(
                                         groupName: groupName
                                     });
 
+                            mapController.selectOverlay(layer);
 
-                            layerControl.selectLayer(layer);
-
-                            leafletMap.fitBounds(layer.getBounds(), {
-                                animate: true,
-                                pan: {animate: true, duration: 0.6},
-                                zoom: {animate: true},
-                                maxZoom: null
-                            });
 
                             /*leafletData.getMap(mapId).then(function (map) {
                              map.fitBounds(layer.getBounds(), {
@@ -479,15 +525,15 @@ angular.module(
                     // FIXME: GazetteerLocationLayer not removed from control
                     map.on('layerremove', function (layerEvent) {
                         var removedLayer = layerEvent.layer;
-                        
-                        
-                        if(removedLayer.StyledLayerControl && 
+
+
+                        if (removedLayer.StyledLayerControl &&
                                 removedLayer.StyledLayerControl.removable
                                 && layerControl._layers[L.stamp(removedLayer)]) {
                             // bugfix-hack for StyledLayerControl.
                             layerControl.removeLayer(removedLayer);
                         }
-                        
+
                         console.log('mapController:: layer removed: ' + removedLayer.$name
                                 + ' (' + L.stamp(removedLayer) + ')');
 

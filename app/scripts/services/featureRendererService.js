@@ -18,12 +18,32 @@ angular.module(
             function (configurationService) {
                 'use strict';
 
-                var config, getFeatureRenderer, createNodeFeature, createNodeFeatureRenderer,
-                        defaultStyle, highlightStyle, createGazetteerLocationLayer, 
-                        createNodeFeatureLayers, createNodeFeatureGroups;
+                var config, getFeatureRenderer, createNodeFeature,
+                        createGazetteerLocationLayer, createNodeFeatureGroups,
+                        onEachFeature;
 
                 config = configurationService.featureRenderer;
 
+                
+                /**
+                 * Methos for GeoJson GeoJson Fetatures
+                 * 
+                 * @param {type} feature
+                 * @param {type} layer
+                 * @returns {undefined}
+                 */
+                onEachFeature = function (feature, layer) {
+                    if (feature.properties) {
+                        layer.bindPopup(Object.keys(feature.properties).map(function (k) {
+                            return k + ": " + feature.properties[k];
+                        }).join("<br />"), {
+                            maxHeight: 200
+                        });
+                    }
+                };
+                
+                
+                
                 createGazetteerLocationLayer = function (gazetteerLocation) {
                     var wktString, wktObject, geometryCollection, featureLayer;
                     if (gazetteerLocation.hasOwnProperty('area')) {
@@ -45,6 +65,7 @@ angular.module(
                         featureLayer = wktObject.toObject();
                     }
 
+                    featureLayer.setStyle(angular.copy(config.gazetteerStyle));
                     featureLayer.$name = gazetteerLocation.name;
                     featureLayer.$key = 'gazetteerLocation';
                     return featureLayer;
@@ -53,7 +74,7 @@ angular.module(
                 createNodeFeature = function (node, theme) {
                     if (node.hasOwnProperty('geometry')) {
                         var wktString, wktObject, feature, icon;
-                        
+
                         icon = config.icons[theme];
                         wktString = node.geometry;
                         wktObject = new Wkt.Wkt();
@@ -69,10 +90,10 @@ angular.module(
                         feature.$name = node.name;
                         feature.$key = node.$self;
                         feature.$groupKey = theme;
-                        
+
                         node.$feature = feature;
                         node.$icon = icon.options.iconUrl;
-                        
+
                         return feature;
                     }
                 };
@@ -100,35 +121,35 @@ angular.module(
                     return featureGroups;
                 };
 
-/*
-                createNodeFeatureLayers = function (nodes) {
-                    var i, node, theme, featureGroup, featureRender, featureRenders;
-                    featureRenders = {};
-                    for (i = 0; i < nodes.length; ++i) {
-                        node = nodes[i];
-                        theme = node.classKey.split(".").slice(1, 2).pop();
-                        featureRender = createNodeFeatureRenderer(node, theme);
-
-                        if (featureRender) {
-                            if (!featureRenders.hasOwnProperty(theme)) {
-                                featureGroup = new L.FeatureGroup();
-                                featureGroup.$name = config.layergroupNames[theme];
-                                featureGroup.$key = theme;
-                                featureGroup.StyledLayerControl = {
-                                    removable: false,
-                                    visible: false
-                                };
-                                featureRenders[theme] = featureGroup;
-                            } else {
-                                featureGroup = featureRenders[theme];
-                            }
-
-                            featureRender.addTo(featureGroup);
-                        }
-                    }
-
-                    return featureRenders;
-                };*/
+                /*
+                 createNodeFeatureLayers = function (nodes) {
+                 var i, node, theme, featureGroup, featureRender, featureRenders;
+                 featureRenders = {};
+                 for (i = 0; i < nodes.length; ++i) {
+                 node = nodes[i];
+                 theme = node.classKey.split(".").slice(1, 2).pop();
+                 featureRender = createNodeFeatureRenderer(node, theme);
+                 
+                 if (featureRender) {
+                 if (!featureRenders.hasOwnProperty(theme)) {
+                 featureGroup = new L.FeatureGroup();
+                 featureGroup.$name = config.layergroupNames[theme];
+                 featureGroup.$key = theme;
+                 featureGroup.StyledLayerControl = {
+                 removable: false,
+                 visible: false
+                 };
+                 featureRenders[theme] = featureGroup;
+                 } else {
+                 featureGroup = featureRenders[theme];
+                 }
+                 
+                 featureRender.addTo(featureGroup);
+                 }
+                 }
+                 
+                 return featureRenders;
+                 };*/
 
 
                 //L.marker([51.5, -0.09])
@@ -160,12 +181,12 @@ angular.module(
                         wktString = obj.spatialcoverage.geo_field; // jshint ignore:line
                         wktObject = new Wkt.Wkt();
                         wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
-                        objectStyle = Object.create(defaultStyle);
+                        objectStyle = Object.create(config.defaultStyle);
                         if (obj.name) {
                             objectStyle.title = obj.name;
                         }
                         renderer = wktObject.toObject(objectStyle);
-                        renderer.setStyle(defaultStyle);
+                        renderer.setStyle(config.defaultStyle);
                     }
 
 
@@ -251,8 +272,8 @@ angular.module(
                 return {
                     createNodeFeatureGroups: createNodeFeatureGroups,
                     createGazetteerLocationLayer: createGazetteerLocationLayer,
-                    defaultStyle: defaultStyle,
-                    highlightStyle: highlightStyle
+                    defaultStyle: config.defaultStyle,
+                    highlightStyle: config.highlightStyle
                 };
             }
         ]
