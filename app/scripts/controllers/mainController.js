@@ -3,8 +3,8 @@ angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'mainController',
-        ['$scope', '$state', '$previousState', 'sharedDatamodel',
-            function ($scope, $state, $previousState, sharedDatamodel) {
+        ['$scope', '$state', '$previousState', 'sharedDatamodel', 'sharedControllers',
+            function ($scope, $state, $previousState, sharedDatamodel, sharedControllers) {
                 'use strict';
 
                 var mainController;
@@ -15,12 +15,44 @@ angular.module(
                 //mainController.name = 'this.main';
                 //$scope.mode = 'search';
                 mainController.mode = $state.current.name.split(".").slice(1, 2).pop();
+                
+                mainController.removeAnalysisNode = function (node) {
+                    var index = sharedDatamodel.analysisNodes.indexOf(node);
+                    if(index !== -1) {
+                        sharedDatamodel.analysisNodes.splice(sharedDatamodel.analysisNodes.indexOf(node), 1);
+                        // manually update map
+                        if(sharedControllers.analysisMapController) {
+                            sharedControllers.analysisMapController.removeNode(node);
+                        }
+                    } else {
+                        console.warn("mainController::removeAnalysisNode: node '" + node.name + "' no in list of analysis nodes!");
+                    }
+                };
+                
+                mainController.addAnalysisNode = function (node) {
+                    var index = sharedDatamodel.analysisNodes.indexOf(node);
+                    if(index !== -1) {
+                        console.warn("mainController::addAnalysisNode: node '" + node.name + "' already in list of analysis nodes!");
+                    } else {
+                        // we cannot add the same feature to two different maps ... :-(
+                        var analysisNode = angular.copy(node);
+                        analysisNode.$feature = null;
+                        
+                        // manually update map
+                        sharedDatamodel.analysisNodes.push(analysisNode);
+                        if(sharedControllers.analysisMapController) {
+                            sharedControllers.analysisMapController.addNode(analysisNode);
+                        }
+                    }
+                };
+                
 
                 $scope.$on('$stateChangeSuccess', function (toState) {
                     if ($state.includes("main") && !$state.is("main")) {
                         //$scope.mode = $state.current.name.split(".").slice(1, 2).pop();
                         mainController.mode = $state.current.name.split(".").slice(1, 2).pop();
-                        console.log('mainController::mainController.mode: ' + mainController.mode);
+                        console.log('mainController::mainController.mode: ' + mainController.mode + 
+                                '(toState: ' + toState.name + ')');
 
                         var previousState = $previousState.get();
                         if (previousState && previousState.state && previousState.state.name) {

@@ -14,7 +14,8 @@ var app = angular.module(
             'ct.ui.router.extras.sticky', 'ct.ui.router.extras.dsr', 'ct.ui.router.extras.previous',
             'leaflet-directive',
             'ngTable', 'angularjs-dropdown-multiselect',
-            'mgo-angular-wizard'
+            'mgcrea.ngStrap.tooltip', 'mgcrea.ngStrap.popover','mgcrea.ngStrap.modal',
+            'mgo-angular-wizard', 'ngFileUpload'
         ]
         );
 
@@ -41,7 +42,7 @@ app.config(
                         id: $stateParams.id
                     };
                 };
-                
+
                 // <editor-fold defaultstate="collapsed" desc=" showEntityModal() " >
                 /**
                  * Opens a modal window and remebers the previous state.
@@ -158,7 +159,7 @@ app.config(
                 });
 
                 $stateProvider.state('main.authentication', {
-                    url: 'login',
+                    url: '/login',
                     data: {
                         roles: ['User']
                     },
@@ -306,7 +307,7 @@ app.config(
                         }
                     }
                 });
-                
+
                 $stateProvider.state("modal", {
                     abstract: true
                 });
@@ -319,16 +320,16 @@ app.config(
                     sticky: false,
                     backdrop: 'static',
                     /*controller: ['$scope',
-                        function ($scope) {
-                            console.log('modal.entity created');
-                            $scope.name = 'modal.entity';
-                            this.name = 'this.modal.entity';
-                        }],*/
+                     function ($scope) {
+                     console.log('modal.entity created');
+                     $scope.name = 'modal.entity';
+                     this.name = 'this.modal.entity';
+                     }],*/
                     templateUrl: 'views/entity/modal.html',
                     controller: 'entityController',
                     controllerAs: 'entityController',
                     //onEnter: showEntityModal,
-                    modal:true,
+                    modal: true,
                     resolve: {
                         entity: [
                             '$stateParams',
@@ -339,6 +340,18 @@ app.config(
                             return $previousState.get('entityModalInvoker');
                         }
                     }
+                });
+
+                $stateProvider.state('modal.export', {
+                    url: '/export',
+                    data: {
+                        roles: ['User']
+                    },
+                    sticky: false,
+                    templateUrl: 'views/export/modal.html',
+                    controller: 'exportController',
+                    controllerAs: 'exportController',
+                    modal: true
                 });
 
                 /*
@@ -390,7 +403,7 @@ app.run(
                                 if ((!authenticationService.isIdentityResolved() &&
                                         !authenticationService.getIdentity()) ||
                                         !authenticationService.isAuthenticated()) {
-                                    console.warn('user not logged in!');
+                                    console.warn('user not logged in, toState:' + toState.name + ', fromState:' + fromState.name);
                                     event.preventDefault();
                                     $previousState.memo('authentication');
                                     $state.go('main.authentication');
@@ -441,32 +454,39 @@ angular.module(
         ).controller(
         'analysisController',
         [
-            '$timeout', '$scope', '$state', 'leafletData',
-            function ($timeout, $scope, $state, leafletData) {
+            '$timeout', '$scope', '$state', 'dataService', 'sharedDatamodel', 'sharedControllers',
+            'leafletData',
+            function ($timeout, $scope, $state, dataService, sharedDatamodel,
+                    sharedControllers, leafletData) {
                 'use strict';
 
                 var analysisController;
                 analysisController = this;
-                
+
                 console.log('analysisController instance created');
                 //$scope.name = 'main';
                 //mainController.name = 'this.main';
                 //$scope.mode = 'analysis';
                 analysisController.mode = 'map';
-                
-                    $scope.$on('$stateChangeSuccess', function (toState) {
+
+                analysisController.clearAnalysisNodes = function () {
+                    sharedDatamodel.analysisNodes.length = 0;
+                    sharedControllers.analysisMapController.clearNodes();
+                };
+
+                $scope.$on('$stateChangeSuccess', function (toState) {
                     if ($state.includes("main.analysis") && !$state.is("main.analysis")) {
                         //$scope.mode = $state.current.name.split(".").slice(1, 2).pop();
                         analysisController.mode = $state.current.name.split(".").slice(1, 3).pop();
                         console.log('analysisController::mode: ' + analysisController.mode);
-                        
+
                         // resize the map on stzate change
                         if (analysisController.mode === 'map') {
                             leafletData.getMap('analysis-map').then(function (map) {
                                 $timeout(function () {
                                     if (map && map._container.parentElement) {
                                         if (map._container.parentElement.offsetHeight > 0 &&
-                                                map._container.parentElement.offsetWidth  > 0) {
+                                                map._container.parentElement.offsetWidth > 0) {
                                             $scope.mapHeight = map._container.parentElement.offsetHeight;
                                             $scope.mapWidth = map._container.parentElement.offsetWidth;
                                             console.log('analysisController::stateChangeSuccess new size: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
@@ -509,6 +529,16 @@ angular.module(
                     ) {
                 'use strict';
                 var appController;
+
+                $scope.popover = {
+                    "title": "Title",
+                    "content": "Hello Popover<br />This is a multiline message!"
+                };
+
+                $scope.tooltip = {
+                    "title": "Hello Tooltip<br />This is a multiline message!",
+                    "checked": false
+                };
 
                 appController = this;
 
@@ -632,6 +662,683 @@ angular.module(
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
+        'exportController', [
+            '$scope', '$state', '$stateParams', '$previousState', '$uibModalInstance',
+            'entity', 'entityModalInvoker',
+            function ($scope, $state, $stateParams, $previousState, $uibModalInstance,
+                    entity, entityModalInvoker) {
+                'use strict';
+                
+                var exportController;
+                exportController = this;
+                
+                /**
+                 * Wizard status, etc.
+                 */
+                $scope.wizard = {};
+                $scope.wizard.uploadchoice = false;
+                $scope.wizard.enterValidators = [];
+                $scope.wizard.exitValidators = [];
+                $scope.wizard.currentStep = '';
+                $scope.wizard.canProceed = true;
+                $scope.wizard.canGoBack = false;
+                $scope.wizard.hasError = false;
+                $scope.wizard.proceedButtonText = 'Weiter';
+                $scope.wizard.isFinishStep = function () {
+                    return $scope.wizard.currentStep === 'Summary';
+                };
+                $scope.wizard.isFirstStep = function () {
+                    return $scope.wizard.currentStep === 'Dataset Description';
+                };
+
+                $scope.$watch('wizard.currentStep', function (n) {
+                    if (n) {
+                        if ($scope.wizard.isFinishStep()) {
+                            $scope.wizard.proceedButtonText = 'Fertig';
+                        } else {
+                            $scope.wizard.proceedButtonText = 'Weiter';
+                        }
+
+                        $scope.wizard.canGoBack = !$scope.wizard.isFirstStep();
+
+                    } else {
+                        $scope.wizard.proceedButtonText = 'Weiter';
+                    }
+                });
+                
+                exportController.finishedWizard = function () {
+                    $uibModalInstance.dismiss('close');
+                };
+
+                $uibModalInstance.result.finally(function () {
+                    $state.go('main.analysis.map');
+                });
+
+                $scope.close = function () {
+                    $uibModalInstance.dismiss('close');
+                };
+
+                $scope.$on("$stateChangeStart", function (evt, toState) {
+                    if (!toState.$$state().includes['modal.export']) {
+                        console.log('exportController::$stateChangeStart: $uibModalInstance.close');
+                        $uibModalInstance.dismiss('close');
+                    } else {
+                        console.log('exportController::$stateChangeStart: ignore ' + toState);
+                    }
+                });
+            }
+        ]
+        );
+
+
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+/*jshint sub:true*/
+
+angular.module(
+        'de.cismet.sip-html5-resource-registration.controllers'
+        ).controller(
+        'de.cismet.sip-html5-resource-registration.controllers.odRegistrationController',
+        [
+            '$scope',
+            '$modal',
+            '$location',
+            'AppConfig',
+            'de.cismet.sip-html5-resource-registration.services.dataset',
+            'de.cismet.sip-html5-resource-registration.services.TagGroupService',
+            'de.cismet.sip-html5-resource-registration.services.searchService',
+            // Controller Constructor Function
+            function (
+                    $scope,
+                    $modal,
+                    $location,
+                    AppConfig,
+                    dataset,
+                    tagGroupService,
+                    searchService
+                    ) {
+                'use strict';
+
+                var _this, duplicateLink;
+                duplicateLink = undefined;
+
+                _this = this;
+                _this.dataset = dataset;
+                _this.config = AppConfig;
+
+                _this.groupBy = function (item) {
+
+                    if (item.name.indexOf(',') > -1) {
+                        return item.name.split(',', 1)[0];
+                    } else {
+                        return item.name.split(' ', 1)[0];
+                    }
+
+                };
+
+                _this.checkLink = function (url) {
+                    //console.log(url);
+                    if (url) {
+                        var searchResultPromise, searchSuccess, searchError;
+                        searchSuccess = function (searchResult) {
+                            if (searchResult && searchResult.$collection && searchResult.$collection.length > 0) {
+                                duplicateLink = 'This dataset is already registered in the SWITCH-ON Spatial Information Platform under the name </strong>"' +
+                                        searchResult.$collection[0].name + '"</strong>. Click <a href="'+AppConfig.byod.baseUrl+'/#/resource/' +
+                                        searchResult.$collection[0].id + '" title="' +
+                                        searchResult.$collection[0].name + '" target="_blank">here</a> to view the dataset meta-data.';
+
+                                $scope.message.text = duplicateLink;
+                                $scope.message.icon = 'fa-warning';
+                                $scope.message.type = 'info';
+                                $scope.wizard.hasError = 'datasetContentlocation';
+                            } else {
+                                // reset the warning!
+                                if($scope.wizard.hasError === 'datasetContentlocation') {
+                                    $scope.wizard.hasError = null;
+                                }
+                                
+                                //console.log('resource ' + url + ' not in Meta-Data Repository');
+                                duplicateLink = undefined;
+                            }
+                        };
+
+                        searchError = function (data) {
+                            console.error('search error: ' + data);
+                            duplicateLink = undefined;
+                        };
+
+                        searchResultPromise = searchService.search(url).$promise.then(searchSuccess, searchError);
+                    }
+
+                    duplicateLink = undefined;
+                };
+                
+                _this.selectKeywords = function () {
+                    $modal.open({
+                        animation: true,
+                        templateUrl: 'templates/keywordSelection.html',
+                        controller: 'de.cismet.sip-html5-resource-registration.controllers.keywordsController',
+                        controllerAs: 'keywordsController',
+                        keyboard: 'true',
+                        size: 'lg',
+                        scope: $scope
+                    });
+                };
+                
+                _this.gotoUploadTool = function () {
+                    var uploadToolUrl = _this.config.uploadtool.baseUrl + 
+                            '?datasetname=' + _this.dataset.name;
+                    //console.log(uploadToolUrl);
+                    $location.url(uploadToolUrl); 
+                };
+                
+                _this.checkUploadName = function () {
+                     if (!dataset.name) {
+                        $scope.message.text = 'Please enter the name / title of the dataset before uploading ';
+                        $scope.message.icon = 'fa-warning';
+                        $scope.message.type = 'warning';
+
+                        $scope.wizard.hasError = 'datasetUploadchoiceName';
+                        return false;
+                    }
+                    
+                    return true;
+                };
+
+                // load list
+                $scope.tags['function'] = tagGroupService.getTagList('function');
+                $scope.tags['content type'] = tagGroupService.getTagList('content type');
+                $scope.tags['keywords - X-CUAHSI'] = tagGroupService.getTagList('keywords - X-CUAHSI');
+
+                // set default values
+//                _this.dataset.representation[0].function = tagGroupService.getTag('function', 'download',
+//                        function (tag) {
+//                            _this.dataset.representation[0].function = tag;
+//                        });
+//                
+//                _this.dataset.representation[0].contenttype = tagGroupService.getTag('content type', 'application/octet-stream',
+//                        function (tag) {
+//                            _this.dataset.representation[0].contenttype = tag;
+//                        });
+
+                $scope.wizard.enterValidators['Dataset Description'] = function (context) {
+                    if (context.valid === true) {
+                        $scope.message.text = 'Please provide some general information about the new dataset such as name, description, a (download) link and keywords.';
+                        $scope.message.icon = 'fa-info-circle';
+                        $scope.message.type = 'success';
+                    }
+
+                    return context.valid;
+                };
+
+                $scope.wizard.exitValidators['Dataset Description'] = function (context) {
+                    context.valid = true;
+
+                    // CONTENT TYPE
+                    var isInvalidContenttype = $scope.tags['content type'].every(function (element) {
+                        if (_this.dataset.representation[0] && _this.dataset.representation[0].contenttype &&
+                                (element.name === _this.dataset.representation[0].contenttype.name)) {
+                            _this.dataset.representation[0].contenttype = element;
+                            return false;
+                        }
+
+                        return true;
+                    });
+
+                    // FUNCTION
+                    var isInvalidFunction = $scope.tags['function'].every(function (element) {
+                        if (_this.dataset.representation[0] && _this.dataset.representation[0].function &&
+                                (element.name === _this.dataset.representation[0].function.name)) {
+                            _this.dataset.representation[0].function = element;
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    });
+
+                    // NAME
+                    if (!dataset.name) {
+                        $scope.message.text = 'Please enter the name / title of the dataset.';
+                        $scope.message.icon = 'fa-warning';
+                        $scope.message.type = 'warning';
+
+                        $scope.wizard.hasError = 'datasetName';
+                        context.valid = false;
+                    } else if (dataset.$uploaded === undefined) {
+                        $scope.message.text = 'Please chose wheter you want to upload a new dataset or to provide a link to anexisting dataset.';
+                        $scope.message.icon = 'fa-warning';
+                        $scope.message.type = 'warning';
+
+                        $scope.wizard.hasError = 'datasetUploadchoice';
+                        context.valid = false;
+                    } else if (isInvalidFunction) {
+                        $scope.message.text = 'Please select a valid function (e.g. download) of the link.';
+                        $scope.message.icon = 'fa-warning';
+                        $scope.message.type = 'warning';
+
+                        $scope.wizard.hasError = 'datasetContentlocation';
+                        context.valid = false;
+                    } else if (!dataset.representation[0].function) {
+                        $scope.message.text = 'Please select a function (e.g. download) of the link.';
+                        $scope.message.icon = 'fa-warning';
+                        $scope.message.type = 'warning';
+
+                        $scope.wizard.hasError = 'datasetContentlocation';
+                        context.valid = false;
+                    }  else if ($scope.odRegistrationForm.datasetContentlocation.$error.url) {
+                        // CONTENT LOCATION       
+                        $scope.message.text = 'The link to the dataset you have provided is not a valid <a href=\'https://en.wikipedia.org/wiki/Uniform_Resource_Locator#Syntax\' target=\'_blank\' title=\'Uniform Resource Locator\'>URL</a> .';
+                        $scope.message.icon = 'fa-warning';
+                        $scope.message.type = 'warning';
+
+                        $scope.wizard.hasError = 'datasetContentlocation';
+                        context.valid = false;
+                    } else if (!dataset.representation[0].contentlocation) {
+                        $scope.message.text = 'Please provide link to the dataset.';
+                        $scope.message.icon = 'fa-warning';
+                        $scope.message.type = 'warning';
+
+                        $scope.wizard.hasError = 'datasetContentlocation';
+                        context.valid = false;
+                    } else if (duplicateLink) {
+                        $scope.message.text = duplicateLink;
+                        $scope.message.icon = 'fa-warning';
+                        $scope.message.type = 'warning';
+
+                        $scope.wizard.hasError = 'datasetContentlocation';
+                        context.valid = false;
+                    } else if (isInvalidContenttype) {
+                        $scope.message.text = 'Please select a valid content type (e.g. ESRI Shapefile) of the link.';
+                        $scope.message.icon = 'fa-warning';
+                        $scope.message.type = 'warning';
+
+                        $scope.wizard.hasError = 'datasetContentlocation';
+                        context.valid = false;
+                    } else if (!dataset.representation[0].contenttype) {
+                        $scope.message.text = 'Please select a valid content type (e.g. ESRI Shapefile) of the link.';
+                        $scope.message.icon = 'fa-warning';
+                        $scope.message.type = 'warning';
+
+                        $scope.wizard.hasError = 'datasetContentlocation';
+                        context.valid = false;
+                    } else if (!dataset.description) {
+                        // DESCRIPTION
+                        $scope.message.text = 'Please provide a description of the dataset.';
+                        $scope.message.icon = 'fa-warning';
+                        $scope.message.type = 'warning';
+
+                        $scope.wizard.hasError = 'datasetDescription';
+                        context.valid = false;
+                    } else if (!_this.dataset.tags || _this.dataset.tags.length === 0) {
+                        $scope.message.text = 'Please assign at least one keyword to the Dataset.';
+                        $scope.message.icon = 'fa-warning';
+                        $scope.message.type = 'warning';
+
+                        $scope.wizard.hasError = 'datasetTags';
+                        context.valid = false;
+                    }
+
+                    if (context.valid === true) {
+                        $scope.wizard.hasError = null;
+                    }
+                    // no error? -> reset
+
+                    return context.valid;
+                };
+            }
+        ]
+        );
+/*global angular, shp, L*/
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.controllers'
+        ).controller(
+        'externalDatasourcesController', [
+            '$scope', '$uibModal', 'dataService', 'sharedDatamodel', 'sharedControllers',
+            function ($scope, $uibModal, dataService, sharedDatamodel, sharedControllers) {
+                'use strict';
+
+                var externalDatasourcesController, mapController;
+
+                externalDatasourcesController = this;
+                mapController = sharedControllers.analysisMapController;
+
+                // init global datasources list
+                if (!sharedDatamodel.globalDatasources ||
+                        sharedDatamodel.globalDatasources.length === 0) {
+                    if (dataService.getGlobalDatasources().$resolved) {
+                        externalDatasourcesController.globalDatasources =
+                                dataService.getGlobalDatasources();
+                    } else {
+                        dataService.getGlobalDatasources().$promise.then(
+                                function (externalDatasources) {
+                                    externalDatasourcesController.globalDatasources = externalDatasources;
+                                    externalDatasourcesController.globalDatasources.$resolved = true;
+                                });
+                    }
+                }
+
+                // init local datasources list
+                externalDatasourcesController.localDatasources =
+                        sharedDatamodel.localDatasources;
+
+                // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
+                /**
+                 * Toggle selection of global datasource -> add to analysis map
+                 * 
+                 * @param {type} globalDatasource
+                 * @returns {undefined}
+                 */
+                externalDatasourcesController.toggleGlobalDatasourceSelection =
+                        function (globalDatasource) {
+
+                            if (!globalDatasource.$layer) {
+
+                                // TODO: contruct and add Layers!
+                                globalDatasource.$layer = {
+                                    $selected: true
+                                };
+                            }
+
+                            if (globalDatasource.$layer.$selected === true) {
+                                globalDatasource.$layer.$selected = false;
+
+                                // TODO: remove Layers
+                                //mapController.removeOverlay(globalDatasource.$layer);
+                            } else {
+                                globalDatasource.$layer.$selected = true;
+
+                                // TODO: add Layers
+                                //mapController.addOverlay(globalDatasource.$layer);
+                            }
+                        };
+
+                /**
+                 * Add a new local datasource -> open external-datasources.html modal
+                 *  
+                 * @returns {undefined}
+                 */
+                externalDatasourcesController.addLocalDatasource =
+                        function () {
+                            var modalInstance = $uibModal.open({
+                                animation: false,
+                                templateUrl: 'templates/external-datasource-modal.html',
+                                controller: 'importController',
+                                controllerAs: 'importController',
+                                //size: size,
+                                //appendTo:elem,
+                                resolve: {
+                                    localDatasource: function () {
+                                        return {};
+                                    }
+                                }
+                            });
+
+                            // hide the popover
+                            $scope.$hide();
+
+                            /*modalInstance.result.then(function (selectedItem) {
+                             externalDatasourcesController.selected = selectedItem;
+                             console.log(externalDatasourcesController.selected);
+                             }, function () {
+                             $log.info('Modal dismissed at: ' + new Date());
+                             });*/
+                        };
+
+                /**
+                 * Remove local datasource for list and from map
+                 * 
+                 * @param {type} localDatasource
+                 * @returns {undefined}
+                 */
+                externalDatasourcesController.removeLocalDatasource =
+                        function (localDatasource) {
+                            var idx = externalDatasourcesController.localDatasources.indexOf(localDatasource);
+                            if (idx > -1) {
+                                // calls also remove on map
+                                if(localDatasource.$layer.$selected === true) {
+                                    externalDatasourcesController.toggleLocalDatasourceSelection(localDatasource);
+                                }
+                                
+                                externalDatasourcesController.localDatasources.splice(idx, 1);
+                            } else {
+                                console.warn("externalDatasourcesController::removeLocalDatasource: unkwon datasource?!");
+                            }
+                        };
+
+                /**
+                 * Toggle selection of local datasource -> add to analysis map
+                 * 
+                 * @param {type} localDatasource
+                 * @returns {undefined}
+                 */
+                externalDatasourcesController.toggleLocalDatasourceSelection =
+                        function (localDatasource) {
+
+                            if (localDatasource.$layer.$selected === true) {
+                                localDatasource.$layer.$selected = false;
+                                mapController.removeOverlay(localDatasource.$layer);
+                            } else {
+                                localDatasource.$layer.$selected = true;
+                                mapController.addOverlay(localDatasource.$layer);
+                            }
+
+                            /*var idx = externalDatasourcesController.selectedLocalDatasources.indexOf(localDatasource);
+                             if (idx > -1) {
+                             externalDatasourcesController.selectedLocalDatasources.splice(idx, 1);
+                             mapController.removeOverlay(localDatasource.$layer);
+                             } else {
+                             externalDatasourcesController.selectedLocalDatasources.push(localDatasource);
+                             mapController.addOverlay(localDatasource.$layer);
+                             }*/
+
+                            //console.log(globalDatasource.name);
+                        };
+                //</editor-fold>
+            }]);
+
+/* 
+ * Copyright (C) 2016 cismet GmbH, Saarbruecken, Germany
+ *
+ *                                ... and it just works.
+ *
+ */
+
+/*global angular, shp, L, Math*/
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.controllers'
+        ).controller(
+        'importController', [
+            '$scope', '$uibModalInstance', 'dataService', 'featureRendererService', 'sharedDatamodel',
+            'sharedControllers', 'localDatasource',
+            function ($scope, $uibModalInstance, dataService, featureRendererService, sharedDatamodel,
+                    sharedControllers, localDatasource) {
+                'use strict';
+                var importController, mapController, handleZipFile, convertToLayer;
+
+                importController = this;
+                mapController = sharedControllers.analysisMapController;
+
+                importController.importFile = null;
+                importController.maxFilesize = '10MB';
+                importController.importProgress = 0;
+                importController.importInProgress = false;
+                importController.importCompleted = false;
+                importController.importError = false;
+
+
+                // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ===========================">
+                /**
+                 * More info: https://developer.mozilla.org/en-US/docs/Web/API/FileReader
+                 * 
+                 * @param {type} file
+                 * @returns {undefined}
+                 */
+                handleZipFile = function (file) {
+                    var reader = new FileReader();
+
+                    localDatasource.name = file.name.split(".").slice(0, 1).pop();
+                    localDatasource.fileName = file.name;
+
+                    /*reader.onload = function () {
+                     if (reader.readyState !== 2 || reader.error) {
+                     console.error("File could not be read! Code " + reader.error);
+                     return;
+                     } else {
+                     convertToLayer(reader.result, file.name);
+                     }
+                     };*/
+
+                    reader.onloadstart = function () {
+                        importController.importInProgress = true;
+                        console.log('onloadstart -> importController.importInProgress:' + importController.importInProgress);
+                        if (reader.readyState !== 2 || reader.error) {
+                            //console.error("File could not be read! Code " + reader.error);
+                            //return;
+                        } else {
+
+                        }
+                    };
+
+                    reader.onprogress = function (progressEvent) {
+                        importController.importInProgress = true;
+                        var max, current;
+                        if (progressEvent.lengthComputable) {
+                            max = event.total;
+                            current = event.loaded;
+
+                            //console.log('importProgress: ' + current + '(' + Math.min(100, parseInt(100.0 * current / max)) + '%)');
+                            importController.importProgress =
+                                    Math.min(100, parseInt(100.0 * current / max));
+
+                        } else {
+                            importController.importProgress = 100;
+                        }
+                    };
+
+                    reader.onloadend = function (event) {
+                        var arrayBuffer, error;
+                        
+                        
+
+                        arrayBuffer = event.target.result;
+                        error = event.target.error;
+
+                        if (error) {
+                            console.error("File could not be read! Code " + error.code);
+                            importController.importProgress = 0;
+                            importController.importInProgress = false;
+                            importController.importError = true;
+                        } else {
+                            importController.importProgress = 100;
+                            console.log('onloadend -> importController.onloadend: ' + 
+                                    importController.importProgress);
+                            convertToLayer(arrayBuffer, file.name);
+                        }
+                    };
+
+                    reader.readAsArrayBuffer(file);
+                };
+
+                // </editor-fold>
+
+
+                convertToLayer = function convertToLayer(buffer) {
+                    var overlayLayer;
+                    
+                    shp(buffer).then(function (geojson) {
+                        console.log('importController::convertToLayer: processing ' + 
+                                geojson.features.length + "' GeoJson Features");
+                        overlayLayer = featureRendererService.createOverlayLayer(
+                                localDatasource, geojson, function (max, current) {
+                                    if (current === max) {
+                                        importController.importProgress = 100 +
+                                                Math.min(100, parseInt(100.0 * current / max));
+                                    } else {
+                                        importController.importProgress = 200;
+                                    }
+
+                                    if (importController.importProgress === 200) {
+                                        importController.importInProgress = false;
+                                        importController.importCompleted = true;
+                                    }
+                                });
+
+                        sharedDatamodel.localDatasources.push(localDatasource);
+                        mapController.addOverlay(overlayLayer);
+                    });
+                };
+
+                // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
+                importController.import = function () {
+                    if (importController.importFile !== null) {
+                        handleZipFile(importController.importFile);
+                    } else {
+                        $uibModalInstance.dismiss('cancel');
+                    }
+                };
+
+                importController.cancel = function () {
+                    $uibModalInstance.dismiss('cancel');
+                };
+
+                importController.close = function () {
+                    $uibModalInstance.close(localDatasource);
+                };
+                // </editor-fold>
+
+                // <editor-fold defaultstate="collapsed" desc="=== DISABLED ===========================">
+
+                /*$scope.uploadPic = function (file) {
+                 
+                 console.log(file.name);
+                 console.log(file.type);
+                 
+                 handleZipFile(file);
+                 
+                 
+                 file.upload = Upload.upload({
+                 url: 'https://angular-file-upload-cors-srv.appspot.com/upload',
+                 data: {username: $scope.username, file: file},
+                 });
+                 
+                 file.upload.then(function (response) {
+                 $timeout(function () {
+                 file.result = response.data;
+                 });
+                 }, function (response) {
+                 if (response.status > 0)
+                 $scope.errorMsg = response.status + ': ' + response.data;
+                 }, function (evt) {
+                 // Math.min is to fix IE which reports 200% sometimes
+                 file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                 });
+                 };*/
+
+                /*
+                 setFiles = function (element) {
+                 console.log('files:', element.files);
+                 // Turn the FileList object into an Array
+                 importController.importFiles = [];
+                 for (var i = 0; i < element.files.length; i++) {
+                 importController.importFiles.push(element.files[i]);
+                 }
+                 };*/
+                // </editor-fold>
+
+            }]);
+
+/*global angular*/
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.controllers'
+        ).controller(
         'listController',
         [
             '$scope', 'configurationService',
@@ -645,10 +1352,13 @@ angular.module(
                 listController = this;
                 listController.mode = $scope.mainController.mode;
 
+                listController.resultNodes = sharedDatamodel.resultNodes;
+                listController.analysisNodes = sharedDatamodel.analysisNodes;
+                
                 if (listController.mode === 'search') {
-                    listController.nodes = sharedDatamodel.resultNodes;
+                    listController.nodes = listController.resultNodes;
                 } else if (listController.mode === 'analysis') {
-                    listController.nodes = sharedDatamodel.analysisNodes;
+                    listController.nodes = listController.analysisNodes;
                 }
 
                 /*
@@ -719,8 +1429,8 @@ angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'mainController',
-        ['$scope', '$state', '$previousState', 'sharedDatamodel',
-            function ($scope, $state, $previousState, sharedDatamodel) {
+        ['$scope', '$state', '$previousState', 'sharedDatamodel', 'sharedControllers',
+            function ($scope, $state, $previousState, sharedDatamodel, sharedControllers) {
                 'use strict';
 
                 var mainController;
@@ -731,12 +1441,44 @@ angular.module(
                 //mainController.name = 'this.main';
                 //$scope.mode = 'search';
                 mainController.mode = $state.current.name.split(".").slice(1, 2).pop();
+                
+                mainController.removeAnalysisNode = function (node) {
+                    var index = sharedDatamodel.analysisNodes.indexOf(node);
+                    if(index !== -1) {
+                        sharedDatamodel.analysisNodes.splice(sharedDatamodel.analysisNodes.indexOf(node), 1);
+                        // manually update map
+                        if(sharedControllers.analysisMapController) {
+                            sharedControllers.analysisMapController.removeNode(node);
+                        }
+                    } else {
+                        console.warn("mainController::removeAnalysisNode: node '" + node.name + "' no in list of analysis nodes!");
+                    }
+                };
+                
+                mainController.addAnalysisNode = function (node) {
+                    var index = sharedDatamodel.analysisNodes.indexOf(node);
+                    if(index !== -1) {
+                        console.warn("mainController::addAnalysisNode: node '" + node.name + "' already in list of analysis nodes!");
+                    } else {
+                        // we cannot add the same feature to two different maps ... :-(
+                        var analysisNode = angular.copy(node);
+                        analysisNode.$feature = null;
+                        
+                        // manually update map
+                        sharedDatamodel.analysisNodes.push(analysisNode);
+                        if(sharedControllers.analysisMapController) {
+                            sharedControllers.analysisMapController.addNode(analysisNode);
+                        }
+                    }
+                };
+                
 
                 $scope.$on('$stateChangeSuccess', function (toState) {
                     if ($state.includes("main") && !$state.is("main")) {
                         //$scope.mode = $state.current.name.split(".").slice(1, 2).pop();
                         mainController.mode = $state.current.name.split(".").slice(1, 2).pop();
-                        console.log('mainController::mainController.mode: ' + mainController.mode);
+                        console.log('mainController::mainController.mode: ' + mainController.mode + 
+                                '(toState: ' + toState.name + ')');
 
                         var previousState = $previousState.get();
                         if (previousState && previousState.state && previousState.state.name) {
@@ -754,6 +1496,7 @@ angular.module(
 
 
 /*global angular, L */
+/*jshint sub:true*/
 
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
@@ -766,14 +1509,16 @@ angular.module(
             'leafletData',
             'configurationService',
             'sharedDatamodel',
+            'sharedControllers',
             'featureRendererService',
             function ($scope, $state, $stateParams, leafletData, configurationService,
-                    sharedDatamodel, featureRendererService) {
+                    sharedDatamodel, sharedControllers, featureRendererService) {
                 'use strict';
 
                 var leafletMap, mapId, mapController, config, layerControl, searchGeometryLayerGroup, drawControl,
                         defaults, center, basemaps, overlays, layerControlOptions,
-                        drawOptions, maxBounds, setSearchGeometry, gazetteerLocationLayer;
+                        drawOptions, maxBounds, setSearchGeometry, gazetteerLocationLayer, layerControlMappings,
+                        overlaysNodeLayersIndex, fitBoundsOptions;
 
                 mapController = this;
                 mapController.mode = $scope.mainController.mode;
@@ -781,31 +1526,80 @@ angular.module(
 
                 config = configurationService.map;
 
-
                 // define Layer groups
                 searchGeometryLayerGroup = new L.FeatureGroup();
+                searchGeometryLayerGroup.$name = 'Suchgeometrien';
+                searchGeometryLayerGroup.$key = 'searchGeometries';
                 gazetteerLocationLayer = null;
 
-
-                mapController.resultNodes = sharedDatamodel.resultNodes;
-                mapController.analysisNodes = sharedDatamodel.analysisNodes;
-
-                if (mapController.mode === 'search') {
-                    mapController.nodes = mapController.resultNodes;
-                } else if (mapController.mode === 'analysis') {
-                    mapController.nodes = mapController.analysisNodes;
-                }
-
+                overlays = [];
                 defaults = angular.copy(config.defaults);
                 center = angular.copy(config.maxBounds);
                 maxBounds = angular.copy(config.maxBounds);
                 basemaps = angular.copy(config.basemaps);
-                overlays = angular.copy(config.overlays);
                 layerControlOptions = angular.copy(config.layerControlOptions);
                 drawOptions = angular.copy(config.drawOptions);
+                fitBoundsOptions = angular.copy(config.fitBoundsOptions);
+
+                if (mapController.mode === 'search') {
+                    mapController.nodes = sharedDatamodel.resultNodes;
+                    sharedControllers.searchMapController = mapController;
+
+                    overlays.push({
+                        groupName: configurationService.map.layerGroupMappings['gazetteer'],
+                        expanded: false,
+                        layers: {}
+                    });
+                    overlays.push(angular.copy(config.nodeOverlays));
+                    overlaysNodeLayersIndex = 1; // after gazetterr layer ....
+
+                    // drawControl only available in search mode
+                    drawControl = new L.Control.Draw({
+                        draw: drawOptions,
+                        /*edit: {
+                         featureGroup: searchGeometryLayerGroup
+                         }*/
+                        edit: false,
+                        remove: false
+                    });
+                } else if (mapController.mode === 'analysis') {
+                    mapController.nodes = sharedDatamodel.analysisNodes;
+                    sharedControllers.analysisMapController = mapController;
+
+                    overlays.push(angular.copy(config.nodeOverlays));
+                    overlays.push({
+                        groupName: configurationService.map.layerGroupMappings['external'],
+                        expanded: false,
+                        layers: {}
+                    });
+                    overlaysNodeLayersIndex = 0; // before external layers ....
+                }
+
+                layerControlMappings = {};
+                // Basemap Mappings
+                layerControlMappings.basemap_at =
+                        L.stamp(basemaps[0].layers[config.layerMappings['basemap_at']]);
+                layerControlMappings.arcgisonline_com =
+                        L.stamp(basemaps[0].layers[config.layerMappings['arcgisonline_com']]);
+                layerControlMappings.opentopomap_org =
+                        L.stamp(basemaps[0].layers[config.layerMappings['opentopomap_org']]);
+                layerControlMappings.openstreetmap_org =
+                        L.stamp(basemaps[0].layers[config.layerMappings['openstreetmap_org']]);
+
+                // overlay mappings
+                layerControlMappings.BORIS_SITE =
+                        L.stamp(overlays[overlaysNodeLayersIndex].layers[config.layerMappings['BORIS_SITE']]);
+                layerControlMappings.EPRTR_INSTALLATION =
+                        L.stamp(overlays[overlaysNodeLayersIndex].layers[config.layerMappings['EPRTR_INSTALLATION']]);
+                layerControlMappings.MOSS =
+                        L.stamp(overlays[overlaysNodeLayersIndex].layers[config.layerMappings['MOSS']]);
+                layerControlMappings.WAGW_STATION =
+                        L.stamp(overlays[overlaysNodeLayersIndex].layers[config.layerMappings['WAGW_STATION']]);
+                layerControlMappings.WAOW_STATION =
+                        L.stamp(overlays[overlaysNodeLayersIndex].layers[config.layerMappings['WAOW_STATION']]);
 
                 // put angular-leaflet config into $scope-soup ...
-                angular.extend($scope, {
+                angular.merge($scope, {
                     layers: {
                         // don't configure baselayers in angular-leaflet-directive:
                         // does not synchronise with styledLayerControl!
@@ -819,93 +1613,138 @@ angular.module(
                     tileLayer: '' // disabled: loads OSM tiles in background even if not visible!
                 });
 
-                overlays = angular.extend(config.overlays, {}, [
-                    {
-                        groupName: "Aktueller Ort",
-                        expanded: true,
-                        layers: {}
-                    },
-                    {
-                        groupName: "Themen",
-                        expanded: true,
-                        layers: {}
-                    }
-                ]);
-
                 // Map Controls
                 layerControl = L.Control.styledLayerControl(
                         basemaps,
                         overlays,
                         layerControlOptions);
 
-                drawControl = new L.Control.Draw({
-                    draw: drawOptions,
-                    /*edit: {
-                     featureGroup: searchGeometryLayerGroup
-                     }*/
-                    edit: false,
-                    remove: false
-                });
-
-                // add all to map
-                leafletData.getMap(mapId).then(function (map) {
-
-                    leafletMap = map;
-
-                    // add the layers
-                    map.addLayer(searchGeometryLayerGroup);
-                    map.addControl(drawControl);
-                    map.addControl(layerControl);
-
-                    // not sure why this is needed altough it is already configured in the map directive
-                    map.setMaxBounds(maxBounds);
-                    map.setZoom(center.zoom);
-
-                    layerControl.selectLayer(basemaps[0].layers[config.defaultLayer]);
-
-                    map.on('draw:created', function (event) {
-                        setSearchGeometry(event.layer, event.layerType);
-                    });
-
-                    map.on('draw:deleted', function (event) {
-                        setSearchGeometry(null);
-                    });
-
-                    // FIXME: GazetteerLocationLayer not removed from control
-                    map.on('layerremove', function (layerEvent) {
-                        var removedLayer = layerEvent.layer;
-                        if (removedLayer && removedLayer === gazetteerLocationLayer) {
-                            console.log('mapController::gazetteerLocationLayer removed');
-                            //gazetteerLocationLayer = null;
-                            //layerControl.removeLayer(gazetteerLocationLayer);
-                        }
-                    });
-                });
-
                 setSearchGeometry = function (searchGeometryLayer, layerType) {
-                    searchGeometryLayerGroup.clearLayers();
-                    if (searchGeometryLayer !== null) {
-                        searchGeometryLayerGroup.addLayer(searchGeometryLayer);
-                        if (config.options.centerOnSearchGeometry) {
-                            leafletData.getMap(mapId).then(function (map) {
-                                map.fitBounds(searchGeometryLayerGroup.getBounds(), {
-                                    animate: true,
-                                    pan: {animate: true, duration: 0.6},
-                                    zoom: {animate: true},
-                                    maxZoom: config.options.preserveZoomOnCenter ? map.getZoom() : null
-                                });
-                            });
-                        }
-                        searchGeometryLayer.once('click', function (event) {
-                            setSearchGeometry(null);
-                        });
+                    if (mapController.mode === 'search') {
+                        searchGeometryLayerGroup.clearLayers();
+                        if (searchGeometryLayer !== null) {
 
-                        // TODO: set sharedDatamodel.selectedSearchGeometry!
+                            searchGeometryLayer.$name = layerType;
+                            searchGeometryLayer.$key = 'searchGeometry';
+                            searchGeometryLayerGroup.addLayer(searchGeometryLayer);
+
+                            if (config.options.centerOnSearchGeometry) {
+                                leafletData.getMap(mapId).then(function (map) {
+                                    map.fitBounds(searchGeometryLayerGroup.getBounds(), {
+                                        animate: true,
+                                        pan: {animate: true, duration: 0.6},
+                                        zoom: {animate: true},
+                                        maxZoom: config.options.preserveZoomOnCenter ? map.getZoom() : null
+                                    });
+                                });
+                            }
+                            searchGeometryLayer.once('click', function (event) {
+                                setSearchGeometry(null);
+                            });
+
+                            // TODO: set sharedDatamodel.selectedSearchGeometry!
+                        }
+                    } else {
+                        console.warn("mapController:: cannot add search geomatry to analysis map!");
                     }
                 };
 
 
-                ///public API functions
+                // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
+
+//                mapController.removeOverlay = function (layer) {
+//
+//                }
+
+                mapController.unSelectOverlayByKey = function (layerKey) {
+                    if (layerKey &&
+                            layerControlMappings[layerKey] &&
+                            layerControl._Layers[layerControlMappings[layerKey]]) {
+
+                        mapController.unSelectOverlayByKey(layerControl._Layers[layerControlMappings[layerKey]]);
+                    } else {
+                        console.warn("mapController::unSelectOverlayByKey: unknown key '" + layerKey + "'");
+                    }
+                };
+
+                mapController.unSelectOverlay = function (layer) {
+                    layerControl.unSelectLayer(layer);
+                };
+
+                mapController.selectOverlayByKey = function (layerKey) {
+                    if (layerKey &&
+                            layerControlMappings[layerKey] &&
+                            layerControl._Layers[layerControlMappings[layerKey]]) {
+
+                        mapController.selectOverlay(layerControl._Layers[layerControlMappings[layerKey]]);
+                    } else {
+                        console.warn("mapController::selectOverlayByKey: unknown key '" + layerKey + "'");
+                    }
+                };
+
+                mapController.selectOverlay = function (layer) {
+                    layerControl.selectLayer(layer);
+
+                    leafletMap.fitBounds(layer.getBounds(), {
+                        animate: true,
+                        pan: {animate: true, duration: 0.6},
+                        zoom: {animate: true},
+                        maxZoom: null
+                    });
+                };
+
+                mapController.removeOverlayByKey = function (layerKey) {
+                    if (layerKey &&
+                            layerControlMappings[layerKey] &&
+                            layerControl._Layers[layerControlMappings[layerKey]]) {
+
+                        mapController.removeOverlay(layerControl._Layers[layerControlMappings[layerKey]]);
+                    } else {
+                        console.warn("mapController::removeOverlayByKey: unknown key '" + layerKey + "'");
+                    }
+                };
+
+                mapController.removeOverlay = function (layer) {
+                    mapController.unSelectOverlay(layer);
+                    layerControl.removeLayer(layer);
+                };
+
+                mapController.addOverlay = function (layer) {
+                    if (mapController.mode === 'analysis') {
+                        if (layer.$key && layer.$name) {
+
+                            layerControlMappings[layer.$key] =
+                                    L.stamp(layer);
+
+                            //console.log('mapController::addOverlay: ' + layer.$name + ' (' + layerControlMappings[layer.$key] + ')');
+
+                            var groupName = layer.$groupName ? layer.$groupName : config.layerGroupMappings['external'];
+                            layerControl.addOverlay(
+                                    layer,
+                                    layer.$name, {
+                                        groupName: groupName
+                                    });
+
+                            mapController.selectOverlay(layer);
+
+
+                            /*leafletData.getMap(mapId).then(function (map) {
+                             map.fitBounds(layer.getBounds(), {
+                             animate: true,
+                             pan: {animate: true, duration: 0.6},
+                             zoom: {animate: true},
+                             maxZoom: null
+                             });
+                             });*/
+
+                            //layer.addTo(leafletMap); 
+                        } else {
+                            console.warn("mapController:: cannot add overlay layer without $name and $key property!");
+                        }
+                    } else {
+                        console.warn("mapController:: cannot add overlay to search map!");
+                    }
+                };
 
                 mapController.gotoNode = function (node) {
                     if (node.$feature) {
@@ -914,83 +1753,199 @@ angular.module(
                     }
                 };
 
+                mapController.addNode = function (node) {
+                    if (mapController.mode === 'analysis') {
+                        mapController.setNodes([node]);
 
-                mapController.setNodes = function (nodes) {
-                    var layerGroups, theme, featureLayer;
+                    } else {
+                        console.warn("mapController:: cannot add Node on search map!");
+                    }
+                };
+
+                mapController.removeNode = function (node) {
+                    var feature, featureGroupLayer, layerControlId;
+                    if (mapController.mode === 'analysis') {
+                        if (node && node.$feature && node.$feature.$groupKey) {
+                            feature = node.$feature;
+                            // feature belongs to feature layer -> $groupKey
+                            layerControlId = layerControlMappings[feature.$groupKey];
+                            if (layerControlId && layerControl._layers[layerControlId] && layerControl._layers[layerControlId].layer) {
+                                featureGroupLayer = layerControl._layers[layerControlId].layer;
+                                featureGroupLayer.removeLayer(feature);
+                                node.$feature = null;
+                            } else {
+                                console.warn("mapController::removeNode unsupported theme (feature group) '" + feature.$groupKey + "'");
+                            }
+                        } else {
+                            console.warn("mapController:: cannot remove Node '" +
+                                    node.name + "': $feature is missing!");
+                        }
+                    } else {
+                        console.warn("mapController:: cannot remove  Node on search map!");
+                    }
+                };
+
+                mapController.clearNodes = function () {
+                    var nodeLayerControlIds, featureGroupLayer;
+
+                    nodeLayerControlIds = [
+                        layerControlMappings.BORIS_SITE,
+                        layerControlMappings.EPRTR_INSTALLATION,
+                        layerControlMappings.MOSS,
+                        layerControlMappings.WAGW_STATION,
+                        layerControlMappings.WAOW_STATION];
+
+                    nodeLayerControlIds.forEach(function (layerControlId) {
+                        if (layerControl._layers[layerControlId] &&
+                                layerControl._layers[layerControlId].layer) {
+
+                            featureGroupLayer = layerControl._layers[layerControlId].layer;
+                            featureGroupLayer.clearLayers();
+                        }
+                    });
+                };
+
+                mapController.setNodes = function (nodes, fitBounds, clearLayers) {
+                    var featureGroups, featureGroup, featureGroupLayer, theme,
+                            layerControlId, bounds;
+
+                    if (!clearLayers) {
+                        clearLayers = mapController.mode === 'search' ? true : false;
+                    }
+
+                    if (!fitBounds) {
+                        fitBounds = mapController.mode === 'search' ? true : false;
+                    }
+
                     if (nodes !== null && nodes.length > 0) {
-                        layerGroups = featureRendererService.createNodeFeatureLayers(nodes);
-                        for (theme in layerGroups) {
-                            console.log('mapController::setResultNodes for ' + theme);
-                            featureLayer = layerGroups[theme];
+                        featureGroups = featureRendererService.createNodeFeatureGroups(nodes);
+                        for (theme in featureGroups) {
+                            layerControlId = layerControlMappings[theme];
+                            if (layerControlId && layerControl._layers[layerControlId] && layerControl._layers[layerControlId].layer) {
+                                featureGroup = featureGroups[theme];
+                                featureGroupLayer = layerControl._layers[layerControlId].layer;
+
+                                // clear layers on analysis map
+                                if (clearLayers) {
+                                    featureGroupLayer.clearLayers();
+                                }
+
+                                /*jshint loopfunc:true */
+                                featureGroup.forEach(function (feature) {
+                                    feature.addTo(featureGroupLayer);
+                                });
+
+                                layerControl.selectLayer(featureGroupLayer);
+                                if (fitBounds) {
+                                    bounds = !bounds ? featureGroupLayer.getBounds() : bounds.extend(featureGroupLayer.getBounds());
+                                }
+                            } else {
+                                console.warn("mapController::setNodes unsupported theme (feature group) '" + theme + "'");
+                            }
+
+                            if (bounds) {
+                                leafletMap.fitBounds(bounds, fitBoundsOptions);
+                            }
+
+
+                            //console.log(mapId + '::setResultNodes for ' + theme);
+                            //featureGroup = featureGroups[theme];
+
+
                             // FIXME: clear layers before adding
-                            // FIXME: setVisible to true adds duplicate layers
-                            layerControl.addOverlay(
-                                    featureLayer,
-                                    featureLayer.$name, {
-                                        groupName: "Themen"
-                                    });
+                            // FIXME: setVisible to true adds duplicate layers ?!!!!!
+                            /*layerControl.addOverlay(
+                             featureLayer,
+                             featureLayer.$name, {
+                             groupName: "Themen"
+                             });*/
                         }
 
                         //mapController.nodes = nodes;
                     }
 
-                    if (mapController.nodes !== nodes ||
-                            mapController.nodes !== sharedDatamodel.resultNodes ||
-                            sharedDatamodel.resultNodes !== nodes) {
-                        console.error("mapController::nodes reference (t)error!");
-                    }
                 };
+
+
+                /*mapController.setNodes = function (nodes) {
+                 if (mapController.mode === 'search') {
+                 var layerGroups, theme, featureLayer;
+                 if (nodes !== null && nodes.length > 0) {
+                 layerGroups = featureRendererService.createNodeFeatureLayers(nodes);
+                 for (theme in layerGroups) {
+                 console.log(mapId + '::setResultNodes for ' + theme);
+                 featureLayer = layerGroups[theme];
+                 // FIXME: clear layers before adding
+                 // FIXME: setVisible to true adds duplicate layers ?!!!!!
+                 layerControl.addOverlay(
+                 featureLayer,
+                 featureLayer.$name, {
+                 groupName: "Themen"
+                 });
+                 }
+                 
+                 //mapController.nodes = nodes;
+                 }
+                 } else {
+                 console.warn("mapController:: cannot setNodes on analysis map!");
+                 }
+                 };*/
 
                 mapController.setGazetteerLocation = function (gazetteerLocation) {
-                    console.log('mapController::setGazetteerLocation');
-                    if (gazetteerLocation !== null) {
-                        // remove old layer
-                        if (gazetteerLocationLayer !== null) {
+                    if (mapController.mode === 'search') {
+                        console.log('mapController::setGazetteerLocation: ' + gazetteerLocation.name);
+                        if (gazetteerLocation !== null) {
+                            // remove old layer
+                            if (gazetteerLocationLayer !== null) {
+                                layerControl.removeLayer(gazetteerLocationLayer);
+                                leafletMap.removeLayer(gazetteerLocationLayer);
+                                gazetteerLocationLayer = null;
+                            }
+
+                            gazetteerLocationLayer =
+                                    featureRendererService.createGazetteerLocationLayer(gazetteerLocation);
+                            layerControlMappings.gazetteer =
+                                    L.stamp(gazetteerLocationLayer);
+
+                            if (gazetteerLocationLayer !== null) {
+
+                                /*gazetteerLocationLayer.StyledLayerControl = {
+                                 removable: false,
+                                 visible: false
+                                 };*/
+
+                                // FIXME: GazetteerLocationLayer added twice!
+                                layerControl.addOverlay(
+                                        gazetteerLocationLayer,
+                                        gazetteerLocationLayer.$name, {
+                                            groupName: config.layerGroupMappings['gazetteer']
+                                        });
+
+                                layerControl.selectLayer(gazetteerLocationLayer);
+
+                                leafletMap.fitBounds(gazetteerLocationLayer.getBounds(),
+                                        fitBoundsOptions);
+
+                                /*leafletData.getMap(mapId).then(function (map) {
+                                 map.fitBounds(gazetteerLocationLayer.getBounds(), 
+                                 fitBoundsOptions);
+                                 });*/
+
+                            } else {
+                                mapController.setGazetteerLocation(null);
+                            }
+                        } else if (gazetteerLocationLayer !== null) {
+                            // does not remove the lkayer from map !?!
                             layerControl.removeLayer(gazetteerLocationLayer);
+                            leafletMap.removeLayer(gazetteerLocationLayer);
                             gazetteerLocationLayer = null;
                         }
-
-                        gazetteerLocationLayer =
-                                featureRendererService.createGazetteerLocationLayer(gazetteerLocation);
-                        if (gazetteerLocationLayer !== null) {
-                            gazetteerLocationLayer.StyledLayerControl = {
-                                removable: false,
-                                visible: false
-                            };
-
-                            // FIXME: GazetteerLocationLayer added twice!
-                            layerControl.addOverlay(
-                                    gazetteerLocationLayer,
-                                    gazetteerLocationLayer.$name, {
-                                        groupName: "Aktueller Ort"
-                                    });
-
-                            layerControl.selectLayer(gazetteerLocationLayer);
-
-                            leafletData.getMap(mapId).then(function (map) {
-                                map.fitBounds(gazetteerLocationLayer.getBounds(), {
-                                    animate: true,
-                                    pan: {animate: true, duration: 0.6},
-                                    zoom: {animate: true},
-                                    maxZoom: null
-                                });
-                            });
-                        } else {
-                            mapController.setGazetteerLocation(null);
-                        }
-                    } else if (gazetteerLocationLayer !== null) {
-                        layerControl.removeLayer(gazetteerLocationLayer);
-                        gazetteerLocationLayer = null;
+                    } else {
+                        console.warn("mapController:: cannot set gazetteerLocation on analysis map!");
                     }
                 };
 
-
-
-                console.log($scope.mainController.mode + ' map controller instance created');
-
-
-                //mapController.center = $stateParams.center;
-                // mapController.zoom = $stateParams.zoom;
+                //</editor-fold>
 
                 $scope.$on('gotoLocation()', function (e) {
                     if (mapController.mode === 'search') {
@@ -1000,11 +1955,12 @@ angular.module(
                 });
 
                 $scope.$on('searchSuccess()', function (e) {
+                    console.log(mapId + '::searchSuccess()');
                     if (mapController.mode === 'search' && sharedDatamodel.resultNodes.length > 0) {
                         mapController.setNodes(sharedDatamodel.resultNodes);
-                    } else if (mapController.mode === 'analysis' && sharedDatamodel.analysisNodes.length > 0) {
-                        mapController.setNodes(sharedDatamodel.resultNodes);
-                    }
+                    } /*else if (mapController.mode === 'analysis' && sharedDatamodel.analysisNodes.length > 0) {
+                     mapController.setNodes(sharedDatamodel.analysisNodes);
+                     }*/
                 });
 
                 $scope.$watch(function () {
@@ -1028,8 +1984,71 @@ angular.module(
                      }*/
                 });
 
+                // add all to map
+                leafletData.getMap(mapId).then(function (map) {
+
+                    leafletMap = map;
+
+                    // add the layers
+                    map.addLayer(searchGeometryLayerGroup);
+
+                    if (mapController.mode === 'search') {
+                        map.addControl(drawControl);
+
+                        map.on('draw:created', function (event) {
+                            setSearchGeometry(event.layer, event.layerType);
+                        });
+
+                        map.on('draw:deleted', function (event) {
+                            setSearchGeometry(null);
+                        });
+                    }
+
+                    map.addControl(layerControl);
+
+                    // not sure why this is needed altough it is already configured in the map directive
+                    map.setMaxBounds(maxBounds);
+                    map.setZoom(center.zoom);
+
+                    // select the default basemap
+                    layerControl.selectLayer(basemaps[0].layers[config.defaultBasemapLayer]);
+
+                    // FIXME: removes also layers from layercontrol that are just deselected!
+                    map.on('layerremove', function (layerEvent) {
+                        var removedLayer = layerEvent.layer;
+
+
+                        if (removedLayer.StyledLayerControl &&
+                                removedLayer.StyledLayerControl.removable &&
+                                layerControl._layers[L.stamp(removedLayer)]) {
+                            // bugfix-hack for StyledLayerControl.
+                            layerControl.removeLayer(removedLayer);
+                        }
+
+                        console.log('mapController:: layer removed: ' + removedLayer.$name +
+                                ' (' + L.stamp(removedLayer) + ')');
+
+                        if (removedLayer && removedLayer === gazetteerLocationLayer) {
+                            console.log('mapController::gazetteerLocationLayer removed');
+                            //gazetteerLocationLayer = null;
+                            //layerControl.removeLayer(gazetteerLocationLayer);
+                        }
+                    });
+
+                    // analysis nodes added bofre controller instance created ....
+                    if (mapController.mode === 'analysis' &&
+                            sharedDatamodel.analysisNodes &&
+                            sharedDatamodel.analysisNodes.length > 0) {
+
+                        mapController.setNodes(sharedDatamodel.analysisNodes);
+                    }
+                });
+
                 // leak this to parent scope
+                // FIXME: use sharedControllers Service instead
                 $scope.$parent.mapController = mapController;
+
+                console.log($scope.mainController.mode + ' map controller instance created');
             }]
         );
 
@@ -1055,11 +2074,33 @@ angular.module(
                     configurationService, sharedDatamodel, dataService) {
                 'use strict';
 
-                var searchController, fireResize, mapController;
-
+                var searchController;
                 searchController = this;
+                // set default mode according to default route in app.js 
+                searchController.mode = 'map';
 
-                // Configurations: 
+                // === Configurations ==========================================
+                // <editor-fold defaultstate="collapsed" desc="   - Search Locations Selection Box Configuration">
+                // TODO: add coordinates to selectedSearchLocation on selection!
+                searchController.searchLocations = dataService.getSearchLocations();
+                sharedDatamodel.selectedSearchLocation = angular.copy(searchController.searchLocations[0]);
+                searchController.selectedSearchLocation = sharedDatamodel.selectedSearchLocation;
+                searchController.searchLocationsSettings = angular.extend(
+                        {},
+                        configurationService.multiselect.settings, {
+                            showCheckAll: false,
+                            showUncheckAll: false,
+                            styleActive: false,
+                            closeOnSelect: true,
+                            scrollable: false,
+                            displayProp: 'name',
+                            idProp: 'id',
+                            enableSearch: false,
+                            smartButtonMaxItems: 1,
+                            selectionLimit: 1, // -> the selection model will contain a single object instead of array. 
+                            externalIdProp: '' // -> Full Object as model
+                        });
+                // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="   - Search Themes Selection Box Configuration">
                 searchController.searchThemes = dataService.getSearchThemes();
                 searchController.selectedSearchThemes = sharedDatamodel.selectedSearchThemes;
@@ -1149,33 +2190,8 @@ angular.module(
                             buttonDefaultText: 'Ort auswählen'
                         });
                 // </editor-fold>
-
-                console.log('searchController instance created');
-                //$scope.name = 'main';
-                //mainController.name = 'this.main';
-                //$scope.mode = 'search';
-                searchController.mode = 'map';
-
-//                var fireResize = function () {
-//                    //$scope.currentHeight = $window.innerHeight - $scope.navbarHeight;
-//                    //$scope.currentWidth = $window.innerWidth - ($scope.toolbarShowing ? $scope.toolbarWidth : 0);
-//                    leafletData.getMap('search-map').then(function (map) {
-//                        if (map && map._container.parentElement) {
-//                            console.log('searchController::fireResize: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
-//                            $scope.mapHeight = map._container.parentElement.offsetHeight;
-//                            $scope.mapWidth = map._container.parentElement.offsetWidth;
-//                            //map.invalidateSize(animate);
-//                        }
-//
-//                    });
-//                };
-//
-//                angular.element($window).bind('resize', function () {
-//                    fireResize(false);
-//                });
-
-
-
+                
+                // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
                 searchController.gotoLocation = function () {
                     // TODO: check if paramters are selected ...
 
@@ -1221,6 +2237,7 @@ angular.module(
                         });
                     }
                 };
+                // </editor-fold>
 
                 // TODO: put into parent scope?
                 $scope.$on('$stateChangeSuccess', function (toState) {
@@ -1251,6 +2268,26 @@ angular.module(
                         }
                     }
                 });
+
+                //                var fireResize = function () {
+                //                    //$scope.currentHeight = $window.innerHeight - $scope.navbarHeight;
+                //                    //$scope.currentWidth = $window.innerWidth - ($scope.toolbarShowing ? $scope.toolbarWidth : 0);
+                //                    leafletData.getMap('search-map').then(function (map) {
+                //                        if (map && map._container.parentElement) {
+                //                            console.log('searchController::fireResize: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
+                //                            $scope.mapHeight = map._container.parentElement.offsetHeight;
+                //                            $scope.mapWidth = map._container.parentElement.offsetWidth;
+                //                            //map.invalidateSize(animate);
+                //                        }
+                //
+                //                    });
+                //                };
+                //
+                //                angular.element($window).bind('resize', function () {
+                //                    fireResize(false);
+                //                });
+                
+                console.log('searchController instance created');
             }
         ]
         );
@@ -1514,45 +2551,52 @@ angular.module(
  */
 
 /*global angular, L */
+/*jshint sub:true*/
+
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.services'
         ).service('configurationService',
         [function () {
                 'use strict';
 
-                var layerBasemap, layerTopographic, layerOsm;
+                var configurationService, austriaBasemapLayer, esriTopographicBasemapLayer, osmBasemapLayer,
+                        openTopoBasemapLayer, borisFeatureGroup, eprtrFeatureGroup,
+                        mossFeatureGroup, wagwFeatureGroup, waowFeatureGroup, basemapLayers,
+                        overlayLayers, overlays;
 
-                this.cidsRestApi = {};
-                this.cidsRestApi.host = 'http://localhost:8890';
-                //this.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
-                //this.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
+                configurationService = this;
 
-                this.searchService = {};
-                this.searchService.username = 'admin@SWITCHON';
-                this.searchService.password = 'cismet';
-                this.searchService.defautLimit = 10;
-                this.searchService.maxLimit = 50;
-                this.searchService.host = this.cidsRestApi.host;
+                configurationService.cidsRestApi = {};
+                configurationService.cidsRestApi.host = 'http://localhost:8890';
+                //configurationService.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
+                //configurationService.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
+
+                configurationService.searchService = {};
+                configurationService.searchService.username = 'admin@SWITCHON';
+                configurationService.searchService.password = 'cismet';
+                configurationService.searchService.defautLimit = 10;
+                configurationService.searchService.maxLimit = 50;
+                configurationService.searchService.host = configurationService.cidsRestApi.host;
 
 
-                this.map = {};
+                configurationService.map = {};
 
-                this.map.options = {};
-                this.map.options.centerOnSearchGeometry = true;
-                this.map.options.preserveZoomOnCenter = true;
+                configurationService.map.options = {};
+                configurationService.map.options.centerOnSearchGeometry = true;
+                configurationService.map.options.preserveZoomOnCenter = true;
 
-                this.map.home = {};
-                this.map.home.lat = 47.61;
-                this.map.home.lng = 13.782778;
-                this.map.home.zoom = 7;
-                this.map.maxBounds = new L.latLngBounds(
+                configurationService.map.home = {};
+                configurationService.map.home.lat = 47.61;
+                configurationService.map.home.lng = 13.782778;
+                configurationService.map.home.zoom = 7;
+                configurationService.map.maxBounds = new L.latLngBounds(
                         L.latLng(46.372299, 9.53079),
                         L.latLng(49.02071, 17.160749));
 
-                this.map.defaults = {
+                configurationService.map.defaults = {
                     minZoom: 7,
                     //maxZoom: 18,
-                    maxBounds: this.map.maxBounds,
+                    maxBounds: configurationService.map.maxBounds,
                     /*path: {
                      weight: 10,
                      color: '#800000',
@@ -1564,12 +2608,12 @@ angular.module(
                             position: 'bottomright',
                             collapsed: true
                         }
-                    },
+                    }
                     //tileLayer: '' // if disabled, Leflet will *always* request OSM BG Layer (useful for  Verwaltungsgrundkarte)
                 };
 
                 /* jshint ignore:start */
-                this.map.layerControlOptions = {
+                configurationService.map.layerControlOptions = {
                     container_width: '300px',
                     container_height: '600px',
                     container_maxHeight: '600px',
@@ -1578,55 +2622,170 @@ angular.module(
                 };
                 /* jshint ignore:end */
 
-                this.map.defaultLayer = 'Verwaltungsgrundkarte';
+                configurationService.map.layerGroupMappings = {
+                    'basemaps': 'Grundkarten',
+                    'nodes': 'Themen',
+                    'gazetteer': 'Aktueller Ort',
+                    'external': 'Externe Datenquellen'
+                };
 
+                configurationService.map.layerMappings = {
+                    'basemap_at': 'Verwaltungsgrundkarte',
+                    'arcgisonline_com': 'ArcGIS Topographic',
+                    'opentopomap_org': 'OpenTopoMap',
+                    'openstreetmap_org': 'OpenStreetMap',
+                    'BORIS_SITE': 'Bodenmesstellen',
+                    'EPRTR_INSTALLATION': 'ePRTR Einrichtungen',
+                    'MOSS': 'Moose',
+                    'WAOW_STATION': 'Wassermesstellen',
+                    'WAGW_STATION': 'Grundwassermesstellen'
+                };
 
-                layerBasemap = new L.tileLayer("http://{s}.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png", {
+                configurationService.map.defaultBasemapLayer = 'Verwaltungsgrundkarte';
+
+                austriaBasemapLayer = new L.tileLayer("http://{s}.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png", {
                     subdomains: ['maps', 'maps1', 'maps2', 'maps3', 'maps4'],
                     attribution: '&copy; <a href="http://basemap.at">Basemap.at</a>, <a href="http://www.isticktoit.net">isticktoit.net</a>'
                 });
-                layerBasemap.name = 'Verwaltungsgrundkarte';
-                layerBasemap.key = 'basemap.at';
+                austriaBasemapLayer.$name = configurationService.map.layerMappings['basemap_at'];
+                austriaBasemapLayer.$key = 'basemap_at';
+                austriaBasemapLayer.$groupName = 'Grundkarten';
+                austriaBasemapLayer.$groupKey = 'basemaps';
 
-                layerTopographic = L.esri.basemapLayer('Topographic');
-                layerTopographic.name = 'ArcGIS Topographic';
-                layerTopographic.key = 'arcgisonline.com';
+                esriTopographicBasemapLayer = L.esri.basemapLayer('Topographic');
+                esriTopographicBasemapLayer.$name = configurationService.map.layerMappings['arcgisonline_com'];
+                esriTopographicBasemapLayer.$key = 'arcgisonline_com';
+                esriTopographicBasemapLayer.$groupName = configurationService.map.layerGroupMappings['basemaps'];
+                esriTopographicBasemapLayer.$groupKey = 'basemaps';
 
-                layerOsm = new L.TileLayer(
+                //'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png'
+                openTopoBasemapLayer = new L.TileLayer(
+                        'http://opentopomap.org/{z}/{x}/{y}.png', {
+                            attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors, SRTM | Rendering: © <a href="http://opentopomap.org" target="_blank">OpenTopoMap</a> (CC-BY-SA)'
+                        });
+                openTopoBasemapLayer.$name = configurationService.map.layerMappings['opentopomap_org'];
+                openTopoBasemapLayer.$key = 'opentopomap_org';
+                openTopoBasemapLayer.$groupName = configurationService.map.layerGroupMappings['basemaps'];
+                openTopoBasemapLayer.$groupKey = 'basemaps';
+
+                osmBasemapLayer = new L.TileLayer(
                         'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            id: 'mainmap',
                             attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors'
                         });
-                layerOsm.name = 'OpenStreetMap';
-                layerOsm.key = 'openstreetmap.org';
+                osmBasemapLayer.$name = configurationService.map.layerMappings['openstreetmap_org'];
+                osmBasemapLayer.$key = 'openstreetmap_org';
+                osmBasemapLayer.$groupName = configurationService.map.layerGroupMappings['basemaps'];
+                osmBasemapLayer.$groupKey = 'basemaps';
+
+                basemapLayers = {};
+                basemapLayers[configurationService.map.layerMappings['basemap_at']] = austriaBasemapLayer;
+                basemapLayers[configurationService.map.layerMappings['arcgisonline_com']] = esriTopographicBasemapLayer;
+                basemapLayers[configurationService.map.layerMappings['opentopomap_org']] = openTopoBasemapLayer;
+                basemapLayers[configurationService.map.layerMappings['openstreetmap_org']] = osmBasemapLayer;
 
                 /**
                  * styledLayerControl baseMaps!
                  */
-                this.map.basemaps = [
+                configurationService.map.basemaps = [
                     {
-                        groupName: 'Grundkarten',
+                        groupName: configurationService.map.layerGroupMappings['basemaps'],
                         expanded: true,
-                        layers: {
-                            'Verwaltungsgrundkarte': layerBasemap,
-                            'ArcGIS Topographic': layerTopographic,
-                            /*'OpenTopoMap': new L.TileLayer(
-                             'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-                             id: 'mainmap',
-                             attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors, SRTM | Rendering: © <a href="http://opentopomap.org" target="_blank">OpenTopoMap</a> (CC-BY-SA)'
-                             }*/
-                            'OpenStreetMap': layerOsm
-                        }
+                        layers: basemapLayers
                     }
                 ];
 
-                this.map.overlays = [];
+                borisFeatureGroup = new L.FeatureGroup();
+                borisFeatureGroup.$name = configurationService.map.layerMappings['BORIS_SITE'];
+                borisFeatureGroup.$key = 'BORIS_SITE';
+                borisFeatureGroup.$groupName = configurationService.map.layerGroupMappings['nodes'];
+                borisFeatureGroup.$groupKey = 'nodes';
+                borisFeatureGroup.StyledLayerControl = {
+                    removable: false,
+                    visible: false
+                };
 
-                this.map.drawOptions = {
+                eprtrFeatureGroup = new L.FeatureGroup();
+                eprtrFeatureGroup.$name = configurationService.map.layerMappings['EPRTR_INSTALLATION'];
+                eprtrFeatureGroup.$key = 'EPRTR_INSTALLATION';
+                eprtrFeatureGroup.$groupName = configurationService.map.layerGroupMappings['nodes'];
+                eprtrFeatureGroup.$groupKey = 'nodes';
+                eprtrFeatureGroup.StyledLayerControl = {
+                    removable: false,
+                    visible: false
+                };
+
+                mossFeatureGroup = new L.FeatureGroup();
+                mossFeatureGroup.$name = configurationService.map.layerMappings['MOSS'];
+                mossFeatureGroup.$key = 'MOSS';
+                mossFeatureGroup.$groupName = configurationService.map.layerGroupMappings['nodes'];
+                mossFeatureGroup.$groupKey = 'nodes';
+                mossFeatureGroup.StyledLayerControl = {
+                    removable: false,
+                    visible: false
+                };
+
+                wagwFeatureGroup = new L.FeatureGroup();
+                wagwFeatureGroup.$name = configurationService.map.layerMappings['WAGW_STATION'];
+                wagwFeatureGroup.$key = 'WAGW_STATION';
+                wagwFeatureGroup.$groupName = configurationService.map.layerGroupMappings['nodes'];
+                wagwFeatureGroup.$groupKey = 'nodes';
+                wagwFeatureGroup.StyledLayerControl = {
+                    removable: false,
+                    visible: false
+                };
+
+                waowFeatureGroup = new L.FeatureGroup();
+                waowFeatureGroup.$name = configurationService.map.layerMappings['WAOW_STATION'];
+                waowFeatureGroup.$key = 'WAOW_STATION';
+                waowFeatureGroup.$groupName = configurationService.map.layerGroupMappings['nodes'];
+                waowFeatureGroup.$groupKey = 'nodes';
+                waowFeatureGroup.StyledLayerControl = {
+                    removable: false,
+                    visible: false
+                };
+
+                overlayLayers = {};
+                overlayLayers[configurationService.map.layerMappings['BORIS_SITE']] = borisFeatureGroup;
+                overlayLayers[configurationService.map.layerMappings['EPRTR_INSTALLATION']] = eprtrFeatureGroup;
+                overlayLayers[configurationService.map.layerMappings['MOSS']] = mossFeatureGroup;
+                overlayLayers[configurationService.map.layerMappings['WAGW_STATION']] = wagwFeatureGroup;
+                overlayLayers[configurationService.map.layerMappings['WAOW_STATION']] = waowFeatureGroup;
+
+                configurationService.map.nodeOverlays = {
+                        groupName: configurationService.map.layerGroupMappings['nodes'],
+                        expanded: true,
+                        layers: overlayLayers
+                    };
+
+                // angular.extend creates a shallow copy!
+                // angular.copy creates a deep copy!
+                // angular.merge creates a deep copy!
+                configurationService.map.searchOverlays = [];angular.merge([],
+                        [
+                            {
+                                groupName: configurationService.map.layerGroupMappings['gazetteer'],
+                                expanded: false,
+                                layers: {}
+                            }
+                        ],
+                        overlays);
+
+                configurationService.map.analysisOverlays = angular.merge([],
+                        overlays,
+                        [
+                            {
+                                groupName: configurationService.map.layerGroupMappings['external'],
+                                expanded: false,
+                                layers: {}
+                            }
+                        ]);
+
+
+                configurationService.map.drawOptions = {
                     polyline: false,
                     polygon: {
                         shapeOptions: {
-                            color: '#800000',
+                            color: '#006d2c',
                             clickable: true
                         },
                         showArea: true,
@@ -1634,7 +2793,7 @@ angular.module(
                     },
                     rectangle: {
                         shapeOptions: {
-                            color: '#800000',
+                            color: '#006d2c',
                             clickable: true
                         },
                         metric: true
@@ -1644,15 +2803,30 @@ angular.module(
                     marker: false
                 };
 
-                this.featureRenderer = {};
-                this.featureRenderer.defaultStyle = {
+
+                configurationService.map.fitBoundsOptions = {
+                    animate: true,
+                    pan: {animate: true, duration: 0.6},
+                    zoom: {animate: true},
+                    maxZoom: null
+                };
+
+                configurationService.featureRenderer = {};
+                configurationService.featureRenderer.gazetteerStyle = {
+                    color: '#dadaeb',
+                    fill: false,
+                    weight: 1,
+                    riseOnHover: false,
+                    clickable: false
+                };
+                configurationService.featureRenderer.defaultStyle = {
                     color: '#0000FF',
                     fill: false,
                     weight: 2,
                     riseOnHover: true,
                     clickable: false
                 };
-                this.featureRenderer.highlightStyle = {
+                configurationService.featureRenderer.highlightStyle = {
                     fillOpacity: 0.4,
                     fill: true,
                     fillColor: '#1589FF',
@@ -1660,44 +2834,44 @@ angular.module(
                     clickable: false
                 };
 
-                this.featureRenderer.icons = {};
-                this.featureRenderer.icons.BORIS_SITE = L.icon({
+                configurationService.featureRenderer.icons = {};
+                configurationService.featureRenderer.icons.BORIS_SITE = L.icon({
                     iconUrl: 'icons/showel_16.png',
                     iconSize: [16, 16]
                 });
-                this.featureRenderer.icons.WAGW_STATION = L.icon({
+                configurationService.featureRenderer.icons.WAGW_STATION = L.icon({
                     iconUrl: 'icons/wagw_16.png',
                     iconSize: [16, 16]
                 });
-                this.featureRenderer.icons.WAOW_STATION = L.icon({
+                configurationService.featureRenderer.icons.WAOW_STATION = L.icon({
                     iconUrl: 'icons/waow_16.png',
                     iconSize: [16, 16]
                 });
-                this.featureRenderer.icons.EPRTR_INSTALLATION = L.icon({
+                configurationService.featureRenderer.icons.EPRTR_INSTALLATION = L.icon({
                     iconUrl: 'icons/factory_16.png',
                     iconSize: [16, 16]
                 });
-                this.featureRenderer.icons.MOSS = L.icon({
+                configurationService.featureRenderer.icons.MOSS = L.icon({
                     iconUrl: 'icons/grass_16.png',
                     iconSize: [16, 16]
                 });
 
-                this.featureRenderer.layergroupNames = {};
-                this.featureRenderer.layergroupNames.MOSS = 'Moose';
-                this.featureRenderer.layergroupNames.EPRTR_INSTALLATION = 'ePRTR ePRTR Einrichtungen';
-                this.featureRenderer.layergroupNames.WAOW_STATION = 'Wassermesstellen';
-                this.featureRenderer.layergroupNames.WAGW_STATION = 'Grundwassermesstellen';
-                this.featureRenderer.layergroupNames.BORIS_SITE = 'Bodenmesstellen';
+                configurationService.featureRenderer.layergroupNames = {};
+                configurationService.featureRenderer.layergroupNames.MOSS = 'Moose';
+                configurationService.featureRenderer.layergroupNames.EPRTR_INSTALLATION = 'ePRTR ePRTR Einrichtungen';
+                configurationService.featureRenderer.layergroupNames.WAOW_STATION = 'Wassermesstellen';
+                configurationService.featureRenderer.layergroupNames.WAGW_STATION = 'Grundwassermesstellen';
+                configurationService.featureRenderer.layergroupNames.BORIS_SITE = 'Bodenmesstellen';
 
 
-                this.multiselect = {};
-                this.multiselect.settings = {
+                configurationService.multiselect = {};
+                configurationService.multiselect.settings = {
                     styleActive: true,
                     displayProp: 'name',
                     idProp: 'classId',
                     buttonClasses: 'btn btn-default navbar-btn cs-search-multiselect'
                 };
-                this.multiselect.translationTexts = {
+                configurationService.multiselect.translationTexts = {
                     checkAll: 'Alles auswählen',
                     uncheckAll: 'Alles abwählen',
                     enableSearch: 'Suche aktivieren',
@@ -1729,7 +2903,19 @@ angular.module(
                 'use strict';
 
                 var staticResourceFiles, cachedResources,
-                        lazyLoadResource, shuffleArray;
+                        lazyLoadResource, shuffleArray, searchLocations;
+
+                searchLocations = [
+                    {
+                        name: 'Gesamter Kartenausschnitt',
+                        id: 0,
+                        geometry: null
+                    }, {
+                        name: 'Boundingbox Auswahl',
+                        id: 1,
+                        geometry: null
+                    }
+                ];
 
                 staticResourceFiles = {
                     'searchThemes': 'data/searchThemes.json',
@@ -1737,7 +2923,8 @@ angular.module(
                     'gazetteerLocations': 'data/gazetteerLocations.json',
                     'filterPollutants': 'data/filterPollutants.json',
                     'mockNodes': 'data/resultNodes.json',
-                    'mockObjects': 'data/resultObjects.json'
+                    'mockObjects': 'data/resultObjects.json',
+                    'globalDatasources': 'data/globalDatasources.json'
                 };
 
                 // cached resource data
@@ -1793,6 +2980,9 @@ angular.module(
                 //lazyLoadResource('searchPollutants', true);
 
                 return {
+                    getSearchLocations: function () {
+                        return searchLocations;
+                    },
                     getSearchThemes: function () {
                         return lazyLoadResource('searchThemes', true);
                     },
@@ -1801,6 +2991,9 @@ angular.module(
                     },
                     getGazetteerLocations: function () {
                         return lazyLoadResource('gazetteerLocations', true);
+                    },
+                    getGlobalDatasources: function () {
+                        return lazyLoadResource('globalDatasources', true);
                     },
                     getMockNodes: function () {
                         var mockNodes = lazyLoadResource('mockNodes', true);
@@ -1834,11 +3027,58 @@ angular.module(
             function (configurationService) {
                 'use strict';
 
-                var config, getFeatureRenderer, createNodeFeatureRenderer,
-                        defaultStyle, highlightStyle, createGazetteerLocationLayer, createNodeFeatureLayers;
+                var config, getFeatureRenderer, createNodeFeature,
+                        createGazetteerLocationLayer, createNodeFeatureGroups,
+                        createOverlayLayer;
 
                 config = configurationService.featureRenderer;
 
+                // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ===========================">
+                /**
+                 * Helper Method for creating a Feature (Leaflet Marker) from a cids 
+                 * JSON Node Object
+                 * 
+                 * @param {type} node
+                 * @param {type} theme
+                 * @returns {featureRendererService_L18.createNodeFeature.feature}
+                 */
+                createNodeFeature = function (node, theme) {
+                    if (node.hasOwnProperty('geometry')) {
+                        var wktString, wktObject, feature, icon;
+
+                        icon = config.icons[theme];
+                        wktString = node.geometry;
+                        wktObject = new Wkt.Wkt();
+                        wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
+
+                        // the Leaflet Marker Configuration
+                        var objectConfig = {
+                            icon: icon,
+                            title: node.name
+                        };
+
+                        feature = wktObject.toObject(objectConfig);
+                        feature.bindPopup(node.name);
+                        feature.$name = node.name;
+                        feature.$key = node.$self;
+                        feature.$groupKey = theme;
+
+                        node.$feature = feature;
+                        node.$icon = icon.options.iconUrl;
+
+                        return feature;
+                    }
+                };
+                // </editor-fold>
+
+                // <editor-fold defaultstate="collapsed" desc="=== Public Service API Functions =============================">
+                /**
+                 * Creates a new GazetteerLocationLayer from a gazetteer Location
+                 * JSON Object (see data/gazetteerLocations.json)
+                 * 
+                 * @param {type} gazetteerLocation
+                 * @returns {featureRendererService_L18.createGazetteerLocationLayer.featureLayer}
+                 */
                 createGazetteerLocationLayer = function (gazetteerLocation) {
                     var wktString, wktObject, geometryCollection, featureLayer;
                     if (gazetteerLocation.hasOwnProperty('area')) {
@@ -1860,66 +3100,144 @@ angular.module(
                         featureLayer = wktObject.toObject();
                     }
 
+                    featureLayer.setStyle(angular.copy(config.gazetteerStyle));
                     featureLayer.$name = gazetteerLocation.name;
                     featureLayer.$key = 'gazetteerLocation';
+
+                    // not needed atm:
+                    //gazetteerLocation.$layer = featureLayer;
+
                     return featureLayer;
                 };
 
-                createNodeFeatureRenderer = function (node, theme) {
-                    if (node.hasOwnProperty('geometry')) {
-                        var wktString, wktObject, featureLayer, icon;
-                        
-                        icon = config.icons[theme];
-                        wktString = node.geometry;
-                        wktObject = new Wkt.Wkt();
-                        wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
-
-                        var objectConfig = {
-                            icon: icon,
-                            title: node.name
-                        };
-
-                        featureLayer = wktObject.toObject(objectConfig);
-                        featureLayer.bindPopup(node.name);
-                        featureLayer.$name = node.name;
-                        featureLayer.$key = node.$self;
-                        
-                        node.$feature = featureLayer;
-                        node.$icon = icon.options.iconUrl;
-                        
-                        return featureLayer;
-                    }
-                };
-
-
-                createNodeFeatureLayers = function (nodes) {
-                    var i, node, theme, featureGroup, featureRender, featureRenders;
-                    featureRenders = {};
+                /**
+                 * Creates arrays of Node Features (Markers) from an array of 
+                 * cids JSON Node objects. Does not create Feature groups directly, 
+                 * since the respective feature groups (EPRTR, BORIS, ...) are maintained
+                 * by the StyleLayers Control of the Analysis / Search Map
+                 * 
+                 * @param {type} nodes
+                 * @returns {Array}
+                 */
+                createNodeFeatureGroups = function (nodes) {
+                    var i, node, theme, feature, featureGroup, featureGroups;
+                    featureGroups = [];
                     for (i = 0; i < nodes.length; ++i) {
                         node = nodes[i];
                         theme = node.classKey.split(".").slice(1, 2).pop();
-                        featureRender = createNodeFeatureRenderer(node, theme);
+                        feature = createNodeFeature(node, theme);
 
-                        if (featureRender) {
-                            if (!featureRenders.hasOwnProperty(theme)) {
-                                featureGroup = new L.FeatureGroup();
-                                featureGroup.$name = config.layergroupNames[theme];
-                                featureGroup.$key = theme;
-                                featureGroup.StyledLayerControl = {
-                                    removable: false,
-                                    visible: false
-                                };
-                                featureRenders[theme] = featureGroup;
+                        if (feature) {
+                            if (!featureGroups.hasOwnProperty(theme)) {
+                                featureGroup = [];
+                                featureGroups[theme] = featureGroup;
                             } else {
-                                featureGroup = featureRenders[theme];
+                                featureGroup = featureGroups[theme];
                             }
 
-                            featureRender.addTo(featureGroup);
+                            featureGroup.push(feature);
                         }
                     }
 
-                    return featureRenders;
+                    return featureGroups;
                 };
+
+                /**
+                 * 
+                 * @param {type} buffer
+                 * @param {type} fileName
+                 * @returns {undefined}
+                 * 
+                 */
+                createOverlayLayer = function (localDatasource, geojson, progressCallBack) {
+                    var i = 0;
+                    var overlayLayer;
+
+                    geojson.fileName = localDatasource.fileName;
+
+                    // onEachFeature: Helper Method for GeoJson Features to open a popup dialog for each Feature
+                    overlayLayer = L.geoJson(geojson, {
+                        onEachFeature: function (feature, layer) {
+                            if (feature.properties) {
+                                layer.bindPopup(Object.keys(feature.properties).map(function (k) {
+                                    return k + ": " + feature.properties[k];
+                                }).join("<br />"), {
+                                    maxHeight: 200
+                                });
+                            }
+
+                            if (progressCallBack) {
+                                progressCallBack(geojson.features.length, i++);
+                            }
+                        }
+
+                        /**
+                         var promise = $q(function (resolve, reject) {
+                         if (feature.properties) {
+                         layer.bindPopup(Object.keys(feature.properties).map(function (k) {
+                         return k + ": " + feature.properties[k];
+                         }).join("<br />"), {
+                         maxHeight: 200
+                         });
+                         }
+                         resolve({max: geojson.features.length, current: i++});
+                         });
+                         
+                         if (progressCallBack) {
+                         promise.then(function (progress) {
+                         progressCallBack(progress.max, progress.current);
+                         });
+                         }*/
+
+                    });
+
+                    overlayLayer.$name = localDatasource.name;
+                    overlayLayer.$key = localDatasource.fileName;
+                    overlayLayer.$selected = true;
+                    overlayLayer.StyledLayerControl = {
+                        removable: true,
+                        visible: false
+                    };
+
+                    localDatasource.$layer = overlayLayer;
+
+                    return overlayLayer;
+                };
+
+
+
+                // </editor-fold>
+
+                // <editor-fold defaultstate="collapsed" desc="=== DISABLED =============================">
+                /*
+                 createNodeFeatureLayers = function (nodes) {
+                 var i, node, theme, featureGroup, featureRender, featureRenders;
+                 featureRenders = {};
+                 for (i = 0; i < nodes.length; ++i) {
+                 node = nodes[i];
+                 theme = node.classKey.split(".").slice(1, 2).pop();
+                 featureRender = createNodeFeatureRenderer(node, theme);
+                 
+                 if (featureRender) {
+                 if (!featureRenders.hasOwnProperty(theme)) {
+                 featureGroup = new L.FeatureGroup();
+                 featureGroup.$name = config.layergroupNames[theme];
+                 featureGroup.$key = theme;
+                 featureGroup.StyledLayerControl = {
+                 removable: false,
+                 visible: false
+                 };
+                 featureRenders[theme] = featureGroup;
+                 } else {
+                 featureGroup = featureRenders[theme];
+                 }
+                 
+                 featureRender.addTo(featureGroup);
+                 }
+                 }
+                 
+                 return featureRenders;
+                 };*/
 
 
                 //L.marker([51.5, -0.09])
@@ -1951,12 +3269,12 @@ angular.module(
                         wktString = obj.spatialcoverage.geo_field; // jshint ignore:line
                         wktObject = new Wkt.Wkt();
                         wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
-                        objectStyle = Object.create(defaultStyle);
+                        objectStyle = Object.create(config.defaultStyle);
                         if (obj.name) {
                             objectStyle.title = obj.name;
                         }
                         renderer = wktObject.toObject(objectStyle);
-                        renderer.setStyle(defaultStyle);
+                        renderer.setStyle(config.defaultStyle);
                     }
 
 
@@ -2039,11 +3357,14 @@ angular.module(
                     return renderer;
                 };
 
+                // </editor-fold>
+
                 return {
-                    createNodeFeatureLayers: createNodeFeatureLayers,
+                    createNodeFeatureGroups: createNodeFeatureGroups,
                     createGazetteerLocationLayer: createGazetteerLocationLayer,
-                    defaultStyle: defaultStyle,
-                    highlightStyle: highlightStyle
+                    createOverlayLayer: createOverlayLayer,
+                    defaultStyle: config.defaultStyle,
+                    highlightStyle: config.highlightStyle
                 };
             }
         ]
@@ -2192,6 +3513,32 @@ angular.module(
  * ***************************************************
  */
 
+/*global angular*/
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.services'
+        ).service('sharedControllers',
+        [function () {
+                'use strict';
+
+                this.appController = undefined;
+                this.mainController = undefined;
+                this.analysisMapController = undefined;
+                this.searchController = undefined;
+                this.analysisMapController = undefined;
+                this.searchMapController = undefined;
+                this.searchListController = undefined;
+                this.protocolController = undefined;
+            }]);
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
 /*global angular, L */
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.services'
@@ -2204,8 +3551,14 @@ angular.module(
                 this.selectedSearchPollutants = [];
                 this.selectedGazetteerLocation = {};
                 this.selectedSearchGeometry = {};
+                this.selectedSearchLocation = {};
 
-                //search results
+                // search results
                 this.resultNodes = [];
                 this.analysisNodes = [];
+                
+                // data import
+                this.selectedGlobalDatasources = [];
+                this.localDatasources = [];
+                this.selectedLocalDatasources = [];
             }]);

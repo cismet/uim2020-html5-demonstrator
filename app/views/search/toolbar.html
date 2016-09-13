@@ -20,20 +20,16 @@
         <!-- Einschränkungen -->
         <form class="navbar-form navbar-left cs-toolbar-form">
             <label>Einschränkungen</label>
+            
+            <!-- Search Locations -->
             <div class="btn-group">
-                <button type="button" 
-                        class="btn btn-default navbar-btn dropdown-toggle" 
-                        data-toggle="dropdown">
-                    Gesamter Kartenausschnitt <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a href="#">Gesamter Kartenausschnitt</a></li>
-                    <li><a href="#">Boundingbox Auswahl</a></li>
-                    <li><a href="#">Something else here</a></li>
-                    <li role="separator" class="divider"></li>
-                    <li><a href="#">Separated link</a></li>
-                </ul>
-            </div>
+                <div ng-dropdown-multiselect=""
+                     id="search-themes"
+                     options="searchController.searchLocations" 
+                     selected-model="searchController.selectedSearchLocation" 
+                     extra-settings="searchController.searchLocationsSettings">  
+                </div>
+            </div>    
 
             <!-- Search Themes -->
             <div class="btn-group">
@@ -60,7 +56,6 @@
 
             <button type="submit" 
                     class="btn btn-success navbar-btn cs-toolbar-form-action"
-                    
                     ng-click="searchController.search()">
                 <span class="fa fa-search"></span>
             </button>

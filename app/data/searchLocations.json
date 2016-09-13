@@ -1,0 +1,11 @@
+[
+    {
+        "name": "Gesamter Kartenausschnitt",
+        "id": 0,
+        "geometry": null
+    }, {
+        "name": "Boundingbox Auswahl",
+        "id": 1,
+        "geometry": null
+    }
+]

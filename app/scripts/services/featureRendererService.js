@@ -18,11 +18,58 @@ angular.module(
             function (configurationService) {
                 'use strict';
 
-                var config, getFeatureRenderer, createNodeFeatureRenderer,
-                        defaultStyle, highlightStyle, createGazetteerLocationLayer, createNodeFeatureLayers;
+                var config, getFeatureRenderer, createNodeFeature,
+                        createGazetteerLocationLayer, createNodeFeatureGroups,
+                        createOverlayLayer;
 
                 config = configurationService.featureRenderer;
 
+                // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ===========================">
+                /**
+                 * Helper Method for creating a Feature (Leaflet Marker) from a cids 
+                 * JSON Node Object
+                 * 
+                 * @param {type} node
+                 * @param {type} theme
+                 * @returns {featureRendererService_L18.createNodeFeature.feature}
+                 */
+                createNodeFeature = function (node, theme) {
+                    if (node.hasOwnProperty('geometry')) {
+                        var wktString, wktObject, feature, icon;
+
+                        icon = config.icons[theme];
+                        wktString = node.geometry;
+                        wktObject = new Wkt.Wkt();
+                        wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
+
+                        // the Leaflet Marker Configuration
+                        var objectConfig = {
+                            icon: icon,
+                            title: node.name
+                        };
+
+                        feature = wktObject.toObject(objectConfig);
+                        feature.bindPopup(node.name);
+                        feature.$name = node.name;
+                        feature.$key = node.$self;
+                        feature.$groupKey = theme;
+
+                        node.$feature = feature;
+                        node.$icon = icon.options.iconUrl;
+
+                        return feature;
+                    }
+                };
+                // </editor-fold>
+
+                // <editor-fold defaultstate="collapsed" desc="=== Public Service API Functions =============================">
+                /**
+                 * Creates a new GazetteerLocationLayer from a gazetteer Location
+                 * JSON Object (see data/gazetteerLocations.json)
+                 * 
+                 * @param {type} gazetteerLocation
+                 * @returns {featureRendererService_L18.createGazetteerLocationLayer.featureLayer}
+                 */
                 createGazetteerLocationLayer = function (gazetteerLocation) {
                     var wktString, wktObject, geometryCollection, featureLayer;
                     if (gazetteerLocation.hasOwnProperty('area')) {
@@ -44,66 +91,144 @@ angular.module(
                         featureLayer = wktObject.toObject();
                     }
 
+                    featureLayer.setStyle(angular.copy(config.gazetteerStyle));
                     featureLayer.$name = gazetteerLocation.name;
                     featureLayer.$key = 'gazetteerLocation';
+
+                    // not needed atm:
+                    //gazetteerLocation.$layer = featureLayer;
+
                     return featureLayer;
                 };
 
-                createNodeFeatureRenderer = function (node, theme) {
-                    if (node.hasOwnProperty('geometry')) {
-                        var wktString, wktObject, featureLayer, icon;
-                        
-                        icon = config.icons[theme];
-                        wktString = node.geometry;
-                        wktObject = new Wkt.Wkt();
-                        wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
-
-                        var objectConfig = {
-                            icon: icon,
-                            title: node.name
-                        };
-
-                        featureLayer = wktObject.toObject(objectConfig);
-                        featureLayer.bindPopup(node.name);
-                        featureLayer.$name = node.name;
-                        featureLayer.$key = node.$self;
-                        
-                        node.$feature = featureLayer;
-                        node.$icon = icon.options.iconUrl;
-                        
-                        return featureLayer;
-                    }
-                };
-
-
-                createNodeFeatureLayers = function (nodes) {
-                    var i, node, theme, featureGroup, featureRender, featureRenders;
-                    featureRenders = {};
+                /**
+                 * Creates arrays of Node Features (Markers) from an array of 
+                 * cids JSON Node objects. Does not create Feature groups directly, 
+                 * since the respective feature groups (EPRTR, BORIS, ...) are maintained
+                 * by the StyleLayers Control of the Analysis / Search Map
+                 * 
+                 * @param {type} nodes
+                 * @returns {Array}
+                 */
+                createNodeFeatureGroups = function (nodes) {
+                    var i, node, theme, feature, featureGroup, featureGroups;
+                    featureGroups = [];
                     for (i = 0; i < nodes.length; ++i) {
                         node = nodes[i];
                         theme = node.classKey.split(".").slice(1, 2).pop();
-                        featureRender = createNodeFeatureRenderer(node, theme);
+                        feature = createNodeFeature(node, theme);
 
-                        if (featureRender) {
-                            if (!featureRenders.hasOwnProperty(theme)) {
-                                featureGroup = new L.FeatureGroup();
-                                featureGroup.$name = config.layergroupNames[theme];
-                                featureGroup.$key = theme;
-                                featureGroup.StyledLayerControl = {
-                                    removable: false,
-                                    visible: false
-                                };
-                                featureRenders[theme] = featureGroup;
+                        if (feature) {
+                            if (!featureGroups.hasOwnProperty(theme)) {
+                                featureGroup = [];
+                                featureGroups[theme] = featureGroup;
                             } else {
-                                featureGroup = featureRenders[theme];
+                                featureGroup = featureGroups[theme];
                             }
 
-                            featureRender.addTo(featureGroup);
+                            featureGroup.push(feature);
                         }
                     }
 
-                    return featureRenders;
+                    return featureGroups;
                 };
+
+                /**
+                 * 
+                 * @param {type} buffer
+                 * @param {type} fileName
+                 * @returns {undefined}
+                 * 
+                 */
+                createOverlayLayer = function (localDatasource, geojson, progressCallBack) {
+                    var i = 0;
+                    var overlayLayer;
+
+                    geojson.fileName = localDatasource.fileName;
+
+                    // onEachFeature: Helper Method for GeoJson Features to open a popup dialog for each Feature
+                    overlayLayer = L.geoJson(geojson, {
+                        onEachFeature: function (feature, layer) {
+                            if (feature.properties) {
+                                layer.bindPopup(Object.keys(feature.properties).map(function (k) {
+                                    return k + ": " + feature.properties[k];
+                                }).join("<br />"), {
+                                    maxHeight: 200
+                                });
+                            }
+
+                            if (progressCallBack) {
+                                progressCallBack(geojson.features.length, i++);
+                            }
+                        }
+
+                        /**
+                         var promise = $q(function (resolve, reject) {
+                         if (feature.properties) {
+                         layer.bindPopup(Object.keys(feature.properties).map(function (k) {
+                         return k + ": " + feature.properties[k];
+                         }).join("<br />"), {
+                         maxHeight: 200
+                         });
+                         }
+                         resolve({max: geojson.features.length, current: i++});
+                         });
+                         
+                         if (progressCallBack) {
+                         promise.then(function (progress) {
+                         progressCallBack(progress.max, progress.current);
+                         });
+                         }*/
+
+                    });
+
+                    overlayLayer.$name = localDatasource.name;
+                    overlayLayer.$key = localDatasource.fileName;
+                    overlayLayer.$selected = true;
+                    overlayLayer.StyledLayerControl = {
+                        removable: true,
+                        visible: false
+                    };
+
+                    localDatasource.$layer = overlayLayer;
+
+                    return overlayLayer;
+                };
+
+
+
+                // </editor-fold>
+
+                // <editor-fold defaultstate="collapsed" desc="=== DISABLED =============================">
+                /*
+                 createNodeFeatureLayers = function (nodes) {
+                 var i, node, theme, featureGroup, featureRender, featureRenders;
+                 featureRenders = {};
+                 for (i = 0; i < nodes.length; ++i) {
+                 node = nodes[i];
+                 theme = node.classKey.split(".").slice(1, 2).pop();
+                 featureRender = createNodeFeatureRenderer(node, theme);
+                 
+                 if (featureRender) {
+                 if (!featureRenders.hasOwnProperty(theme)) {
+                 featureGroup = new L.FeatureGroup();
+                 featureGroup.$name = config.layergroupNames[theme];
+                 featureGroup.$key = theme;
+                 featureGroup.StyledLayerControl = {
+                 removable: false,
+                 visible: false
+                 };
+                 featureRenders[theme] = featureGroup;
+                 } else {
+                 featureGroup = featureRenders[theme];
+                 }
+                 
+                 featureRender.addTo(featureGroup);
+                 }
+                 }
+                 
+                 return featureRenders;
+                 };*/
 
 
                 //L.marker([51.5, -0.09])
@@ -135,12 +260,12 @@ angular.module(
                         wktString = obj.spatialcoverage.geo_field; // jshint ignore:line
                         wktObject = new Wkt.Wkt();
                         wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
-                        objectStyle = Object.create(defaultStyle);
+                        objectStyle = Object.create(config.defaultStyle);
                         if (obj.name) {
                             objectStyle.title = obj.name;
                         }
                         renderer = wktObject.toObject(objectStyle);
-                        renderer.setStyle(defaultStyle);
+                        renderer.setStyle(config.defaultStyle);
                     }
 
 
@@ -223,11 +348,14 @@ angular.module(
                     return renderer;
                 };
 
+                // </editor-fold>
+
                 return {
-                    createNodeFeatureLayers: createNodeFeatureLayers,
+                    createNodeFeatureGroups: createNodeFeatureGroups,
                     createGazetteerLocationLayer: createGazetteerLocationLayer,
-                    defaultStyle: defaultStyle,
-                    highlightStyle: highlightStyle
+                    createOverlayLayer: createOverlayLayer,
+                    defaultStyle: config.defaultStyle,
+                    highlightStyle: config.highlightStyle
                 };
             }
         ]

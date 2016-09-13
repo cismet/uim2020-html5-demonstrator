@@ -15,10 +15,13 @@ angular.module(
                 listController = this;
                 listController.mode = $scope.mainController.mode;
 
+                listController.resultNodes = sharedDatamodel.resultNodes;
+                listController.analysisNodes = sharedDatamodel.analysisNodes;
+                
                 if (listController.mode === 'search') {
-                    listController.nodes = sharedDatamodel.resultNodes;
+                    listController.nodes = listController.resultNodes;
                 } else if (listController.mode === 'analysis') {
-                    listController.nodes = sharedDatamodel.analysisNodes;
+                    listController.nodes = listController.analysisNodes;
                 }
 
                 /*
