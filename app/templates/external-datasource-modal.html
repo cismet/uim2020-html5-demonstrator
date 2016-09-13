@@ -1,70 +1,49 @@
 <div class="modal-header">
-    <h3 class="modal-title" id="modal-title">Datenimport</h3>
+    <h3 class="modal-title" 
+        id="modal-title">
+        Datenimport
+    </h3>
 </div>
 
-
 <div class="modal-body" id="modal-body">
-    <p>Unterstütztes Format: ESRI Shapefile (.SHP, .DBF) in ZIP Archiv.</p>
-
     <form name="importForm">
-        
-        
-        <input type="file" ngf-select ng-model="externalDatasourceModalController.importFile" name="importFile"    
-             ngf-max-size="10MB" required
-             ngf-model-invalid="errorFile">
-      <i ng-show="importForm.importFile.$error.required">*required</i><br>
-      <i ng-show="importForm.importFile.$error.maxSize">File too large 
-          {{errorFile.size / 1000000|number:1}}MB: max 2M</i>
 
-      <button ng-disabled="!importForm.$valid" 
-              ng-click="uploadPic(externalDatasourceModalController.importFile)">Submit</button>
-      
-      <span class="progress" ng-show="externalDatasourceModalController.importFile >= 0">
-        <div style="width:{{externalDatasourceModalController.importFile}}%" 
-            ng-bind="externalDatasourceModalController.importFile + '%'"></div>
-      </span>
-      <span ng-show="externalDatasourceModalController.importFile.result">Upload Successful</span>
-      <span class="err" ng-show="errorMsg">{{errorMsg}}</span>
-        
-        
-        
-        
         <div class="form-group row">
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            <div class="col-xs-10">
-                <input type="file" id="importFile" class="form-control"></input>
+            <div class="col-md-12">
+                <p>Unterstütztes Format: ESRI Shapefile (.SHP, .DBF) in ZIP Archiv.</p>
+            </div>
+        </div>
 
+        <!-- Input File Selection -->
+        <div class="form-group row">
+            <div class="col-md-12">
                 <div class="input-group">
                     <label class="input-group-btn">
-                        <span class="btn btn-primary">
-                            Datei auswählen: <input type="file" 
-                                                  style="display: 
-                                                  none;" multiple
-                                                  id="importFiles"
-                                                  name="importFiles">
+                        <span class="btn btn-default">
+                            Datei auswählen: 
+                            <input type="file" 
+                                   style="display: none;" 
+                                   id="importFiles"
+                                   required
+                                   ng-model="importController.importFile"
+                                   ng-disabled="importController.importInProgress || importController.importCompleted" 
+                                   ngf-select
+                                   ngf-model-invalid="errorFile"
+                                   ngf-max-size="importController.maxFilesize"
+                                   ngf-multiple="false" 
+                                   ngf-pattern="'.zip'"
+                                   name="importFile">
                         </span>
                     </label>
-                    <input type="text" class="form-control" readonly>
+                    <input type="text" 
+                           class="form-control" 
+                           readonly
+                           ng-model="importController.importFile.name">
                 </div>
-
             </div>
-
-
-            <!--
-            <div class="col-xs-7">
-                <input class="form-control" type="text" id="importFile" value="{{importFile.name}}">
-            </div>
-            -->
         </div>
+
+        <!-- upload file -->
         <div class="form-group row">
             <div class="col-xs-10">
                 <div class="form-check">
@@ -77,17 +56,51 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Upload and Processing Progress -->
+        <div class="form-group row">
+            <div class="col-md-12">
+                <p>
+                    <i ng-show="importForm.importFile.$error.maxSize">
+                        Die Datei ist zu groß: {{errorFile.size / 1000000|number:1}}MB. 
+                        Maximale Dateigröße:  {{importController.maxFilesize}}.
+                    </i>
+                </p>
+                <uib-progressbar class="progress-striped" 
+                             ng-class="{active:importController.importInProgress}"
+                             max="200" 
+                             value="importController.importProgress"
+                             type="primary">
+                    <!--{{importController.importProgress}}-->
+                </uib-progressbar>
+            </div>
+        </div>
     </form>
 </div>
 
 <div class="modal-footer">
-    <button class="btn btn-default"
+    <!-- Import Button -->
+    <button class="btn btn-default pull-left"
             type="button" 
-            ng-click="externalDatasourceModalController.ok()">OK
+            ng-disabled="!importForm.$valid || importController.importInProgress"
+            ng-show="!importController.importCompleted" 
+            ng-click="importController.import()">
+        Importieren
     </button>
+
+    <!-- Close Button -->
+    <button class="btn btn-default pull-left"
+            type="button" 
+            ng-show="importController.importCompleted" 
+            ng-click="importController.close()">
+        Schliessen
+    </button>
+
+    <!-- Cancel Button -->
     <button 
-        class="btn btn-default" 
+        class="btn btn-default pull-left" 
         type="button" 
-        ng-click="externalDatasourceModalController.cancel()">Cancel
+        ng-disabled="importController.importInProgress" 
+        ng-click="importController.cancel()">Abbrechen
     </button>
 </div>

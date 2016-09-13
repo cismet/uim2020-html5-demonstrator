@@ -153,7 +153,7 @@ angular.module(
                 };
 
 
-                ///public API functions
+                // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
 
 //                mapController.removeOverlay = function (layer) {
 //
@@ -171,7 +171,7 @@ angular.module(
                 };
 
                 mapController.unSelectOverlay = function (layer) {
-                    layerControl.unSelectOverlay(layer);
+                    layerControl.unSelectLayer(layer);
                 };
 
                 mapController.selectOverlayByKey = function (layerKey) {
@@ -208,8 +208,8 @@ angular.module(
                 };
 
                 mapController.removeOverlay = function (layer) {
-                    mapController.unselectOverlay(layer);
-                    layerControl.removeOverlay(layer);
+                    mapController.unSelectOverlay(layer);
+                    layerControl.removeLayer(layer);
                 };
 
                 mapController.addOverlay = function (layer) {
@@ -448,13 +448,7 @@ angular.module(
                     }
                 };
 
-
-
-                console.log($scope.mainController.mode + ' map controller instance created');
-
-
-                //mapController.center = $stateParams.center;
-                // mapController.zoom = $stateParams.zoom;
+                //</editor-fold>
 
                 $scope.$on('gotoLocation()', function (e) {
                     if (mapController.mode === 'search') {
@@ -522,20 +516,20 @@ angular.module(
                     // select the default basemap
                     layerControl.selectLayer(basemaps[0].layers[config.defaultBasemapLayer]);
 
-                    // FIXME: GazetteerLocationLayer not removed from control
+                    // FIXME: removes also layers from layercontrol that are just deselected!
                     map.on('layerremove', function (layerEvent) {
                         var removedLayer = layerEvent.layer;
 
 
                         if (removedLayer.StyledLayerControl &&
-                                removedLayer.StyledLayerControl.removable
-                                && layerControl._layers[L.stamp(removedLayer)]) {
+                                removedLayer.StyledLayerControl.removable &&
+                                layerControl._layers[L.stamp(removedLayer)]) {
                             // bugfix-hack for StyledLayerControl.
                             layerControl.removeLayer(removedLayer);
                         }
 
-                        console.log('mapController:: layer removed: ' + removedLayer.$name
-                                + ' (' + L.stamp(removedLayer) + ')');
+                        console.log('mapController:: layer removed: ' + removedLayer.$name +
+                                ' (' + L.stamp(removedLayer) + ')');
 
                         if (removedLayer && removedLayer === gazetteerLocationLayer) {
                             console.log('mapController::gazetteerLocationLayer removed');
@@ -554,6 +548,9 @@ angular.module(
                 });
 
                 // leak this to parent scope
+                // FIXME: use sharedControllers Service instead
                 $scope.$parent.mapController = mapController;
+
+                console.log($scope.mainController.mode + ' map controller instance created');
             }]
         );

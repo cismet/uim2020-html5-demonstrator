@@ -20,11 +20,12 @@ angular.module(
                     configurationService, sharedDatamodel, dataService) {
                 'use strict';
 
-                var searchController, fireResize, mapController;
-
+                var searchController;
                 searchController = this;
+                // set default mode according to default route in app.js 
+                searchController.mode = 'map';
 
-                // Configurations: 
+                // === Configurations ==========================================
                 // <editor-fold defaultstate="collapsed" desc="   - Search Locations Selection Box Configuration">
                 // TODO: add coordinates to selectedSearchLocation on selection!
                 searchController.searchLocations = dataService.getSearchLocations();
@@ -135,33 +136,8 @@ angular.module(
                             buttonDefaultText: 'Ort auswählen'
                         });
                 // </editor-fold>
-
-                console.log('searchController instance created');
-                //$scope.name = 'main';
-                //mainController.name = 'this.main';
-                //$scope.mode = 'search';
-                searchController.mode = 'map';
-
-//                var fireResize = function () {
-//                    //$scope.currentHeight = $window.innerHeight - $scope.navbarHeight;
-//                    //$scope.currentWidth = $window.innerWidth - ($scope.toolbarShowing ? $scope.toolbarWidth : 0);
-//                    leafletData.getMap('search-map').then(function (map) {
-//                        if (map && map._container.parentElement) {
-//                            console.log('searchController::fireResize: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
-//                            $scope.mapHeight = map._container.parentElement.offsetHeight;
-//                            $scope.mapWidth = map._container.parentElement.offsetWidth;
-//                            //map.invalidateSize(animate);
-//                        }
-//
-//                    });
-//                };
-//
-//                angular.element($window).bind('resize', function () {
-//                    fireResize(false);
-//                });
-
-
-
+                
+                // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
                 searchController.gotoLocation = function () {
                     // TODO: check if paramters are selected ...
 
@@ -207,6 +183,7 @@ angular.module(
                         });
                     }
                 };
+                // </editor-fold>
 
                 // TODO: put into parent scope?
                 $scope.$on('$stateChangeSuccess', function (toState) {
@@ -237,6 +214,26 @@ angular.module(
                         }
                     }
                 });
+
+                //                var fireResize = function () {
+                //                    //$scope.currentHeight = $window.innerHeight - $scope.navbarHeight;
+                //                    //$scope.currentWidth = $window.innerWidth - ($scope.toolbarShowing ? $scope.toolbarWidth : 0);
+                //                    leafletData.getMap('search-map').then(function (map) {
+                //                        if (map && map._container.parentElement) {
+                //                            console.log('searchController::fireResize: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
+                //                            $scope.mapHeight = map._container.parentElement.offsetHeight;
+                //                            $scope.mapWidth = map._container.parentElement.offsetWidth;
+                //                            //map.invalidateSize(animate);
+                //                        }
+                //
+                //                    });
+                //                };
+                //
+                //                angular.element($window).bind('resize', function () {
+                //                    fireResize(false);
+                //                });
+                
+                console.log('searchController instance created');
             }
         ]
         );
