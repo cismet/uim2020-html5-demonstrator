@@ -1,6 +1,14 @@
-/*global angular*/
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
 
-// main app module registration
+/*global angular*/
 var app = angular.module(
         'de.cismet.uim2020-html5-demonstrator',
         [
@@ -8,13 +16,13 @@ var app = angular.module(
             'de.cismet.uim2020-html5-demonstrator.directives',
             'de.cismet.uim2020-html5-demonstrator.services',
             'de.cismet.uim2020-html5-demonstrator.filters',
-            'ngResource', 'ngAnimate', 'ngSanitize',
+            'ngResource', 'ngAnimate', 'ngSanitize', 'ngCookies',
             'ui.bootstrap', 'ui.bootstrap.modal',
             'ui.router', 'ui.router.modal',
             'ct.ui.router.extras.sticky', 'ct.ui.router.extras.dsr', 'ct.ui.router.extras.previous',
             'leaflet-directive',
             'ngTable', 'angularjs-dropdown-multiselect',
-            'mgcrea.ngStrap.tooltip', 'mgcrea.ngStrap.popover','mgcrea.ngStrap.modal',
+            'mgcrea.ngStrap.tooltip', 'mgcrea.ngStrap.popover', 'mgcrea.ngStrap.modal',
             'mgo-angular-wizard', 'ngFileUpload'
         ]
         );
@@ -25,7 +33,7 @@ var app = angular.module(
  * This is to prevent accidental instantiation of services before they have been fully configured.
  */
 app.config(
-        [
+        [   
             '$logProvider',
             '$stateProvider',
             '$urlRouterProvider',
@@ -133,13 +141,17 @@ app.config(
                 //$urlRouterProvider.when('/analysis', '/analysis/map');
                 $urlRouterProvider.otherwise('/search/map');
 
-
+                
 
                 /*$stateProvider.state('login', {
                  url: '/login',
                  templateUrl: 'views/loginView.html'
                  });*/
 
+                // The resolve property is an optional map of dependencies which should be 
+                // injected into the controller. If any of these dependencies are promises, 
+                // they will be resolved and converted to a value before the controller is instantiated 
+                // and the $routeChangeSuccess event is fired.
                 $stateProvider.state("main", {
                     abstract: true,
                     sticky: true,
@@ -155,7 +167,18 @@ app.config(
                         default: {
                             state: "main.search"
                         }
-                    }
+                    },
+                    // disables since resolve is called after stateChangeStart event! :-(
+                    /*resolve: {
+                        identity: [
+                            'authenticationService',
+                            function resolveIdentity(authenticationService) {
+                                // call get getIdentity() before main state is instantiated
+                                console.log('main::resolveIdentity isAuthenticated: ' + authenticationService.isAuthenticated());
+                                return authenticationService.resolveIdentity();
+                            }
+                        ]
+                    }*/
                 });
 
                 $stateProvider.state('main.authentication', {
@@ -378,8 +401,7 @@ app.config(
  * This is to prevent further system configuration during application run time.
  */
 app.run(
-        [
-            '$rootScope',
+        [   '$rootScope',
             '$state',
             '$stateParams',
             '$previousState',
@@ -396,13 +418,27 @@ app.run(
 
                 //$rootScope.$on("$stateChangeError", console.log.bind(console));
 
+                // synchonous call. Gets identity from cookie
+                authenticationService.resolveIdentity(false).then(function(){
+                    console.log('app.run:: user autenticated from session cookie:' + 
+                            authenticationService.isAuthenticated());
+                });
+                
+                // FIXME: asynchronous call
+                // Gets identity from cookie and cheks if valid ($http)
+                // result is available after ui-ruoter state change! :(
+                //authenticationService.resolveIdentity(true);
+
                 $rootScope.$on('$stateChangeStart',
                         function (event, toState, toParams, fromState, fromParams) {
-
+                            console.log('$stateChangeStart: ' + toState.name);
                             if (toState.name !== 'main.authentication') {
-                                if ((!authenticationService.isIdentityResolved() &&
-                                        !authenticationService.getIdentity()) ||
-                                        !authenticationService.isAuthenticated()) {
+//                                if ((!authenticationService.isIdentityResolved() &&
+//                                        !authenticationService.getIdentity()) ||
+//                                        !authenticationService.isAuthenticated()) {
+
+
+                                if (!authenticationService.isAuthenticated()) {
                                     console.warn('user not logged in, toState:' + toState.name + ', fromState:' + fromState.name);
                                     event.preventDefault();
                                     $previousState.memo('authentication');
@@ -506,8 +542,17 @@ angular.module(
         ]
         );
 
-/*global angular, L */
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
 
+/*global angular, L */
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
@@ -546,8 +591,9 @@ angular.module(
                 appController.selectedSearchPollutants = sharedDatamodel.selectedSearchPollutants;
                 appController.resultNodes = sharedDatamodel.resultNodes;
 
+                // FIXME: use authenticationController!
                 appController.signOut = function () {
-                    authenticationService.authenticate(null);
+                    authenticationService.clearIdentity();
                     $state.go('main.authentication');
                     $previousState.memo('authentication');
                 };
@@ -555,6 +601,17 @@ angular.module(
         ]
         );
 
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+/*global angular*/
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
@@ -563,25 +620,59 @@ angular.module(
             '$scope',
             '$state',
             '$previousState',
+            'configurationService',
             'authenticationService',
-            function ($scope, $state, $previousState, authenticationService) {
+            function ($scope, $state, $previousState, configurationService, authenticationService) {
                 'use strict';
 
-                this.signIn = function () {
+                var authenticationController;
+                authenticationController = this;
 
-                    // here, we fake authenticating and give a fake user
-                    authenticationService.authenticate({
-                        name: 'Test User',
-                        roles: ['User']
+                $scope.errorStatusCode = -1;
+                $scope.errorStatusMessage = null;
+
+                authenticationController.signIn = function (username, password) {
+
+                    $scope.errorStatusCode = -1;
+                    $scope.errorStatusMessage = null;
+
+                    var authenticatePromise = authenticationService.authenticate(
+                            username,
+                            configurationService.authentication.domain,
+                            password);
+                            
+                    authenticatePromise.then(
+                            function authenticationSuccess(identity) {
+                                console.log('authenticationController::authenticationSuccess: user "' +
+                                        identity.user + '" successfully authenticated');
+
+                                if ($previousState.get("authentication") &&
+                                        $previousState.get("authentication").state &&
+                                        $previousState.get("authentication").state.name !== 'main.authentication') {
+                                    $previousState.go('authentication');
+                                } else {
+                                    $state.go('main.search.map');
+                                }
+                            }, function authenticationError(httpResponse) {
+
+                        $scope.errorStatusCode = httpResponse.status;
+                        $scope.errorStatusMessage = httpResponse.statusText;
+                        $scope.password = null;
+
+                        console.error('authenticationController::authenticationError: user "' +
+                                username + '" could not be authenticated: ' + $scope.errorStatusMessage);
                     });
+                };
 
-                    if ($previousState.get("authentication") && 
-                            $previousState.get("authentication").state && 
-                            $previousState.get("authentication").state.name !== 'main.authentication') {
-                        $previousState.go('authentication');
-                    } else {
-                        $state.go('main.search.map');
-                    }
+                authenticationController.signOut = function () {
+                    $scope.errorStatusCode = -1;
+                    $scope.errorStatusMessage = null;
+                    $scope.username = null;
+                    $scope.password = null;
+
+                    authenticationService.clearIdentity();
+                    $state.go('main.authentication');
+                    $previousState.memo('authentication');
                 };
             }
         ]
@@ -1424,6 +1515,16 @@ angular.module(
         ]
         );
 
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
 /*global angular*/
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
@@ -1442,6 +1543,11 @@ angular.module(
                 //$scope.mode = 'search';
                 mainController.mode = $state.current.name.split(".").slice(1, 2).pop();
                 
+                /**
+                 * 
+                 * @param {type} node
+                 * @returns {undefined}
+                 */
                 mainController.removeAnalysisNode = function (node) {
                     var index = sharedDatamodel.analysisNodes.indexOf(node);
                     if(index !== -1) {
@@ -1455,6 +1561,11 @@ angular.module(
                     }
                 };
                 
+                /**
+                 * 
+                 * @param {type} node
+                 * @returns {undefined}
+                 */
                 mainController.addAnalysisNode = function (node) {
                     var index = sharedDatamodel.analysisNodes.indexOf(node);
                     if(index !== -1) {
@@ -2394,110 +2505,241 @@ angular.module(
         'ngResource'
     ]
 );
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+/*global angular*/
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.services'
-        ).factory('authenticationService', ['$q', '$http', '$timeout',
-    function ($q, $http, $timeout) {
-        'use strict';
-        var _identity, _authenticated = false;
+        ).factory('authenticationService',
+        [
+            '$q',
+            '$http',
+            '$cookieStore',
+            'configurationService',
+            'base64',
+            function ($q, $http, $cookieStore, configurationService, base64) {
+                'use strict';
+                var _identity, _authenticate,
+                        isIdentityResolved, isAuthenticated, isInRole, isInAnyRole,
+                        authenticate, resolveIdentity, getIdentity, getAuthorizationToken,
+                        clearIdentity;
 
-        return {
-            isIdentityResolved: function () {
-                return angular.isDefined(_identity);
-            },
-            isAuthenticated: function () {
-                return _authenticated;
-            },
-            isInRole: function (role) {
-                if (!_authenticated || !_identity.roles) {
+                _identity = null;
+
+                isIdentityResolved = function () {
+                    return angular.isDefined(_identity);
+                };
+
+                isAuthenticated = function () {
+                    return _identity !== undefined &&
+                            _identity !== null &&
+                            _identity.authorizationToken !== undefined &&
+                            _identity.authorizationToken !== null;
+                };
+
+                isInRole = function (role) {
+                    if (!isAuthenticated() || !_identity.userGroups) {
+                        return false;
+                    }
+
+                    return _identity.userGroups.indexOf(role) !== -1;
+                };
+
+                isInAnyRole = function (userGroups) {
+                    if (!isAuthenticated() || !_identity.userGroups) {
+                        return false;
+                    }
+
+                    for (var i = 0; i < userGroups.length; i++) {
+                        if (this.isInRole(userGroups[i]))
+                            return true;
+                    }
+
                     return false;
-                }
+                };
 
-                return _identity.roles.indexOf(role) !== -1;
-            },
-            isInAnyRole: function (roles) {
-                if (!_authenticated || !_identity.roles) {
-                    return false;
-                }
+                authenticate = function (username, domain, password) {
+                    var authorizationToken;
+                    authorizationToken = 'Basic ' + base64.encode(username + '@' + domain + ':' + password);
+                    return _authenticate(authorizationToken);
+                };
 
-                for (var i = 0; i < roles.length; i++) {
-                    if (this.isInRole(roles[i]))
-                        return true;
-                }
 
-                return false;
-            },
-            authenticate: function (identity) {
-                _identity = identity;
-                _authenticated = identity !== null;
+                /**
+                 * Authenticates a user. On success Returns a promise that resolves to the autenticated identiy
+                 * and on failure rejects to the $http response object (e.g. check response.status === 401)
+                 * 
+                 * @param {type} authorizationToken
+                 * @returns {nm$_deferred.exports.promise|nm$_deferred.module.exports.promise|$q@call;defer.promise}
+                 */
+                _authenticate = function (authorizationToken) {
+                    var deferred, requestURL, request;
+                    // clear identity
+                    _identity = null;
 
-                // for this demo, we'll store the identity in localStorage. 
-                // For you, it could be a cookie, sessionStorage, whatever
-                if (identity)
-                    localStorage.setItem("de.cismet.uim2020-html5-demonstrator.identity", angular.toJson(identity));
-                else
-                    localStorage.removeItem("de.cismet.uim2020-html5-demonstrator.identity");
-            },
-            getIdentity: function (force) {
-                //var deferred = $q.defer();
+                    //$cookieStore.put(configurationService.authentication.cookie, null);
+                    requestURL = configurationService.cidsRestApi.host + '/users';
+                    deferred = $q.defer();
 
-                if (force === true) {
-                     _identity = undefined;
-                    _authenticated = false;
-                    return _identity;
-                }
-                   
+                    request = {
+                        method: 'GET',
+                        url: requestURL,
+                        headers: {
+                            'Authorization': authorizationToken,
+                            'Accept': 'application/json'
+                        }
+                    };
 
-                // check and see if we have retrieved the identity data from the server. 
-                // if we have, reuse it by immediately resolving
-                
-                /*if (angular.isDefined(_identity)) {
-                    deferred.resolve(_identity);
+                    $http(request).then(
+                            function successCallback(response) {
+                                _identity = response.data;
+                                _identity.authorizationToken = authorizationToken;
+                                $cookieStore.put(configurationService.authentication.cookie, _identity);
+                                deferred.resolve(_identity);
+                            },
+                            function errorCallback(response) {
+                                deferred.reject(response);
+                            });
 
                     return deferred.promise;
-                }*/
-      
- 
-                // otherwise, retrieve the identity data from the server, update the identity object, and then resolve.
-                //                   $http.get('/svc/account/identity', { ignoreErrors: true })
-                //                        .success(function(data) {
-                //                            _identity = data;
-                //                            _authenticated = true;
-                //                            deferred.resolve(_identity);
-                //                        })
-                //                        .error(function () {
-                //                            _identity = null;
-                //                            _authenticated = false;
-                //                            deferred.resolve(_identity);
-                //                        });
+                };
 
-                // for the sake of the demo, we'll attempt to read the identity from localStorage. 
-                // the example above might be a way if you use cookies or need to retrieve the latest identity from an api
-                // i put it in a timeout to illustrate deferred resolution
-                
-                /*
-                var self = this;
-                $timeout(function () {
-                    _identity = angular.fromJson(localStorage.getItem("de.cismet.uim2020-html5-demonstrator.identity"));
-                    self.authenticate(_identity);
-                    deferred.resolve(_identity);
-                }, 1000);
+                /**
+                 * Resolves an identity stored in a cookie. After 1st successfull call to this method, the 
+                 * identity is directly resolved from a local variable. Returns a promise that resolves
+                 * either to the authenticated identity or null.
+                 * 
+                 * 
+                 * @param {type} checkValidity checks server vor validity
+                 * @returns {nm$_deferred.exports.promise|nm$_deferred.module.exports.promise|$q@call;defer.promise}
+                 */
+                resolveIdentity = function (checkValidity) {
 
-                return deferred.promise;
-                */
-                
-                var storage = localStorage.getItem("de.cismet.uim2020-html5-demonstrator.identity");
-                if(storage) {
-                    _identity = angular.fromJson(storage);
-                    _authenticated = true;
-                }
-                
-                
-                return _identity;
+                    // already identicated? 
+                    if (isAuthenticated()) {
+                        return $q.when(_identity);
+                    }
+
+                    _identity = $cookieStore.get(configurationService.authentication.cookie);
+                    if (!isAuthenticated()) {
+                        // may return null or empty object 
+                        console.warn("no stored session cookie avilalbe, user has to re-authenticate");
+                        return $q.when(_identity);
+                    }
+
+                    if (checkValidity) {
+                        // check if authenticated identity is still valid!
+                        return _authenticate(_identity.authorizationToken);
+                    } else {
+                        return $q.when(_identity);
+                    }
+                };
+
+                getIdentity = function () {
+                    return _identity;
+                };
+
+                getAuthorizationToken = function () {
+                    return isAuthenticated() ? _identity.authorizationToken : null;
+                };
+
+                clearIdentity = function () {
+                    _identity = null;
+                    $cookieStore.put(configurationService.authentication.cookie, null);
+                };
+
+                resolveIdentity();
+
+                return {
+                    isIdentityResolved: isIdentityResolved,
+                    isAuthenticated: isAuthenticated,
+                    isInRole: isInRole,
+                    isInAnyRole: isInAnyRole,
+                    authenticate: authenticate,
+                    resolveIdentity: resolveIdentity,
+                    getIdentity: getIdentity,
+                    getAuthorizationToken: getAuthorizationToken,
+                    clearIdentity: clearIdentity
+                };
             }
-        };
-    }
-]);
+        ]).factory('base64', function () {
+    /* jshint ignore:start */
+    var keyStr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    return {
+        encode: function (input) {
+            var output = "";
+            var chr1, chr2, chr3 = "";
+            var enc1, enc2, enc3, enc4 = "";
+            var i = 0;
+            do {
+                chr1 = input.charCodeAt(i++);
+                chr2 = input.charCodeAt(i++);
+                chr3 = input.charCodeAt(i++);
+                enc1 = chr1 >> 2;
+                enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+                enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+                enc4 = chr3 & 63;
+                if (isNaN(chr2)) {
+                    enc3 = enc4 = 64;
+                } else if (isNaN(chr3)) {
+                    enc4 = 64;
+                }
+
+                output = output +
+                        keyStr.charAt(enc1) +
+                        keyStr.charAt(enc2) +
+                        keyStr.charAt(enc3) +
+                        keyStr.charAt(enc4);
+                chr1 = chr2 = chr3 = "";
+                enc1 = enc2 = enc3 = enc4 = "";
+            } while (i < input.length);
+            return output;
+        },
+        decode: function (input) {
+            var output = "";
+            var chr1, chr2, chr3 = "";
+            var enc1, enc2, enc3, enc4 = "";
+            var i = 0;
+            // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
+            var base64test = /[^A-Za-z0-9\+\/\=]/g;
+            if (base64test.exec(input)) {
+                console.error("There were invalid base64 characters in the input text.\n" +
+                        "Valid base64 characters are A-Z, a-z, 0-9, '+', '/',and '='\n" +
+                        "Expect errors in decoding.");
+            }
+            input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+            do {
+                enc1 = keyStr.indexOf(input.charAt(i++));
+                enc2 = keyStr.indexOf(input.charAt(i++));
+                enc3 = keyStr.indexOf(input.charAt(i++));
+                enc4 = keyStr.indexOf(input.charAt(i++));
+                chr1 = (enc1 << 2) | (enc2 >> 4);
+                chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+                chr3 = ((enc3 & 3) << 6) | enc4;
+                output = output + String.fromCharCode(chr1);
+                if (enc3 !== 64) {
+                    output = output + String.fromCharCode(chr2);
+                }
+                if (enc4 !== 64) {
+                    output = output + String.fromCharCode(chr3);
+                }
+
+                chr1 = chr2 = chr3 = "";
+                enc1 = enc2 = enc3 = enc4 = "";
+            } while (i < input.length);
+            return output;
+        }
+    };
+    /* jshint ignore:end */
+});
 
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.services'
@@ -2566,14 +2808,18 @@ angular.module(
 
                 configurationService = this;
 
+                configurationService.authentication = {};
+                configurationService.authentication.domain = 'UDM2020-DI';
+                configurationService.authentication.username = 'uba';
+                configurationService.authentication.password = '';
+                configurationService.authentication.cookie = 'de.cismet.uim2020-html5-demonstrator.identity';
+
                 configurationService.cidsRestApi = {};
                 configurationService.cidsRestApi.host = 'http://localhost:8890';
                 //configurationService.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
                 //configurationService.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
 
                 configurationService.searchService = {};
-                configurationService.searchService.username = 'admin@SWITCHON';
-                configurationService.searchService.password = 'cismet';
                 configurationService.searchService.defautLimit = 10;
                 configurationService.searchService.maxLimit = 50;
                 configurationService.searchService.host = configurationService.cidsRestApi.host;
@@ -3546,6 +3792,9 @@ angular.module(
         [function () {
                 'use strict';
 
+                // auth token
+                this.identity = null;
+                
                 // search selection
                 this.selectedSearchThemes = [];
                 this.selectedSearchPollutants = [];

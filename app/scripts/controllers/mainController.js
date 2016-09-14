@@ -1,3 +1,13 @@
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
 /*global angular*/
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
@@ -16,6 +26,11 @@ angular.module(
                 //$scope.mode = 'search';
                 mainController.mode = $state.current.name.split(".").slice(1, 2).pop();
                 
+                /**
+                 * 
+                 * @param {type} node
+                 * @returns {undefined}
+                 */
                 mainController.removeAnalysisNode = function (node) {
                     var index = sharedDatamodel.analysisNodes.indexOf(node);
                     if(index !== -1) {
@@ -29,6 +44,11 @@ angular.module(
                     }
                 };
                 
+                /**
+                 * 
+                 * @param {type} node
+                 * @returns {undefined}
+                 */
                 mainController.addAnalysisNode = function (node) {
                     var index = sharedDatamodel.analysisNodes.indexOf(node);
                     if(index !== -1) {

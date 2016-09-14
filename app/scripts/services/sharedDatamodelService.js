@@ -15,6 +15,9 @@ angular.module(
         [function () {
                 'use strict';
 
+                // auth token
+                this.identity = null;
+                
                 // search selection
                 this.selectedSearchThemes = [];
                 this.selectedSearchPollutants = [];
