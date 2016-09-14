@@ -24,14 +24,18 @@ angular.module(
 
                 configurationService = this;
 
+                configurationService.authentication = {};
+                configurationService.authentication.domain = 'UDM2020-DI';
+                configurationService.authentication.username = 'uba';
+                configurationService.authentication.password = '';
+                configurationService.authentication.cookie = 'de.cismet.uim2020-html5-demonstrator.identity';
+
                 configurationService.cidsRestApi = {};
                 configurationService.cidsRestApi.host = 'http://localhost:8890';
                 //configurationService.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
                 //configurationService.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
 
                 configurationService.searchService = {};
-                configurationService.searchService.username = 'admin@SWITCHON';
-                configurationService.searchService.password = 'cismet';
                 configurationService.searchService.defautLimit = 10;
                 configurationService.searchService.maxLimit = 50;
                 configurationService.searchService.host = configurationService.cidsRestApi.host;

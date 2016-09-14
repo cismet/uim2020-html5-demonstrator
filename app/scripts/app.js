@@ -1,6 +1,14 @@
-/*global angular*/
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
 
-// main app module registration
+/*global angular*/
 var app = angular.module(
         'de.cismet.uim2020-html5-demonstrator',
         [
@@ -8,13 +16,13 @@ var app = angular.module(
             'de.cismet.uim2020-html5-demonstrator.directives',
             'de.cismet.uim2020-html5-demonstrator.services',
             'de.cismet.uim2020-html5-demonstrator.filters',
-            'ngResource', 'ngAnimate', 'ngSanitize',
+            'ngResource', 'ngAnimate', 'ngSanitize', 'ngCookies',
             'ui.bootstrap', 'ui.bootstrap.modal',
             'ui.router', 'ui.router.modal',
             'ct.ui.router.extras.sticky', 'ct.ui.router.extras.dsr', 'ct.ui.router.extras.previous',
             'leaflet-directive',
             'ngTable', 'angularjs-dropdown-multiselect',
-            'mgcrea.ngStrap.tooltip', 'mgcrea.ngStrap.popover','mgcrea.ngStrap.modal',
+            'mgcrea.ngStrap.tooltip', 'mgcrea.ngStrap.popover', 'mgcrea.ngStrap.modal',
             'mgo-angular-wizard', 'ngFileUpload'
         ]
         );
@@ -25,7 +33,7 @@ var app = angular.module(
  * This is to prevent accidental instantiation of services before they have been fully configured.
  */
 app.config(
-        [
+        [   
             '$logProvider',
             '$stateProvider',
             '$urlRouterProvider',
@@ -133,13 +141,17 @@ app.config(
                 //$urlRouterProvider.when('/analysis', '/analysis/map');
                 $urlRouterProvider.otherwise('/search/map');
 
-
+                
 
                 /*$stateProvider.state('login', {
                  url: '/login',
                  templateUrl: 'views/loginView.html'
                  });*/
 
+                // The resolve property is an optional map of dependencies which should be 
+                // injected into the controller. If any of these dependencies are promises, 
+                // they will be resolved and converted to a value before the controller is instantiated 
+                // and the $routeChangeSuccess event is fired.
                 $stateProvider.state("main", {
                     abstract: true,
                     sticky: true,
@@ -155,7 +167,18 @@ app.config(
                         default: {
                             state: "main.search"
                         }
-                    }
+                    },
+                    // disables since resolve is called after stateChangeStart event! :-(
+                    /*resolve: {
+                        identity: [
+                            'authenticationService',
+                            function resolveIdentity(authenticationService) {
+                                // call get getIdentity() before main state is instantiated
+                                console.log('main::resolveIdentity isAuthenticated: ' + authenticationService.isAuthenticated());
+                                return authenticationService.resolveIdentity();
+                            }
+                        ]
+                    }*/
                 });
 
                 $stateProvider.state('main.authentication', {
@@ -378,8 +401,7 @@ app.config(
  * This is to prevent further system configuration during application run time.
  */
 app.run(
-        [
-            '$rootScope',
+        [   '$rootScope',
             '$state',
             '$stateParams',
             '$previousState',
@@ -396,13 +418,27 @@ app.run(
 
                 //$rootScope.$on("$stateChangeError", console.log.bind(console));
 
+                // synchonous call. Gets identity from cookie
+                authenticationService.resolveIdentity(false).then(function(){
+                    console.log('app.run:: user autenticated from session cookie:' + 
+                            authenticationService.isAuthenticated());
+                });
+                
+                // FIXME: asynchronous call
+                // Gets identity from cookie and cheks if valid ($http)
+                // result is available after ui-ruoter state change! :(
+                //authenticationService.resolveIdentity(true);
+
                 $rootScope.$on('$stateChangeStart',
                         function (event, toState, toParams, fromState, fromParams) {
-
+                            console.log('$stateChangeStart: ' + toState.name);
                             if (toState.name !== 'main.authentication') {
-                                if ((!authenticationService.isIdentityResolved() &&
-                                        !authenticationService.getIdentity()) ||
-                                        !authenticationService.isAuthenticated()) {
+//                                if ((!authenticationService.isIdentityResolved() &&
+//                                        !authenticationService.getIdentity()) ||
+//                                        !authenticationService.isAuthenticated()) {
+
+
+                                if (!authenticationService.isAuthenticated()) {
                                     console.warn('user not logged in, toState:' + toState.name + ', fromState:' + fromState.name);
                                     event.preventDefault();
                                     $previousState.memo('authentication');

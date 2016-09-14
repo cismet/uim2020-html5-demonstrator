@@ -1,5 +1,14 @@
-/*global angular, L */
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
 
+/*global angular, L */
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
@@ -38,8 +47,9 @@ angular.module(
                 appController.selectedSearchPollutants = sharedDatamodel.selectedSearchPollutants;
                 appController.resultNodes = sharedDatamodel.resultNodes;
 
+                // FIXME: use authenticationController!
                 appController.signOut = function () {
-                    authenticationService.authenticate(null);
+                    authenticationService.clearIdentity();
                     $state.go('main.authentication');
                     $previousState.memo('authentication');
                 };
