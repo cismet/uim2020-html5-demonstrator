@@ -33,7 +33,7 @@ var app = angular.module(
  * This is to prevent accidental instantiation of services before they have been fully configured.
  */
 app.config(
-        [   
+        [
             '$logProvider',
             '$stateProvider',
             '$urlRouterProvider',
@@ -42,7 +42,7 @@ app.config(
 
                 $logProvider.debugEnabled(false);
 
-                var resolveEntity, showEntityModal;
+                var resolveEntity;
                 resolveEntity = function ($stateParams) {
                     console.log("resolve entity " + $stateParams.id + "@" + $stateParams.class);
                     return {
@@ -141,7 +141,7 @@ app.config(
                 //$urlRouterProvider.when('/analysis', '/analysis/map');
                 $urlRouterProvider.otherwise('/search/map');
 
-                
+
 
                 /*$stateProvider.state('login', {
                  url: '/login',
@@ -170,15 +170,15 @@ app.config(
                     },
                     // disables since resolve is called after stateChangeStart event! :-(
                     /*resolve: {
-                        identity: [
-                            'authenticationService',
-                            function resolveIdentity(authenticationService) {
-                                // call get getIdentity() before main state is instantiated
-                                console.log('main::resolveIdentity isAuthenticated: ' + authenticationService.isAuthenticated());
-                                return authenticationService.resolveIdentity();
-                            }
-                        ]
-                    }*/
+                     identity: [
+                     'authenticationService',
+                     function resolveIdentity(authenticationService) {
+                     // call get getIdentity() before main state is instantiated
+                     console.log('main::resolveIdentity isAuthenticated: ' + authenticationService.isAuthenticated());
+                     return authenticationService.resolveIdentity();
+                     }
+                     ]
+                     }*/
                 });
 
                 $stateProvider.state('main.authentication', {
@@ -401,12 +401,14 @@ app.config(
  * This is to prevent further system configuration during application run time.
  */
 app.run(
-        [   '$rootScope',
+        ['$rootScope',
             '$state',
             '$stateParams',
             '$previousState',
+            'configurationService',
             'authenticationService',
-            function ($rootScope, $state, $stateParams, $previousState, authenticationService) {
+            function ($rootScope, $state, $stateParams, $previousState,
+                    configurationService, authenticationService) {
                 'use strict';
                 // It's very handy to add references to $state and $stateParams to the $rootScope
                 // so that you can access them from any scope within your applications.For example,
@@ -419,11 +421,11 @@ app.run(
                 //$rootScope.$on("$stateChangeError", console.log.bind(console));
 
                 // synchonous call. Gets identity from cookie
-                authenticationService.resolveIdentity(false).then(function(){
-                    console.log('app.run:: user autenticated from session cookie:' + 
+                authenticationService.resolveIdentity(false).then(function () {
+                    console.log('app.run:: user autenticated from session cookie:' +
                             authenticationService.isAuthenticated());
                 });
-                
+
                 // FIXME: asynchronous call
                 // Gets identity from cookie and cheks if valid ($http)
                 // result is available after ui-ruoter state change! :(
@@ -438,7 +440,7 @@ app.run(
 //                                        !authenticationService.isAuthenticated()) {
 
 
-                                if (!authenticationService.isAuthenticated()) {
+                                if (!configurationService.developmentMode && !authenticationService.isAuthenticated()) {
                                     console.warn('user not logged in, toState:' + toState.name + ', fromState:' + fromState.name);
                                     event.preventDefault();
                                     $previousState.memo('authentication');

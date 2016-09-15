@@ -14,16 +14,17 @@ angular.module(
         ).controller(
         'searchController',
         [
-            '$window', '$timeout', '$scope', '$state', 'leafletData',
-            'configurationService', 'sharedDatamodel', 'dataService',
-            function ($window, $timeout, $scope, $state, leafletData,
-                    configurationService, sharedDatamodel, dataService) {
+            '$rootScope', '$window', '$timeout', '$scope', '$state', '$uibModal', 'leafletData',
+            'configurationService', 'sharedDatamodel', 'dataService', 'searchService',
+            function ($rootScope, $window, $timeout, $scope, $state, $uibModal, leafletData,
+                    configurationService, sharedDatamodel, dataService, searchService) {
                 'use strict';
 
-                var searchController;
+                var searchController, searchProcessCallback, showProgress, progressModal;
                 searchController = this;
                 // set default mode according to default route in app.js 
                 searchController.mode = 'map';
+                searchController.status = sharedDatamodel.status;
 
                 // === Configurations ==========================================
                 // <editor-fold defaultstate="collapsed" desc="   - Search Locations Selection Box Configuration">
@@ -136,7 +137,88 @@ angular.module(
                             buttonDefaultText: 'Ort auswählen'
                         });
                 // </editor-fold>
-                
+                // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ====================================">
+
+                showProgress = function () {
+                    var modalScope;
+                    console.log('searchController::showProgress()');
+                    modalScope = $rootScope.$new(true);
+                    modalScope.status = searchController.status;
+
+                    progressModal = $uibModal.open({
+                        templateUrl: 'templates/search-progress-modal.html',
+                        scope: modalScope,
+                        size: 'lg',
+                        backdrop: 'static'/*,
+                         resolve: {searchController:searchController}*/
+                    });
+
+                    // check if the eror occurred before the dialog has actually been shown
+                    progressModal.opened.then(function () {
+                        if (searchController.status.type === 'error') {
+                            progressModal.close();
+                        }
+                    });
+                };
+
+                searchProcessCallback = function (current, max, type) {
+
+                    console.log('searchProcess: type=' + type + ', current=' + current + ", max=" + max)
+                    // the maximum object count
+                    searchController.status.progress.max = 100;
+                    // the scaled progress: 0 <fake progress> 100 <real progress> 200
+                    // searchController.searchStatus.current = ...
+
+                    // start of search (indeterminate)
+                    if (max === -1 && type === 'success') {
+                        // count up fake progress to 100
+                        searchController.status.progress.current = current;
+
+                        if (current < 95) {
+                            searchController.status.message = 'Search for resource Meta-Data is in progress, please wait.';
+                            searchController.status.type = 'success';
+                        } else {
+                            searchController.status.message = 'The SWITCH-ON Meta-Data Repository is under heavy load, please wait for the search to continue.';
+                            searchController.status.type = 'warning';
+                        }
+
+                        // search completed
+                    } else if (current === max && type === 'success') {
+                        if (current > 0) {
+                            searchController.status.progress.current = 100;
+                            searchController.status.message = 'Search completed, Meta-Data of ' + current +
+                                    (current > 1 ? ' resources' : ' resource') + ' retrieved from the SWITCH-ON Meta-Data Repository.';
+                            searchController.status.type = 'success';
+
+                        } else {
+                            // feature request #59
+                            searchController.status.progress.current = 100;
+                            searchController.status.message = 'Search completed, but no matching resources found in the SWITCH-ON Meta-Data Repository.';
+                            searchController.status.type = 'warning';
+                        }
+
+                        if (progressModal) {
+                            // wait 1/2 sec before closing to allow the progressbar
+                            // to advance to 100% (see #59)
+                            // 
+                            // doesn't work anymore?!
+                            // 
+                            //$timeout(function () {
+                            //    progressModal.close();
+                            //}, 100);
+                        }
+                        // search error ...
+                    } else if (type === 'error') {
+                        searchController.status.progress.current = 100;
+                        searchController.status.message = 'Search could not be perfomed: ';
+                        searchController.status.type = 'danger';
+
+                        $timeout(function () {
+                            progressModal.close(searchController.status.message);
+                        }, 2000);
+                    }
+                };
+                // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
                 searchController.gotoLocation = function () {
                     // TODO: check if paramters are selected ...
@@ -157,6 +239,24 @@ angular.module(
                     }
 
                     if (mockNodes.$resolved) {
+
+                        console.log('searchController::search()');
+                        showProgress();
+
+                        searchService.defaultSearch(
+                                'SRID=4326;POLYGON((8.61328125 51.23440735163459,7.734374999999999 48.922499263758255,12.480468749999998 48.28319289548349,13.095703125 49.83798245308484,11.074218749999998 51.890053935216926,8.61328125 51.23440735163459))',
+                                [21, 81, 82, 201, 62],
+                                ['Al', 'As', 'Cd', 'Pb'],
+                                99999,
+                                0,
+                                searchProcessCallback).$promise.then(function (success) {
+                            console.log(success);
+                        }, function (error) {
+                            console.log(error);
+                            //progressModal.close(error);
+                            //progressModal.dismiss(error);
+                        });
+
                         var tmpMockNodes;
 
                         sharedDatamodel.resultNodes.length = 0;
@@ -232,7 +332,7 @@ angular.module(
                 //                angular.element($window).bind('resize', function () {
                 //                    fireResize(false);
                 //                });
-                
+
                 console.log('searchController instance created');
             }
         ]

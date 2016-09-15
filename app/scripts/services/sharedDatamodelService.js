@@ -33,4 +33,11 @@ angular.module(
                 this.selectedGlobalDatasources = [];
                 this.localDatasources = [];
                 this.selectedLocalDatasources = [];
+                
+                this.status = {};
+                this.status.type = 'success';
+                this.status.message = 'UIM-2020 Demonstrator Datenintegration';
+                this.status.progress = {};
+                this.status.progress.current = 0;
+                this.status.progress.max = 0;  
             }]);

@@ -14,14 +14,12 @@ angular.module(
         ).controller(
         'appController',
         [
-            '$scope',
             '$state',
             '$previousState',
             'configurationService',
             'sharedDatamodel',
             'authenticationService',
             function (
-                    $scope,
                     $state,
                     $previousState,
                     configurationService,
@@ -30,19 +28,9 @@ angular.module(
                     ) {
                 'use strict';
                 var appController;
-
-                $scope.popover = {
-                    "title": "Title",
-                    "content": "Hello Popover<br />This is a multiline message!"
-                };
-
-                $scope.tooltip = {
-                    "title": "Hello Tooltip<br />This is a multiline message!",
-                    "checked": false
-                };
-
                 appController = this;
 
+                appController.status = sharedDatamodel.status;
                 appController.selectedSearchThemes = sharedDatamodel.selectedSearchThemes;
                 appController.selectedSearchPollutants = sharedDatamodel.selectedSearchPollutants;
                 appController.resultNodes = sharedDatamodel.resultNodes;

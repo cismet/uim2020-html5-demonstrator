@@ -42,7 +42,7 @@
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
 
-        <!-- MAIN TOOLBAR --------------------------------------------------------->
+        <!-- MAIN TOOLBAR --------------------------------------------------- -->
         <nav class="navbar navbar-default navbar-static-top cs-navbar-top" >
             <div class="container-fluid">
                 <div class="navbar-header">
@@ -90,20 +90,17 @@
             </div><!-- /.container-fluid -->
         </nav>
 
-        <!-- MAIN CONTAINER ------------------------------------------------------->
+        <!-- MAIN CONTAINER ---------------------------------------------------- -->
         <div data-ui-view="main" class="flex-container-horizontal"></div>
 
-        <!-- STATUSBAR ------------------------------------------------------------>
-        
-        
-        <footer class="footer alert-success"
+        <!-- STATUSBAR --------------------------------------------------------- -->
+        <footer class="footer ng-class:'alert-'+appController.status.type;"
+                type="{{appController.status.type}}"
                 ng-hide="$state.includes('main.authentication')"/>
             <div class="container">
                 <div class="row">
                     <div class="col-lg-12">
-                        <h4>{{appController.selectedSearchThemes.length}} Themen ausgewählt, 
-                            {{appController.selectedSearchPollutants.length}} Schadstoffe ausgewählt,
-                            {{appController.resultNodes.length}} Suchergebnisse verfügbar</h4>
+                        <h4>{{appController.status.message}}</h4>
                     </div>
                 </div>
             </div>
@@ -175,6 +172,8 @@
         <script src="scripts/services/sharedDatamodelService.js" type="text/javascript"></script>
         <script src="scripts/services/sharedControllersService.js" type="text/javascript"></script>
         <script src="scripts/services/dataService.js" type="text/javascript"></script>
+        <script src="scripts/services/searchService.js" type="text/javascript"></script>
+        <script src="scripts/services/entityService.js" type="text/javascript"></script>
         <script src="scripts/services/authenticationService.js" type="text/javascript"></script>
         <script src="scripts/services/autorisationService.js" type="text/javascript"></script>
         <script src="scripts/services/featureRendererService.js" type="text/javascript"></script>
