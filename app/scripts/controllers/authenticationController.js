@@ -37,7 +37,7 @@ angular.module(
                             username,
                             configurationService.authentication.domain,
                             password);
-                            
+
                     authenticatePromise.then(
                             function authenticationSuccess(identity) {
                                 console.log('authenticationController::authenticationSuccess: user "' +
@@ -56,6 +56,14 @@ angular.module(
                         $scope.errorStatusMessage = httpResponse.statusText;
                         $scope.password = null;
 
+                        if ($scope.errorStatusCode === -1) {
+                            $scope.errorStatusCode = 503;
+                        }
+
+                        if (!$scope.errorStatusMessage || $scope.errorStatusMessage === null) {
+                            $scope.errorStatusMessage = 'Verbindung zum Anmeldserver nicht möglich';
+                        }
+
                         console.error('authenticationController::authenticationError: user "' +
                                 username + '" could not be authenticated: ' + $scope.errorStatusMessage);
                     });
@@ -71,6 +79,8 @@ angular.module(
                     $state.go('main.authentication');
                     $previousState.memo('authentication');
                 };
+
+                console.log('authenticationController instance created');
             }
         ]
         );
