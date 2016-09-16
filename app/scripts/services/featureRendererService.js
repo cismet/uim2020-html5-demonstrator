@@ -34,11 +34,11 @@ angular.module(
                  * @returns {featureRendererService_L18.createNodeFeature.feature}
                  */
                 createNodeFeature = function (node, theme) {
-                    if (node.hasOwnProperty('geometry')) {
+                    if (node.hasOwnProperty('cachedGeometry')) {
                         var wktString, wktObject, feature, icon;
 
                         icon = config.icons[theme];
-                        wktString = node.geometry;
+                        wktString = node.cachedGeometry;
                         wktObject = new Wkt.Wkt();
                         wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
 

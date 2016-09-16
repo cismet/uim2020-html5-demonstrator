@@ -141,7 +141,7 @@ angular.module(
 
                 showProgress = function () {
                     var modalScope;
-                    console.log('searchController::showProgress()');
+                    //console.log('searchController::showProgress()');
                     modalScope = $rootScope.$new(true);
                     modalScope.status = searchController.status;
 
@@ -162,8 +162,7 @@ angular.module(
                 };
 
                 searchProcessCallback = function (current, max, type) {
-
-                    console.log('searchProcess: type=' + type + ', current=' + current + ", max=" + max)
+                    //console.log('searchProcess: type=' + type + ', current=' + current + ", max=" + max)
                     // the maximum object count
                     searchController.status.progress.max = 100;
                     // the scaled progress: 0 <fake progress> 100 <real progress> 200
@@ -175,10 +174,10 @@ angular.module(
                         searchController.status.progress.current = current;
 
                         if (current < 95) {
-                            searchController.status.message = 'Search for resource Meta-Data is in progress, please wait.';
+                            searchController.status.message = 'Die Suche im UIM2020-DI Indexdatenbestand wird durchgeführt';
                             searchController.status.type = 'success';
                         } else {
-                            searchController.status.message = 'The SWITCH-ON Meta-Data Repository is under heavy load, please wait for the search to continue.';
+                            searchController.status.message = 'Die UIM2020-DI Server sind z.Z. ausgelastet, bitte warten Sie einen Augenblick.';
                             searchController.status.type = 'warning';
                         }
 
@@ -186,31 +185,27 @@ angular.module(
                     } else if (current === max && type === 'success') {
                         if (current > 0) {
                             searchController.status.progress.current = 100;
-                            searchController.status.message = 'Search completed, Meta-Data of ' + current +
-                                    (current > 1 ? ' resources' : ' resource') + ' retrieved from the SWITCH-ON Meta-Data Repository.';
+                            searchController.status.message = 'Suche erfolgreich, ' +
+                                    (current === 1 ? 'eine Messstelle' : (current + ' Messstellen')) + ' im UIM2020-DI Indexdatenbestand gefunden.';
                             searchController.status.type = 'success';
 
                         } else {
                             // feature request #59
                             searchController.status.progress.current = 100;
-                            searchController.status.message = 'Search completed, but no matching resources found in the SWITCH-ON Meta-Data Repository.';
+                            searchController.status.message = 'Es wurden keine zu den Suchkriterien passenden Messstellen im UIM2020-DI Indexdatenbestand gefunden';
                             searchController.status.type = 'warning';
                         }
 
                         if (progressModal) {
-                            // wait 1/2 sec before closing to allow the progressbar
-                            // to advance to 100% (see #59)
-                            // 
-                            // doesn't work anymore?!
-                            // 
-                            //$timeout(function () {
-                            //    progressModal.close();
-                            //}, 100);
+                            // wait 1/2 sec before closing to allow the progressbar to advance to 100% (see #59)
+                            $timeout(function () {
+                                progressModal.close();
+                            }, 500);
                         }
                         // search error ...
                     } else if (type === 'error') {
                         searchController.status.progress.current = 100;
-                        searchController.status.message = 'Search could not be perfomed: ';
+                        searchController.status.message = 'Die Suche konnte aufgrund eines Server-Fehlers nicht durchgeführt werden.';
                         searchController.status.type = 'danger';
 
                         $timeout(function () {
@@ -239,8 +234,7 @@ angular.module(
                     }
 
                     if (mockNodes.$resolved) {
-
-                        console.log('searchController::search()');
+                        //console.log('searchController::search()');
                         showProgress();
 
                         searchService.defaultSearch(
@@ -249,28 +243,38 @@ angular.module(
                                 ['Al', 'As', 'Cd', 'Pb'],
                                 99999,
                                 0,
-                                searchProcessCallback).$promise.then(function (success) {
-                            console.log(success);
-                        }, function (error) {
-                            console.log(error);
-                            //progressModal.close(error);
-                            //progressModal.dismiss(error);
-                        });
+                                searchProcessCallback).$promise.then(
+                                function (searchResult)
+                                {
+                                    sharedDatamodel.resultNodes.length = 0;
+                                    if (searchResult.$collection && searchResult.$collection.length > 0) {
+                                        //console.log(success);
+                                        sharedDatamodel.resultNodes.push.apply(
+                                                sharedDatamodel.resultNodes, searchResult.$collection);
+                                    }
 
-                        var tmpMockNodes;
+                                    $scope.$broadcast('searchSuccess()');
+                                },
+                                function (searchError) {
+                                    //console.log(searchError);
+                                    sharedDatamodel.resultNodes.length = 0;
+                                    $scope.$broadcast('searchError()');
+                                });
 
-                        sharedDatamodel.resultNodes.length = 0;
-                        // must use push() or the referenc ein other controllers is destroyed!
+                        //var tmpMockNodes;
+
+                        //sharedDatamodel.resultNodes.length = 0;
+                        // must use push() or the reference in other controllers is destroyed!
                         //tmpMockNodes = angular.copy(mockNodes.slice(0, 20));
-                        tmpMockNodes = angular.copy(mockNodes);
-                        sharedDatamodel.resultNodes.push.apply(sharedDatamodel.resultNodes, tmpMockNodes);
+                        //tmpMockNodes = angular.copy(mockNodes);
+                        //sharedDatamodel.resultNodes.push.apply(sharedDatamodel.resultNodes, tmpMockNodes);
 
-                        sharedDatamodel.analysisNodes.length = 0;
+                        //sharedDatamodel.analysisNodes.length = 0;
                         // make a copy -> 2 map instances -> 2 feature instances needed
                         //tmpMockNodes = angular.copy(mockNodes.slice(5, 15));
                         //sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, tmpMockNodes);
 
-                        $scope.$broadcast('searchSuccess()');
+                        //$scope.$broadcast('searchSuccess()');
 
                         // access controller from child scope leaked into parent scope
                         //$scope.mapController.setNodes(mockNodes.slice(0, 10));

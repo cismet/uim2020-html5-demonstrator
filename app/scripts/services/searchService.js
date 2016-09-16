@@ -16,33 +16,8 @@ angular.module(
             function ($resource, $q, $interval, configurationService, authenticationService) {
                 'use strict';
 
-                var cidsRestApiConfig, defaultRestApiSearch, defaultSearchFunction;
-
+                var cidsRestApiConfig, defaultSearchFunction;
                 cidsRestApiConfig = configurationService.cidsRestApi;
-
-                // remote legagy search core search
-                // FIXME: limit and offset not implemented in legacy search!
-                // currently, limit and offset are appended to the POST query parameter!
-                defaultRestApiSearch = $resource(cidsRestApiConfig.host +
-                        '/searches/' + cidsRestApiConfig.domain + '.' + cidsRestApiConfig.defaultRestApiSearch + '/results',
-                        {
-                            limit: 100,
-                            offset: 0,
-                            omitNullValues: true,
-                            deduplicate: true
-                        }, {
-                    search: {
-                        method: 'POST',
-                        params: {
-                            limit: '@limit',
-                            offset: '@offset'
-                        },
-                        isArray: false,
-                        headers: {
-                            'Authorization': authenticationService.getAuthorizationToken()
-                        }
-                    }
-                });
 
                 /**
                  * Default Search Function exposed by the Service.
@@ -62,11 +37,20 @@ angular.module(
                         limit,
                         offset,
                         progressCallback) {
-                    var deferred, noop, queryObject, defaultSearchResult, searchError, searchResult, searchSuccess,
-                            defaultRestApiSearchResult, timer, fakeProgress, filterTags, deferredFilterTags;
+                    var deferred, noop, queryObject, defaultSearchResult, defaultRestApiSearch,
+                            defaultRestApiSearchResult, timer, fakeProgress;
 
-                    console.log('searchService::defaultSearchFunction()');        
+                    //console.log('searchService::defaultSearchFunction()');
+
+                    // FIXME: get rid of this noop stuff -> makes code unreadable
                     noop = angular.noop;
+                    // current value, max value, type, max = -1 indicates indeterminate
+                    (progressCallback || noop)(0, -1, 'success');
+                    fakeProgress = 1;
+                    timer = $interval(function () {
+                        (progressCallback || noop)(fakeProgress, -1, 'success');
+                        fakeProgress++;
+                    }, 100, 100);
 
                     deferred = $q.defer();
 
@@ -77,14 +61,6 @@ angular.module(
                             {'key': 'pollutants', 'value': pollutants}
                         ]
                     };
-
-                    // current value, max value, type, max = -1 indicates indeterminate
-                    (progressCallback || noop)(0, -1, 'success');
-                    fakeProgress = 1;
-                    timer = $interval(function () {
-                        (progressCallback || noop)(fakeProgress, -1, 'success');
-                        fakeProgress++;
-                    }, 100, 100);
 
                     if (offset && limit && limit > 0 && offset > 0 && (offset % limit !== 0)) {
                         offset = 0;
@@ -99,6 +75,30 @@ angular.module(
                         $length: 0
                     };
 
+                    // remote legagy search core search
+                    // FIXME: limit and offset not implemented in legacy search!
+                    // currently, limit and offset are appended to the POST query parameter!
+                    defaultRestApiSearch = $resource(cidsRestApiConfig.host +
+                            '/searches/' + cidsRestApiConfig.domain + '.' + cidsRestApiConfig.defaultRestApiSearch + '/results',
+                            {
+                                limit: 100,
+                                offset: 0,
+                                omitNullValues: true,
+                                deduplicate: true
+                            }, {
+                        search: {
+                            method: 'POST',
+                            params: {
+                                limit: '@limit',
+                                offset: '@offset'
+                            },
+                            isArray: false,
+                            headers: {
+                                'Authorization': authenticationService.getAuthorizationToken()
+                            }
+                        }
+                    });
+
                     // result of the remote search operation (promise)
                     // starting the search!
                     // FIXME:   limit an offset GET parameters currently not evaluated 
@@ -112,26 +112,55 @@ angular.module(
 
                     defaultRestApiSearchResult.$promise.then(
                             function success(searchResult) {
-                                console.log('searchService::defaultSearchFunction()->success()');  
-                                var key;
+                                //console.log('searchService::defaultSearchFunction()->success()');
+                                var key, i, length, curentNode, dataObject, className;
                                 // doing the same as ngResource: copying the results in the already returned obj (shallow)
                                 for (key in searchResult) {
                                     if (searchResult.hasOwnProperty(key) &&
                                             !(key.charAt(0) === '$' && key.charAt(1) === '$')) {
+
                                         defaultSearchResult[key] = searchResult[key];
+                                        if (key === '$collection' && angular.isArray(defaultSearchResult.$collection)) {
+                                            length = defaultSearchResult.$collection.length;
+                                            for (i = 0; i < length; i++) {
+                                                curentNode = defaultSearchResult.$collection[i];
+                                                if (curentNode.lightweightJson) {
+
+                                                    try {
+                                                        dataObject = angular.fromJson(curentNode.lightweightJson);
+                                                        curentNode.$data = dataObject;
+                                                        delete defaultSearchResult.$collection[i].lightweightJson;
+                                                        
+                                                        className = curentNode.classKey.split(".").slice(1, 2).pop();
+
+                                                        curentNode.className = dataObject.className ?
+                                                                dataObject.className : className;
+                                                         
+                                                        if(configurationService.featureRenderer.icons[className]) {
+                                                            curentNode.$icon = configurationService.featureRenderer.icons[className].iconUrl; 
+                                                        }
+                                                    } catch (err) {
+                                                        console.error(err.message);
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
 
-                                defaultSearchResult.$length = searchResult.$collection.length;
+                                defaultSearchResult.$length = searchResult.$collection ? searchResult.$collection.length : 0;
                                 if (!defaultSearchResult.$total || defaultSearchResult.$total === 0) {
                                     defaultSearchResult.$total = defaultSearchResult.length;
                                 }
 
-                                $interval.cancel(timer);
-                                (progressCallback || noop)(100, 100, 'success');
+                                deferred.resolve(defaultSearchResult);
 
+                                $interval.cancel(timer);
+
+                                // set current AND max to node count -> signalise search completed
+                                (progressCallback || noop)(defaultSearchResult.$length, defaultSearchResult.$length, 'success');
                             }, function error(searchError) {
-                        console.log('searchService::defaultSearchFunction()->error()');  
+                        console.log('searchService::defaultSearchFunction()->error()');
                         defaultSearchResult.$error = 'cannot search for resources';
                         defaultSearchResult.$response = searchError;
                         defaultSearchResult.$resolved = true;
