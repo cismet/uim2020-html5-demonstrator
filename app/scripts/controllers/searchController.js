@@ -14,16 +14,17 @@ angular.module(
         ).controller(
         'searchController',
         [
-            '$window', '$timeout', '$scope', '$state', 'leafletData',
-            'configurationService', 'sharedDatamodel', 'dataService',
-            function ($window, $timeout, $scope, $state, leafletData,
-                    configurationService, sharedDatamodel, dataService) {
+            '$rootScope', '$window', '$timeout', '$scope', '$state', '$uibModal', 'leafletData',
+            'configurationService', 'sharedDatamodel', 'dataService', 'searchService',
+            function ($rootScope, $window, $timeout, $scope, $state, $uibModal, leafletData,
+                    configurationService, sharedDatamodel, dataService, searchService) {
                 'use strict';
 
-                var searchController;
+                var searchController, searchProcessCallback, showProgress, progressModal;
                 searchController = this;
                 // set default mode according to default route in app.js 
                 searchController.mode = 'map';
+                searchController.status = sharedDatamodel.status;
 
                 // === Configurations ==========================================
                 // <editor-fold defaultstate="collapsed" desc="   - Search Locations Selection Box Configuration">
@@ -136,7 +137,83 @@ angular.module(
                             buttonDefaultText: 'Ort auswählen'
                         });
                 // </editor-fold>
-                
+                // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ====================================">
+
+                showProgress = function () {
+                    var modalScope;
+                    //console.log('searchController::showProgress()');
+                    modalScope = $rootScope.$new(true);
+                    modalScope.status = searchController.status;
+
+                    progressModal = $uibModal.open({
+                        templateUrl: 'templates/search-progress-modal.html',
+                        scope: modalScope,
+                        size: 'lg',
+                        backdrop: 'static'/*,
+                         resolve: {searchController:searchController}*/
+                    });
+
+                    // check if the eror occurred before the dialog has actually been shown
+                    progressModal.opened.then(function () {
+                        if (searchController.status.type === 'error') {
+                            progressModal.close();
+                        }
+                    });
+                };
+
+                searchProcessCallback = function (current, max, type) {
+                    //console.log('searchProcess: type=' + type + ', current=' + current + ", max=" + max)
+                    // the maximum object count
+                    searchController.status.progress.max = 100;
+                    // the scaled progress: 0 <fake progress> 100 <real progress> 200
+                    // searchController.searchStatus.current = ...
+
+                    // start of search (indeterminate)
+                    if (max === -1 && type === 'success') {
+                        // count up fake progress to 100
+                        searchController.status.progress.current = current;
+
+                        if (current < 95) {
+                            searchController.status.message = 'Die Suche im UIM2020-DI Indexdatenbestand wird durchgeführt';
+                            searchController.status.type = 'success';
+                        } else {
+                            searchController.status.message = 'Die UIM2020-DI Server sind z.Z. ausgelastet, bitte warten Sie einen Augenblick.';
+                            searchController.status.type = 'warning';
+                        }
+
+                        // search completed
+                    } else if (current === max && type === 'success') {
+                        if (current > 0) {
+                            searchController.status.progress.current = 100;
+                            searchController.status.message = 'Suche erfolgreich, ' +
+                                    (current === 1 ? 'eine Messstelle' : (current + ' Messstellen')) + ' im UIM2020-DI Indexdatenbestand gefunden.';
+                            searchController.status.type = 'success';
+
+                        } else {
+                            // feature request #59
+                            searchController.status.progress.current = 100;
+                            searchController.status.message = 'Es wurden keine zu den Suchkriterien passenden Messstellen im UIM2020-DI Indexdatenbestand gefunden';
+                            searchController.status.type = 'warning';
+                        }
+
+                        if (progressModal) {
+                            // wait 1/2 sec before closing to allow the progressbar to advance to 100% (see #59)
+                            $timeout(function () {
+                                progressModal.close();
+                            }, 500);
+                        }
+                        // search error ...
+                    } else if (type === 'error') {
+                        searchController.status.progress.current = 100;
+                        searchController.status.message = 'Die Suche konnte aufgrund eines Server-Fehlers nicht durchgeführt werden.';
+                        searchController.status.type = 'danger';
+
+                        $timeout(function () {
+                            progressModal.close(searchController.status.message);
+                        }, 2000);
+                    }
+                };
+                // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
                 searchController.gotoLocation = function () {
                     // TODO: check if paramters are selected ...
@@ -157,20 +234,47 @@ angular.module(
                     }
 
                     if (mockNodes.$resolved) {
-                        var tmpMockNodes;
+                        //console.log('searchController::search()');
+                        showProgress();
 
-                        sharedDatamodel.resultNodes.length = 0;
-                        // must use push() or the referenc ein other controllers is destroyed!
+                        searchService.defaultSearch(
+                                'SRID=4326;POLYGON((8.61328125 51.23440735163459,7.734374999999999 48.922499263758255,12.480468749999998 48.28319289548349,13.095703125 49.83798245308484,11.074218749999998 51.890053935216926,8.61328125 51.23440735163459))',
+                                [21, 81, 82, 201, 62],
+                                ['Al', 'As', 'Cd', 'Pb'],
+                                99999,
+                                0,
+                                searchProcessCallback).$promise.then(
+                                function (searchResult)
+                                {
+                                    sharedDatamodel.resultNodes.length = 0;
+                                    if (searchResult.$collection && searchResult.$collection.length > 0) {
+                                        //console.log(success);
+                                        sharedDatamodel.resultNodes.push.apply(
+                                                sharedDatamodel.resultNodes, searchResult.$collection);
+                                    }
+
+                                    $scope.$broadcast('searchSuccess()');
+                                },
+                                function (searchError) {
+                                    //console.log(searchError);
+                                    sharedDatamodel.resultNodes.length = 0;
+                                    $scope.$broadcast('searchError()');
+                                });
+
+                        //var tmpMockNodes;
+
+                        //sharedDatamodel.resultNodes.length = 0;
+                        // must use push() or the reference in other controllers is destroyed!
                         //tmpMockNodes = angular.copy(mockNodes.slice(0, 20));
-                        tmpMockNodes = angular.copy(mockNodes);
-                        sharedDatamodel.resultNodes.push.apply(sharedDatamodel.resultNodes, tmpMockNodes);
+                        //tmpMockNodes = angular.copy(mockNodes);
+                        //sharedDatamodel.resultNodes.push.apply(sharedDatamodel.resultNodes, tmpMockNodes);
 
-                        sharedDatamodel.analysisNodes.length = 0;
+                        //sharedDatamodel.analysisNodes.length = 0;
                         // make a copy -> 2 map instances -> 2 feature instances needed
                         //tmpMockNodes = angular.copy(mockNodes.slice(5, 15));
                         //sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, tmpMockNodes);
 
-                        $scope.$broadcast('searchSuccess()');
+                        //$scope.$broadcast('searchSuccess()');
 
                         // access controller from child scope leaked into parent scope
                         //$scope.mapController.setNodes(mockNodes.slice(0, 10));
@@ -232,7 +336,7 @@ angular.module(
                 //                angular.element($window).bind('resize', function () {
                 //                    fireResize(false);
                 //                });
-                
+
                 console.log('searchController instance created');
             }
         ]

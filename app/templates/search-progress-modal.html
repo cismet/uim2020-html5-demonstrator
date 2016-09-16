@@ -1,0 +1,20 @@
+<div class="modal-header">
+    <center><h4>Bitte warten Sie, die Suche wird durchgeführt.</h4></center>
+</div>
+<div class="modal-body">
+    <div class="row">
+        <div class="col-lg-12">
+            <uib-progressbar class="progress-striped active" 
+                         max="100" 
+                         value="status.progress.current" 
+                         type="{{status.type}}">
+            </uib-progressbar>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <span><i>{{status.message}}</i></span>
+        </div>
+    </div>
+</div>
+<div class="modal-footer"><!-- empty --></div>

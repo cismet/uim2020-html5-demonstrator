@@ -154,11 +154,6 @@ angular.module(
 
 
                 // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
-
-//                mapController.removeOverlay = function (layer) {
-//
-//                }
-
                 mapController.unSelectOverlayByKey = function (layerKey) {
                     if (layerKey &&
                             layerControlMappings[layerKey] &&
@@ -369,31 +364,6 @@ angular.module(
 
                 };
 
-
-                /*mapController.setNodes = function (nodes) {
-                 if (mapController.mode === 'search') {
-                 var layerGroups, theme, featureLayer;
-                 if (nodes !== null && nodes.length > 0) {
-                 layerGroups = featureRendererService.createNodeFeatureLayers(nodes);
-                 for (theme in layerGroups) {
-                 console.log(mapId + '::setResultNodes for ' + theme);
-                 featureLayer = layerGroups[theme];
-                 // FIXME: clear layers before adding
-                 // FIXME: setVisible to true adds duplicate layers ?!!!!!
-                 layerControl.addOverlay(
-                 featureLayer,
-                 featureLayer.$name, {
-                 groupName: "Themen"
-                 });
-                 }
-                 
-                 //mapController.nodes = nodes;
-                 }
-                 } else {
-                 console.warn("mapController:: cannot setNodes on analysis map!");
-                 }
-                 };*/
-
                 mapController.setGazetteerLocation = function (gazetteerLocation) {
                     if (mapController.mode === 'search') {
                         console.log('mapController::setGazetteerLocation: ' + gazetteerLocation.name);
@@ -450,42 +420,77 @@ angular.module(
 
                 //</editor-fold>
 
-                $scope.$on('gotoLocation()', function (e) {
+                $scope.$on('gotoLocation()', function (event) {
                     if (mapController.mode === 'search') {
                         console.log('mapController::gotoLocation(' + sharedDatamodel.selectedGazetteerLocation.name + ')');
                         mapController.setGazetteerLocation(sharedDatamodel.selectedGazetteerLocation);
                     }
                 });
 
-                $scope.$on('searchSuccess()', function (e) {
-                    console.log(mapId + '::searchSuccess()');
-                    if (mapController.mode === 'search' && sharedDatamodel.resultNodes.length > 0) {
-                        mapController.setNodes(sharedDatamodel.resultNodes);
+                $scope.$on('searchSuccess()', function (event) {
+                    //console.log(mapId + '::searchSuccess()');
+                    if (mapController.mode === 'search') {
+                        if (sharedDatamodel.resultNodes.length > 0) {
+                            mapController.setNodes(sharedDatamodel.resultNodes);
+                        } else {
+                            mapController.clearNodes();
+                        }
+
                     } /*else if (mapController.mode === 'analysis' && sharedDatamodel.analysisNodes.length > 0) {
                      mapController.setNodes(sharedDatamodel.analysisNodes);
                      }*/
                 });
 
-                $scope.$watch(function () {
-                    // Return the "result" of the watch expression.
-                    return(mapController.zoom);
-                }, function (newZoom, oldZoom) {
-                    //console.log('newZoom:' + newZoom + " = this.zoom:" + mapController.zoom);
-                    if (mapController.zoom && newZoom !== oldZoom) {
-                        /*$state.go('main.' + $scope.mainController.mode + '.map', {'zoom': mapController.zoom},
-                         {'inherit': true, 'notify': false, 'reload': false}).then(
-                         function (state)
-                         {
-                         console.log(state);
-                         });*/
-                    } /*else {
-                     console.log('oldZoom:' + oldZoom + " = this.zoom:" + mapController.zoom);
-                     $state.go('main.analysis.map', {'zoom': undefined},
-                     {'inherit': true, 'notify': false, 'reload': false}).then(function (state) {
-                     console.log(state);
-                     });
-                     }*/
+                $scope.$on('searchError()', function (event) {
+                    mapController.clearNodes();
                 });
+
+                // <editor-fold defaultstate="collapsed" desc="=== DISABLED               ===========================">
+                /*$scope.$watch(function () {
+                 // Return the "result" of the watch expression.
+                 return(mapController.zoom);
+                 }, function (newZoom, oldZoom) {
+                 //console.log('newZoom:' + newZoom + " = this.zoom:" + mapController.zoom);
+                 if (mapController.zoom && newZoom !== oldZoom) {
+                 $state.go('main.' + $scope.mainController.mode + '.map', {'zoom': mapController.zoom},
+                 {'inherit': true, 'notify': false, 'reload': false}).then(
+                 function (state)
+                 {
+                 console.log(state);
+                 });
+                 } else {
+                 console.log('oldZoom:' + oldZoom + " = this.zoom:" + mapController.zoom);
+                 $state.go('main.analysis.map', {'zoom': undefined},
+                 {'inherit': true, 'notify': false, 'reload': false}).then(function (state) {
+                 console.log(state);
+                 });
+                 }
+                 });*/
+
+                /*mapController.setNodes = function (nodes) {
+                 if (mapController.mode === 'search') {
+                 var layerGroups, theme, featureLayer;
+                 if (nodes !== null && nodes.length > 0) {
+                 layerGroups = featureRendererService.createNodeFeatureLayers(nodes);
+                 for (theme in layerGroups) {
+                 console.log(mapId + '::setResultNodes for ' + theme);
+                 featureLayer = layerGroups[theme];
+                 // FIXME: clear layers before adding
+                 // FIXME: setVisible to true adds duplicate layers ?!!!!!
+                 layerControl.addOverlay(
+                 featureLayer,
+                 featureLayer.$name, {
+                 groupName: "Themen"
+                 });
+                 }
+                 
+                 //mapController.nodes = nodes;
+                 }
+                 } else {
+                 console.warn("mapController:: cannot setNodes on analysis map!");
+                 }
+                 };*/
+                //</editor-fold>
 
                 // add all to map
                 leafletData.getMap(mapId).then(function (map) {

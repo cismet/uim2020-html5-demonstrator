@@ -17,7 +17,7 @@
         "LEGACY_CLASS_ID": 201,
         "LEGACY_OBJECT_ID": 1,
         "$self": "/UDM2020-DI.1",
-        "geometry": "SRID=4326;POINT(16.04330062866211 48.32034937772247)",
+        "cachedGeometry": "SRID=4326;POINT(16.04330062866211 48.32034937772247)",
         "pollutants": [{
                 "name": "TPT",
                 "id": 1
@@ -44,7 +44,7 @@
         "LEGACY_CLASS_ID": 201,
         "LEGACY_OBJECT_ID": 2,
         "$self": "/UDM2020-DI.2",
-        "geometry": "SRID=4326;POINT(16.047592163085938 48.30927573948136)",
+        "cachedGeometry": "SRID=4326;POINT(16.047592163085938 48.30927573948136)",
         "pollutants": [{
                 "name": "As",
                 "id": 1
@@ -92,7 +92,7 @@
         "LEGACY_CLASS_ID": 201,
         "LEGACY_OBJECT_ID": 3,
         "$self": "/UDM2020-DI.3",
-        "geometry": "SRID=4326;POINT(16.026134490966797 48.30961825915476)",
+        "cachedGeometry": "SRID=4326;POINT(16.026134490966797 48.30961825915476)",
         "pollutants": [{
                 "name": "Sb",
                 "id": 1
@@ -127,7 +127,7 @@
         "LEGACY_CLASS_ID": 201,
         "LEGACY_OBJECT_ID": 4,
         "$self": "/UDM2020-DI.4",
-        "geometry": "SRID=4326;POINT(16.053943634033203 48.34089202939358)",
+        "cachedGeometry": "SRID=4326;POINT(16.053943634033203 48.34089202939358)",
         "pollutants": [{
                 "name": "S",
                 "id": 1
@@ -171,7 +171,7 @@
         "LEGACY_CLASS_ID": 201,
         "LEGACY_OBJECT_ID": 5,
         "$self": "/UDM2020-DI.5",
-        "geometry": "SRID=4326;POINT(16.13346649169922 48.36793507630608)",
+        "cachedGeometry": "SRID=4326;POINT(16.13346649169922 48.36793507630608)",
         "pollutants": [{
                 "name": "Tuluol",
                 "id": 1
@@ -206,7 +206,7 @@
         "LEGACY_CLASS_ID": 201,
         "LEGACY_OBJECT_ID": 6,
         "$self": "/UDM2020-DI.6",
-        "geometry": "SRID=4326;POINT(16.12346649169922 48.35793507630608)",
+        "cachedGeometry": "SRID=4326;POINT(16.12346649169922 48.35793507630608)",
         "pollutants": [{
                 "name": "Simazin",
                 "id": 1
@@ -259,7 +259,7 @@
         "LEGACY_CLASS_ID": 201,
         "LEGACY_OBJECT_ID": 7,
         "$self": "/UDM2020-DI.7",
-        "geometry": "SRID=4326;POINT(16.031455993652344 48.340321511924216)",
+        "cachedGeometry": "SRID=4326;POINT(16.031455993652344 48.340321511924216)",
         "pollutants": [{
                 "name": "PCP",
                 "id": 1
@@ -309,7 +309,7 @@
         "LEGACY_CLASS_ID": 201,
         "LEGACY_OBJECT_ID": 8,
         "$self": "/UDM2020-DI.8",
-        "geometry": "SRID=4326;POINT(16.07025146484375 48.341278907919374)",
+        "cachedGeometry": "SRID=4326;POINT(16.07025146484375 48.341278907919374)",
         "pollutants": [{
                 "name": "Asbest",
                 "id": 1
@@ -356,7 +356,7 @@
         "LEGACY_CLASS_ID": 201,
         "LEGACY_OBJECT_ID": 10,
         "$self": "/UDM2020-DI.10",
-        "geometry": "SRID=4326;POINT(16.0455322265625 48.34264811340253)",
+        "cachedGeometry": "SRID=4326;POINT(16.0455322265625 48.34264811340253)",
         "pollutants": [{
                 "name": "V",
                 "id": 1
@@ -424,7 +424,7 @@
         "LEGACY_CLASS_ID": 201,
         "LEGACY_OBJECT_ID": 11,
         "$self": "/UDM2020-DI.11",
-        "geometry": "SRID=4326;POINT(16.01978302001953 48.33009568648094)",
+        "cachedGeometry": "SRID=4326;POINT(16.01978302001953 48.33009568648094)",
         "pollutants": [{
                 "name": "PCP",
                 "id": 1
@@ -483,7 +483,7 @@
         "LEGACY_CLASS_ID": 201,
         "LEGACY_OBJECT_ID": 12,
         "$self": "/UDM2020-DI.12",
-        "geometry": "SRID=4326;POINT(16.03179931640625 48.30612338017497)",
+        "cachedGeometry": "SRID=4326;POINT(16.03179931640625 48.30612338017497)",
         "pollutants": [{
                 "name": "PCDDundPCDF",
                 "id": 1
@@ -515,7 +515,7 @@
         "LEGACY_CLASS_ID": 62,
         "LEGACY_OBJECT_ID": 13,
         "$self": "/UDM2020-DI.13",
-        "geometry": "SRID=4326;POINT(16.091880798339844 48.301784330656375)",
+        "cachedGeometry": "SRID=4326;POINT(16.091880798339844 48.301784330656375)",
         "pollutants": [{
                 "name": "Hg",
                 "id": 1
@@ -550,7 +550,7 @@
         "LEGACY_CLASS_ID": 62,
         "LEGACY_OBJECT_ID": 14,
         "$self": "/UDM2020-DI.14",
-        "geometry": "SRID=4326;POINT(16.092910766601562 48.33694284791895)",
+        "cachedGeometry": "SRID=4326;POINT(16.092910766601562 48.33694284791895)",
         "pollutants": [{
                 "name": "SF6",
                 "id": 1
@@ -576,7 +576,7 @@
         "LEGACY_CLASS_ID": 81,
         "LEGACY_OBJECT_ID": 15,
         "$self": "/UDM2020-DI.15",
-        "geometry": "SRID=4326;POINT(16.01154327392578 48.3371710707979)",
+        "cachedGeometry": "SRID=4326;POINT(16.01154327392578 48.3371710707979)",
         "pollutants": [{
                 "name": "SF6",
                 "id": 1
@@ -602,7 +602,7 @@
         "LEGACY_CLASS_ID": 81,
         "LEGACY_OBJECT_ID": 16,
         "$self": "/UDM2020-DI.16",
-        "geometry": "SRID=4326;POINT(16.0455322265625 48.310918742604116)",
+        "cachedGeometry": "SRID=4326;POINT(16.0455322265625 48.310918742604116)",
         "pollutants": [{
                 "name": "Sn",
                 "id": 1
@@ -652,7 +652,7 @@
         "LEGACY_CLASS_ID": 81,
         "LEGACY_OBJECT_ID": 17,
         "$self": "/UDM2020-DI.17",
-        "geometry": "SRID=4326;POINT(16.101150512695312 48.34894812401375)",
+        "cachedGeometry": "SRID=4326;POINT(16.101150512695312 48.34894812401375)",
         "pollutants": [{
                 "name": "Mirex",
                 "id": 1
@@ -711,7 +711,7 @@
         "LEGACY_CLASS_ID": 81,
         "LEGACY_OBJECT_ID": 18,
         "$self": "/UDM2020-DI.18",
-        "geometry": "SRID=4326;POINT(16.10595703125 48.295300047074186)",
+        "cachedGeometry": "SRID=4326;POINT(16.10595703125 48.295300047074186)",
         "pollutants": [{
                 "name": "PBDE",
                 "id": 1
@@ -758,7 +758,7 @@
         "LEGACY_CLASS_ID": 81,
         "LEGACY_OBJECT_ID": 19,
         "$self": "/UDM2020-DI.19",
-        "geometry": "SRID=4326;POINT(16.060638427734375 48.28639128996186)",
+        "cachedGeometry": "SRID=4326;POINT(16.060638427734375 48.28639128996186)",
         "pollutants": [{
                 "name": "TOC",
                 "id": 1
@@ -787,7 +787,7 @@
         "LEGACY_CLASS_ID": 81,
         "LEGACY_OBJECT_ID": 20,
         "$self": "/UDM2020-DI.20",
-        "geometry": "SRID=4326;POINT(16.115570068359375 48.3167660487429)",
+        "cachedGeometry": "SRID=4326;POINT(16.115570068359375 48.3167660487429)",
         "pollutants": [{
                 "name": "Endrin",
                 "id": 1
@@ -813,7 +813,7 @@
         "LEGACY_CLASS_ID": 81,
         "LEGACY_OBJECT_ID": 21,
         "$self": "/UDM2020-DI.21",
-        "geometry": "SRID=4326;POINT(16.05480194091797 48.339820521006125)",
+        "cachedGeometry": "SRID=4326;POINT(16.05480194091797 48.339820521006125)",
         "pollutants": [{
                 "name": "Zn",
                 "id": 1
@@ -881,7 +881,7 @@
         "LEGACY_CLASS_ID": 82,
         "LEGACY_OBJECT_ID": 22,
         "$self": "/UDM2020-DI.22",
-        "geometry": "SRID=4326;POINT(16.095657348632812 48.332060773238894)",
+        "cachedGeometry": "SRID=4326;POINT(16.095657348632812 48.332060773238894)",
         "pollutants": [{
                 "name": "AOX",
                 "id": 1
@@ -907,7 +907,7 @@
         "LEGACY_CLASS_ID": 82,
         "LEGACY_OBJECT_ID": 23,
         "$self": "/UDM2020-DI.23",
-        "geometry": "SRID=4326;POINT(16.177711486816406 48.352826860326175)",
+        "cachedGeometry": "SRID=4326;POINT(16.177711486816406 48.352826860326175)",
         "pollutants": [{
                 "name": "HCB",
                 "id": 1
@@ -951,7 +951,7 @@
         "LEGACY_CLASS_ID": 82,
         "LEGACY_OBJECT_ID": 24,
         "$self": "/UDM2020-DI.24",
-        "geometry": "SRID=4326;POINT(15.962791442871094 48.30260863571332)",
+        "cachedGeometry": "SRID=4326;POINT(15.962791442871094 48.30260863571332)",
         "pollutants": [{
                 "name": "Trichlorethan",
                 "id": 1
@@ -1004,7 +1004,7 @@
         "LEGACY_CLASS_ID": 82,
         "LEGACY_OBJECT_ID": 25,
         "$self": "/UDM2020-DI.25",
-        "geometry": "SRID=4326;POINT(16.0455322265625 48.29050321714062)",
+        "cachedGeometry": "SRID=4326;POINT(16.0455322265625 48.29050321714062)",
         "pollutants": [{
                 "name": "Ni",
                 "id": 1

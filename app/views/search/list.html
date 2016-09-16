@@ -3,14 +3,20 @@
            class="table table-condensed table-bordered table-striped"
            show-filter="false" >
         <colgroup>
+            <col width="2%" />
             <col width="15%" />
             <col width="15%" />
             <col width="20%" />
-            <col width="46%" />
+            <col width="44%" />
             <col width="2%" />
             <col width="2%" />
         </colgroup>
-        <tr ng-repeat="node in $data">
+        <tr ng-repeat="node in $data track by node.objectKey">
+            <td>
+                <span class="btn-icon">
+                    <img src="{{node.$icon}}" alt="{{node.className}}">
+                </span>
+            </td>
             <td title="'Name'" data-sortable="'name'">
                 {{node.name}}
             </td>
@@ -21,7 +27,7 @@
                 {{node.description}}
             </td>
             <td title="'Schadstoffe'">
-                <span ng-repeat="pollutant in node.pollutants">
+                <span ng-repeat="pollutant in node.$data.pollutants track by pollutant.id">
                     <span class="label label-warning">{{pollutant.name}}</span>
                 </span>
             </td>
@@ -35,10 +41,10 @@
             <td title="''">
                 <a class="btn btn-sm btn-icon"
                    title="Zur Merkliste hinzufügen"
-                    ng-click="mainController.addAnalysisNode(node)">
+                   ng-click="mainController.addAnalysisNode(node)">
                     <span class="fa fa-plus-circle fa-2x"></span>
                 </a>
-                    
+
             </td>
         </tr>
     </table>

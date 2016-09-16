@@ -23,17 +23,23 @@ angular.module(
                         overlayLayers, overlays;
 
                 configurationService = this;
+                
+                configurationService.developmentMode = true;
+                
+                configurationService.cidsRestApi = {};
+                configurationService.cidsRestApi.host = 'http://localhost:8890';
+                configurationService.cidsRestApi.domain = 'UDM2020-DI';
+                configurationService.cidsRestApi.defaultRestApiSearch = 'de.cismet.cids.custom.udm2020di.serversearch.DefaultRestApiSearch'
+                //configurationService.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
+                //configurationService.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
 
                 configurationService.authentication = {};
-                configurationService.authentication.domain = 'UDM2020-DI';
+                configurationService.authentication.domain = configurationService.cidsRestApi.domain;
                 configurationService.authentication.username = 'uba';
                 configurationService.authentication.password = '';
                 configurationService.authentication.cookie = 'de.cismet.uim2020-html5-demonstrator.identity';
 
-                configurationService.cidsRestApi = {};
-                configurationService.cidsRestApi.host = 'http://localhost:8890';
-                //configurationService.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
-                //configurationService.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
+                
 
                 configurationService.searchService = {};
                 configurationService.searchService.defautLimit = 10;
