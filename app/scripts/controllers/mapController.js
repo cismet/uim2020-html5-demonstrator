@@ -430,19 +430,29 @@ angular.module(
                 $scope.$on('searchSuccess()', function (event) {
                     //console.log(mapId + '::searchSuccess()');
                     if (mapController.mode === 'search') {
+                        setSearchGeometry(null);
                         if (sharedDatamodel.resultNodes.length > 0) {
                             mapController.setNodes(sharedDatamodel.resultNodes);
                         } else {
                             mapController.clearNodes();
                         }
-
                     } /*else if (mapController.mode === 'analysis' && sharedDatamodel.analysisNodes.length > 0) {
                      mapController.setNodes(sharedDatamodel.analysisNodes);
                      }*/
                 });
 
                 $scope.$on('searchError()', function (event) {
-                    mapController.clearNodes();
+                    if (mapController.mode === 'search') {
+                        setSearchGeometry(null);
+                        mapController.clearNodes();
+                    }
+                });
+                
+                $scope.$on('setSearchLocation()', function (event) {
+                    if (mapController.mode === 'search' && 
+                            sharedDatamodel.selectedSearchLocation.id === 0) {
+                        setSearchGeometry(null);
+                    }
                 });
 
                 // <editor-fold defaultstate="collapsed" desc="=== DISABLED               ===========================">
@@ -505,10 +515,13 @@ angular.module(
 
                         map.on('draw:created', function (event) {
                             setSearchGeometry(event.layer, event.layerType);
+                            // this is madness!
+                            sharedDatamodel.selectedSearchLocation.id = 1;
                         });
 
                         map.on('draw:deleted', function (event) {
                             setSearchGeometry(null);
+                            sharedDatamodel.selectedSearchLocation.id = 0;
                         });
                     }
 

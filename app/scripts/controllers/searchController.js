@@ -30,7 +30,7 @@ angular.module(
                 // <editor-fold defaultstate="collapsed" desc="   - Search Locations Selection Box Configuration">
                 // TODO: add coordinates to selectedSearchLocation on selection!
                 searchController.searchLocations = dataService.getSearchLocations();
-                sharedDatamodel.selectedSearchLocation = angular.copy(searchController.searchLocations[0]);
+                //sharedDatamodel.selectedSearchLocation = 0; //angular.copy(searchController.searchLocations[0]);
                 searchController.selectedSearchLocation = sharedDatamodel.selectedSearchLocation;
                 searchController.searchLocationsSettings = angular.extend(
                         {},
@@ -45,8 +45,16 @@ angular.module(
                             enableSearch: false,
                             smartButtonMaxItems: 1,
                             selectionLimit: 1, // -> the selection model will contain a single object instead of array. 
-                            externalIdProp: '' // -> Full Object as model
+                            externalIdProp: 'id' // -> Full Object as model
                         });
+                searchController.selectedSearchLocationEvents = {
+                    onItemSelect: function (selectedSearchLocation) {
+                        // Gesamter Kartenausschnitt
+                        if (selectedSearchLocation.id === 0) {
+                            $scope.$broadcast('setSearchLocation()');
+                        }
+                    }
+                };
                 // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="   - Search Themes Selection Box Configuration">
                 searchController.searchThemes = dataService.getSearchThemes();
