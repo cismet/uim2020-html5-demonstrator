@@ -8,24 +8,22 @@
  * ***************************************************
  */
 
-/*global angular*/
+/*global angular,Wkt*/
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'searchController',
         [
             '$rootScope', '$window', '$timeout', '$scope', '$state', '$uibModal', 'leafletData',
-            'configurationService', 'sharedDatamodel', 'dataService', 'searchService',
+            'configurationService', 'sharedDatamodel', 'sharedControllers', 'dataService', 'searchService',
             function ($rootScope, $window, $timeout, $scope, $state, $uibModal, leafletData,
-                    configurationService, sharedDatamodel, dataService, searchService) {
+                    configurationService, sharedDatamodel, sharedControllers, dataService, searchService) {
                 'use strict';
-
                 var searchController, searchProcessCallback, showProgress, progressModal;
                 searchController = this;
                 // set default mode according to default route in app.js 
                 searchController.mode = 'map';
                 searchController.status = sharedDatamodel.status;
-
                 // === Configurations ==========================================
                 // <editor-fold defaultstate="collapsed" desc="   - Search Locations Selection Box Configuration">
                 // TODO: add coordinates to selectedSearchLocation on selection!
@@ -63,6 +61,7 @@ angular.module(
                         {},
                         configurationService.multiselect.settings, {
                             smartButtonMaxItems: 0,
+                            idProp: 'className',
                             smartButtonTextConverter: function (itemText, originalItem) {
                                 return searchController.selectedSearchThemes.length === 1 ?
                                         '1 Thema ausgewählt' : '';
@@ -152,7 +151,6 @@ angular.module(
                     //console.log('searchController::showProgress()');
                     modalScope = $rootScope.$new(true);
                     modalScope.status = searchController.status;
-
                     progressModal = $uibModal.open({
                         templateUrl: 'templates/search-progress-modal.html',
                         scope: modalScope,
@@ -160,7 +158,6 @@ angular.module(
                         backdrop: 'static'/*,
                          resolve: {searchController:searchController}*/
                     });
-
                     // check if the eror occurred before the dialog has actually been shown
                     progressModal.opened.then(function () {
                         if (searchController.status.type === 'error') {
@@ -168,7 +165,6 @@ angular.module(
                         }
                     });
                 };
-
                 searchProcessCallback = function (current, max, type) {
                     //console.log('searchProcess: type=' + type + ', current=' + current + ", max=" + max)
                     // the maximum object count
@@ -180,7 +176,6 @@ angular.module(
                     if (max === -1 && type === 'success') {
                         // count up fake progress to 100
                         searchController.status.progress.current = current;
-
                         if (current < 95) {
                             searchController.status.message = 'Die Suche im UIM2020-DI Indexdatenbestand wird durchgeführt';
                             searchController.status.type = 'success';
@@ -196,7 +191,6 @@ angular.module(
                             searchController.status.message = 'Suche erfolgreich, ' +
                                     (current === 1 ? 'eine Messstelle' : (current + ' Messstellen')) + ' im UIM2020-DI Indexdatenbestand gefunden.';
                             searchController.status.type = 'success';
-
                         } else {
                             // feature request #59
                             searchController.status.progress.current = 100;
@@ -215,7 +209,6 @@ angular.module(
                         searchController.status.progress.current = 100;
                         searchController.status.message = 'Die Suche konnte aufgrund eines Server-Fehlers nicht durchgeführt werden.';
                         searchController.status.type = 'danger';
-
                         $timeout(function () {
                             progressModal.close(searchController.status.message);
                         }, 2000);
@@ -234,66 +227,108 @@ angular.module(
 
                     $scope.$broadcast('gotoLocation()');
                 };
-
                 // FIXME: implement Mock Function
-                searchController.search = function (mockNodes) {
-                    if (!mockNodes) {
-                        mockNodes = dataService.getMockNodes();
-                    }
+                searchController.search = function (/*mockNodes*/) {
+                    var geometry, themes, pollutants, limit, offset;
 
-                    if (mockNodes.$resolved) {
-                        //console.log('searchController::search()');
-                        showProgress();
+                    geometry = sharedControllers.searchMapController.getSearchWktString();
+                    themes = [];
+                    pollutants = [];
+                    limit = 500;
+                    offset = 0;
 
-                        searchService.defaultSearch(
-                                'SRID=4326;POLYGON((8.61328125 51.23440735163459,7.734374999999999 48.922499263758255,12.480468749999998 48.28319289548349,13.095703125 49.83798245308484,11.074218749999998 51.890053935216926,8.61328125 51.23440735163459))',
-                                [21, 81, 82, 201, 62],
-                                ['Al', 'As', 'Cd', 'Pb'],
-                                99999,
-                                0,
-                                searchProcessCallback).$promise.then(
-                                function (searchResult)
-                                {
-                                    sharedDatamodel.resultNodes.length = 0;
-                                    if (searchResult.$collection && searchResult.$collection.length > 0) {
-                                        //console.log(success);
-                                        sharedDatamodel.resultNodes.push.apply(
-                                                sharedDatamodel.resultNodes, searchResult.$collection);
-                                    }
+                    sharedDatamodel.selectedSearchThemes.forEach(function (theme) {
+                        themes.push(theme.id);
+                    });
 
-                                    $scope.$broadcast('searchSuccess()');
-                                },
-                                function (searchError) {
-                                    //console.log(searchError);
-                                    sharedDatamodel.resultNodes.length = 0;
-                                    $scope.$broadcast('searchError()');
-                                });
+                    sharedDatamodel.selectedSearchPollutants.forEach(function (pollutant) {
+                        pollutants.push(pollutant.id);
+                    });
 
-                        //var tmpMockNodes;
+                    searchService.defaultSearch(
+                            geometry,
+                            themes,
+                            pollutants,
+                            limit,
+                            offset,
+                            searchProcessCallback).$promise.then(
+                            function (searchResult)
+                            {
+                                sharedDatamodel.resultNodes.length = 0;
+                                if (searchResult.$collection && searchResult.$collection.length > 0) {
+                                    //console.log(success);
+                                    /**
+                                     * The .push method can take multiple arguments, so by using 
+                                     * .apply to pass all the elements of the second array as 
+                                     * arguments to .push, you can get the result you want because
+                                     * resultNodes.push(searchResult.$collection) would push the 
+                                     * array object, not its elements!!!
+                                     */
+                                    sharedDatamodel.resultNodes.push.apply(
+                                            sharedDatamodel.resultNodes, searchResult.$collection);
+                                }
 
-                        //sharedDatamodel.resultNodes.length = 0;
-                        // must use push() or the reference in other controllers is destroyed!
-                        //tmpMockNodes = angular.copy(mockNodes.slice(0, 20));
-                        //tmpMockNodes = angular.copy(mockNodes);
-                        //sharedDatamodel.resultNodes.push.apply(sharedDatamodel.resultNodes, tmpMockNodes);
+                                $scope.$broadcast('searchSuccess()');
+                            },
+                            function (searchError) {
+                                //console.log(searchError);
+                                sharedDatamodel.resultNodes.length = 0;
+                                $scope.$broadcast('searchError()');
+                            });
 
-                        //sharedDatamodel.analysisNodes.length = 0;
-                        // make a copy -> 2 map instances -> 2 feature instances needed
-                        //tmpMockNodes = angular.copy(mockNodes.slice(5, 15));
-                        //sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, tmpMockNodes);
-
-                        //$scope.$broadcast('searchSuccess()');
-
-                        // access controller from child scope leaked into parent scope
-                        //$scope.mapController.setNodes(mockNodes.slice(0, 10));
-                        //$scope.listController.setNodes(mockNodes.slice(0, 15));
-
-
-                    } else {
-                        mockNodes.$promise.then(function (resolvedMockNodes) {
-                            searchController.search(resolvedMockNodes);
-                        });
-                    }
+                    // <editor-fold defaultstate="collapsed" desc="[!!!!] DISABLED MOCK DATA ----------------">        
+                    /*                     
+                     if (mockNodes.$resolved) {
+                     showProgress();
+                     searchService.defaultSearch(
+                     geometry,
+                     themes,
+                     pollutants,
+                     limit,
+                     offset,
+                     searchProcessCallback).$promise.then(
+                     function (searchResult)
+                     {
+                     sharedDatamodel.resultNodes.length = 0;
+                     if (searchResult.$collection && searchResult.$collection.length > 0) {
+                     //console.log(success);
+                     sharedDatamodel.resultNodes.push.apply(
+                     sharedDatamodel.resultNodes, searchResult.$collection);
+                     }
+                     
+                     $scope.$broadcast('searchSuccess()');
+                     },
+                     function (searchError) {
+                     //console.log(searchError);
+                     sharedDatamodel.resultNodes.length = 0;
+                     $scope.$broadcast('searchError()');
+                     });
+                     //var tmpMockNodes;
+                     
+                     //sharedDatamodel.resultNodes.length = 0;
+                     // must use push() or the reference in other controllers is destroyed!
+                     //tmpMockNodes = angular.copy(mockNodes.slice(0, 20));
+                     //tmpMockNodes = angular.copy(mockNodes);
+                     //sharedDatamodel.resultNodes.push.apply(sharedDatamodel.resultNodes, tmpMockNodes);
+                     
+                     //sharedDatamodel.analysisNodes.length = 0;
+                     // make a copy -> 2 map instances -> 2 feature instances needed
+                     //tmpMockNodes = angular.copy(mockNodes.slice(5, 15));
+                     //sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, tmpMockNodes);
+                     
+                     //$scope.$broadcast('searchSuccess()');
+                     
+                     // access controller from child scope leaked into parent scope
+                     //$scope.mapController.setNodes(mockNodes.slice(0, 10));
+                     //$scope.listController.setNodes(mockNodes.slice(0, 15));
+                     
+                     
+                     } else {
+                     mockNodes.$promise.then(function (resolvedMockNodes) {
+                     searchController.search(resolvedMockNodes);
+                     });
+                     }*/
+                    // </editor-fold>
                 };
                 // </editor-fold>
 
@@ -315,7 +350,6 @@ angular.module(
                                             $scope.mapWidth = map._container.parentElement.offsetWidth;
                                             //console.log('searchController::stateChangeSuccess new size: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
                                             map.invalidateSize(false);
-
                                         } else {
                                             //console.warn('searchController::stateChangeSuccess saved size: ' + $scope.mapWidth + "x" + $scope.mapHeight);
                                             map.invalidateSize(false);
@@ -326,7 +360,6 @@ angular.module(
                         }
                     }
                 });
-
                 //                var fireResize = function () {
                 //                    //$scope.currentHeight = $window.innerHeight - $scope.navbarHeight;
                 //                    //$scope.currentWidth = $window.innerWidth - ($scope.toolbarShowing ? $scope.toolbarWidth : 0);

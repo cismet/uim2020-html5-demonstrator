@@ -33,7 +33,7 @@ var app = angular.module(
  * This is to prevent accidental instantiation of services before they have been fully configured.
  */
 app.config(
-        [   
+        [
             '$logProvider',
             '$stateProvider',
             '$urlRouterProvider',
@@ -42,7 +42,7 @@ app.config(
 
                 $logProvider.debugEnabled(false);
 
-                var resolveEntity, showEntityModal;
+                var resolveEntity;
                 resolveEntity = function ($stateParams) {
                     console.log("resolve entity " + $stateParams.id + "@" + $stateParams.class);
                     return {
@@ -141,7 +141,7 @@ app.config(
                 //$urlRouterProvider.when('/analysis', '/analysis/map');
                 $urlRouterProvider.otherwise('/search/map');
 
-                
+
 
                 /*$stateProvider.state('login', {
                  url: '/login',
@@ -170,15 +170,15 @@ app.config(
                     },
                     // disables since resolve is called after stateChangeStart event! :-(
                     /*resolve: {
-                        identity: [
-                            'authenticationService',
-                            function resolveIdentity(authenticationService) {
-                                // call get getIdentity() before main state is instantiated
-                                console.log('main::resolveIdentity isAuthenticated: ' + authenticationService.isAuthenticated());
-                                return authenticationService.resolveIdentity();
-                            }
-                        ]
-                    }*/
+                     identity: [
+                     'authenticationService',
+                     function resolveIdentity(authenticationService) {
+                     // call get getIdentity() before main state is instantiated
+                     console.log('main::resolveIdentity isAuthenticated: ' + authenticationService.isAuthenticated());
+                     return authenticationService.resolveIdentity();
+                     }
+                     ]
+                     }*/
                 });
 
                 $stateProvider.state('main.authentication', {
@@ -401,12 +401,14 @@ app.config(
  * This is to prevent further system configuration during application run time.
  */
 app.run(
-        [   '$rootScope',
+        ['$rootScope',
             '$state',
             '$stateParams',
             '$previousState',
+            'configurationService',
             'authenticationService',
-            function ($rootScope, $state, $stateParams, $previousState, authenticationService) {
+            function ($rootScope, $state, $stateParams, $previousState,
+                    configurationService, authenticationService) {
                 'use strict';
                 // It's very handy to add references to $state and $stateParams to the $rootScope
                 // so that you can access them from any scope within your applications.For example,
@@ -419,11 +421,11 @@ app.run(
                 //$rootScope.$on("$stateChangeError", console.log.bind(console));
 
                 // synchonous call. Gets identity from cookie
-                authenticationService.resolveIdentity(false).then(function(){
-                    console.log('app.run:: user autenticated from session cookie:' + 
+                authenticationService.resolveIdentity(false).then(function () {
+                    console.log('app.run:: user autenticated from session cookie:' +
                             authenticationService.isAuthenticated());
                 });
-                
+
                 // FIXME: asynchronous call
                 // Gets identity from cookie and cheks if valid ($http)
                 // result is available after ui-ruoter state change! :(
@@ -438,7 +440,7 @@ app.run(
 //                                        !authenticationService.isAuthenticated()) {
 
 
-                                if (!authenticationService.isAuthenticated()) {
+                                if (!configurationService.developmentMode && !authenticationService.isAuthenticated()) {
                                     console.warn('user not logged in, toState:' + toState.name + ', fromState:' + fromState.name);
                                     event.preventDefault();
                                     $previousState.memo('authentication');
@@ -558,14 +560,12 @@ angular.module(
         ).controller(
         'appController',
         [
-            '$scope',
             '$state',
             '$previousState',
             'configurationService',
             'sharedDatamodel',
             'authenticationService',
             function (
-                    $scope,
                     $state,
                     $previousState,
                     configurationService,
@@ -574,19 +574,9 @@ angular.module(
                     ) {
                 'use strict';
                 var appController;
-
-                $scope.popover = {
-                    "title": "Title",
-                    "content": "Hello Popover<br />This is a multiline message!"
-                };
-
-                $scope.tooltip = {
-                    "title": "Hello Tooltip<br />This is a multiline message!",
-                    "checked": false
-                };
-
                 appController = this;
 
+                appController.status = sharedDatamodel.status;
                 appController.selectedSearchThemes = sharedDatamodel.selectedSearchThemes;
                 appController.selectedSearchPollutants = sharedDatamodel.selectedSearchPollutants;
                 appController.resultNodes = sharedDatamodel.resultNodes;
@@ -640,7 +630,7 @@ angular.module(
                             username,
                             configurationService.authentication.domain,
                             password);
-                            
+
                     authenticatePromise.then(
                             function authenticationSuccess(identity) {
                                 console.log('authenticationController::authenticationSuccess: user "' +
@@ -659,6 +649,14 @@ angular.module(
                         $scope.errorStatusMessage = httpResponse.statusText;
                         $scope.password = null;
 
+                        if ($scope.errorStatusCode === -1) {
+                            $scope.errorStatusCode = 503;
+                        }
+
+                        if (!$scope.errorStatusMessage || $scope.errorStatusMessage === null) {
+                            $scope.errorStatusMessage = 'Verbindung zum Anmeldserver nicht möglich';
+                        }
+
                         console.error('authenticationController::authenticationError: user "' +
                                 username + '" could not be authenticated: ' + $scope.errorStatusMessage);
                     });
@@ -674,6 +672,8 @@ angular.module(
                     $state.go('main.authentication');
                     $previousState.memo('authentication');
                 };
+
+                console.log('authenticationController instance created');
             }
         ]
         );
@@ -1606,7 +1606,7 @@ angular.module(
 
 
 
-/*global angular, L */
+/*global angular, L, Wkt */
 /*jshint sub:true*/
 
 angular.module(
@@ -1763,9 +1763,26 @@ angular.module(
 
                 // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
 
-//                mapController.removeOverlay = function (layer) {
-//
-//                }
+                /**
+                 * Returns the current search location wkt. If no search bbox or polygon
+                 * is drawn, retuns the map bounds as wkt;
+                 * @returns {undefined}
+                 */
+                mapController.getSearchWktString = function () {
+                    var searchGeometryLayer, wkt, wktString;
+                    // bbox available ....
+                    if (searchGeometryLayerGroup.getLayers().length === 1) {
+                        searchGeometryLayer = searchGeometryLayerGroup.getLayers()[0];
+                    } else {
+                        searchGeometryLayer = new L.rectangle(leafletMap.getBounds());
+                    }
+
+                    wkt = new Wkt.Wkt().fromObject(searchGeometryLayer);
+                    wktString = 'SRID=4326;' + wkt.write();
+
+                    return wktString;
+
+                };
 
                 mapController.unSelectOverlayByKey = function (layerKey) {
                     if (layerKey &&
@@ -1977,31 +1994,6 @@ angular.module(
 
                 };
 
-
-                /*mapController.setNodes = function (nodes) {
-                 if (mapController.mode === 'search') {
-                 var layerGroups, theme, featureLayer;
-                 if (nodes !== null && nodes.length > 0) {
-                 layerGroups = featureRendererService.createNodeFeatureLayers(nodes);
-                 for (theme in layerGroups) {
-                 console.log(mapId + '::setResultNodes for ' + theme);
-                 featureLayer = layerGroups[theme];
-                 // FIXME: clear layers before adding
-                 // FIXME: setVisible to true adds duplicate layers ?!!!!!
-                 layerControl.addOverlay(
-                 featureLayer,
-                 featureLayer.$name, {
-                 groupName: "Themen"
-                 });
-                 }
-                 
-                 //mapController.nodes = nodes;
-                 }
-                 } else {
-                 console.warn("mapController:: cannot setNodes on analysis map!");
-                 }
-                 };*/
-
                 mapController.setGazetteerLocation = function (gazetteerLocation) {
                     if (mapController.mode === 'search') {
                         console.log('mapController::setGazetteerLocation: ' + gazetteerLocation.name);
@@ -2058,42 +2050,87 @@ angular.module(
 
                 //</editor-fold>
 
-                $scope.$on('gotoLocation()', function (e) {
+                $scope.$on('gotoLocation()', function (event) {
                     if (mapController.mode === 'search') {
                         console.log('mapController::gotoLocation(' + sharedDatamodel.selectedGazetteerLocation.name + ')');
                         mapController.setGazetteerLocation(sharedDatamodel.selectedGazetteerLocation);
                     }
                 });
 
-                $scope.$on('searchSuccess()', function (e) {
-                    console.log(mapId + '::searchSuccess()');
-                    if (mapController.mode === 'search' && sharedDatamodel.resultNodes.length > 0) {
-                        mapController.setNodes(sharedDatamodel.resultNodes);
+                $scope.$on('searchSuccess()', function (event) {
+                    //console.log(mapId + '::searchSuccess()');
+                    if (mapController.mode === 'search') {
+                        setSearchGeometry(null);
+                        if (sharedDatamodel.resultNodes.length > 0) {
+                            mapController.setNodes(sharedDatamodel.resultNodes);
+                        } else {
+                            mapController.clearNodes();
+                        }
                     } /*else if (mapController.mode === 'analysis' && sharedDatamodel.analysisNodes.length > 0) {
                      mapController.setNodes(sharedDatamodel.analysisNodes);
                      }*/
                 });
 
-                $scope.$watch(function () {
-                    // Return the "result" of the watch expression.
-                    return(mapController.zoom);
-                }, function (newZoom, oldZoom) {
-                    //console.log('newZoom:' + newZoom + " = this.zoom:" + mapController.zoom);
-                    if (mapController.zoom && newZoom !== oldZoom) {
-                        /*$state.go('main.' + $scope.mainController.mode + '.map', {'zoom': mapController.zoom},
-                         {'inherit': true, 'notify': false, 'reload': false}).then(
-                         function (state)
-                         {
-                         console.log(state);
-                         });*/
-                    } /*else {
-                     console.log('oldZoom:' + oldZoom + " = this.zoom:" + mapController.zoom);
-                     $state.go('main.analysis.map', {'zoom': undefined},
-                     {'inherit': true, 'notify': false, 'reload': false}).then(function (state) {
-                     console.log(state);
-                     });
-                     }*/
+                $scope.$on('searchError()', function (event) {
+                    if (mapController.mode === 'search') {
+                        setSearchGeometry(null);
+                        mapController.clearNodes();
+                    }
                 });
+
+                $scope.$on('setSearchLocation()', function (event) {
+                    if (mapController.mode === 'search' &&
+                            sharedDatamodel.selectedSearchLocation.id === 0) {
+                        setSearchGeometry(null);
+                    }
+                });
+
+                // <editor-fold defaultstate="collapsed" desc="=== DISABLED               ===========================">
+                /*$scope.$watch(function () {
+                 // Return the "result" of the watch expression.
+                 return(mapController.zoom);
+                 }, function (newZoom, oldZoom) {
+                 //console.log('newZoom:' + newZoom + " = this.zoom:" + mapController.zoom);
+                 if (mapController.zoom && newZoom !== oldZoom) {
+                 $state.go('main.' + $scope.mainController.mode + '.map', {'zoom': mapController.zoom},
+                 {'inherit': true, 'notify': false, 'reload': false}).then(
+                 function (state)
+                 {
+                 console.log(state);
+                 });
+                 } else {
+                 console.log('oldZoom:' + oldZoom + " = this.zoom:" + mapController.zoom);
+                 $state.go('main.analysis.map', {'zoom': undefined},
+                 {'inherit': true, 'notify': false, 'reload': false}).then(function (state) {
+                 console.log(state);
+                 });
+                 }
+                 });*/
+
+                /*mapController.setNodes = function (nodes) {
+                 if (mapController.mode === 'search') {
+                 var layerGroups, theme, featureLayer;
+                 if (nodes !== null && nodes.length > 0) {
+                 layerGroups = featureRendererService.createNodeFeatureLayers(nodes);
+                 for (theme in layerGroups) {
+                 console.log(mapId + '::setResultNodes for ' + theme);
+                 featureLayer = layerGroups[theme];
+                 // FIXME: clear layers before adding
+                 // FIXME: setVisible to true adds duplicate layers ?!!!!!
+                 layerControl.addOverlay(
+                 featureLayer,
+                 featureLayer.$name, {
+                 groupName: "Themen"
+                 });
+                 }
+                 
+                 //mapController.nodes = nodes;
+                 }
+                 } else {
+                 console.warn("mapController:: cannot setNodes on analysis map!");
+                 }
+                 };*/
+                //</editor-fold>
 
                 // add all to map
                 leafletData.getMap(mapId).then(function (map) {
@@ -2108,10 +2145,13 @@ angular.module(
 
                         map.on('draw:created', function (event) {
                             setSearchGeometry(event.layer, event.layerType);
+                            // this is madness!
+                            sharedDatamodel.selectedSearchLocation.id = 1;
                         });
 
                         map.on('draw:deleted', function (event) {
                             setSearchGeometry(null);
+                            sharedDatamodel.selectedSearchLocation.id = 0;
                         });
                     }
 
@@ -2173,28 +2213,27 @@ angular.module(
  * ***************************************************
  */
 
-/*global angular*/
+/*global angular,Wkt*/
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'searchController',
         [
-            '$window', '$timeout', '$scope', '$state', 'leafletData',
-            'configurationService', 'sharedDatamodel', 'dataService',
-            function ($window, $timeout, $scope, $state, leafletData,
-                    configurationService, sharedDatamodel, dataService) {
+            '$rootScope', '$window', '$timeout', '$scope', '$state', '$uibModal', 'leafletData',
+            'configurationService', 'sharedDatamodel', 'sharedControllers', 'dataService', 'searchService',
+            function ($rootScope, $window, $timeout, $scope, $state, $uibModal, leafletData,
+                    configurationService, sharedDatamodel, sharedControllers, dataService, searchService) {
                 'use strict';
-
-                var searchController;
+                var searchController, searchProcessCallback, showProgress, progressModal;
                 searchController = this;
                 // set default mode according to default route in app.js 
                 searchController.mode = 'map';
-
+                searchController.status = sharedDatamodel.status;
                 // === Configurations ==========================================
                 // <editor-fold defaultstate="collapsed" desc="   - Search Locations Selection Box Configuration">
                 // TODO: add coordinates to selectedSearchLocation on selection!
                 searchController.searchLocations = dataService.getSearchLocations();
-                sharedDatamodel.selectedSearchLocation = angular.copy(searchController.searchLocations[0]);
+                //sharedDatamodel.selectedSearchLocation = 0; //angular.copy(searchController.searchLocations[0]);
                 searchController.selectedSearchLocation = sharedDatamodel.selectedSearchLocation;
                 searchController.searchLocationsSettings = angular.extend(
                         {},
@@ -2209,8 +2248,16 @@ angular.module(
                             enableSearch: false,
                             smartButtonMaxItems: 1,
                             selectionLimit: 1, // -> the selection model will contain a single object instead of array. 
-                            externalIdProp: '' // -> Full Object as model
+                            externalIdProp: 'id' // -> Full Object as model
                         });
+                searchController.selectedSearchLocationEvents = {
+                    onItemSelect: function (selectedSearchLocation) {
+                        // Gesamter Kartenausschnitt
+                        if (selectedSearchLocation.id === 0) {
+                            $scope.$broadcast('setSearchLocation()');
+                        }
+                    }
+                };
                 // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="   - Search Themes Selection Box Configuration">
                 searchController.searchThemes = dataService.getSearchThemes();
@@ -2219,6 +2266,7 @@ angular.module(
                         {},
                         configurationService.multiselect.settings, {
                             smartButtonMaxItems: 0,
+                            idProp: 'className',
                             smartButtonTextConverter: function (itemText, originalItem) {
                                 return searchController.selectedSearchThemes.length === 1 ?
                                         '1 Thema ausgewählt' : '';
@@ -2301,7 +2349,77 @@ angular.module(
                             buttonDefaultText: 'Ort auswählen'
                         });
                 // </editor-fold>
-                
+                // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ====================================">
+
+                showProgress = function () {
+                    var modalScope;
+                    //console.log('searchController::showProgress()');
+                    modalScope = $rootScope.$new(true);
+                    modalScope.status = searchController.status;
+                    progressModal = $uibModal.open({
+                        templateUrl: 'templates/search-progress-modal.html',
+                        scope: modalScope,
+                        size: 'lg',
+                        backdrop: 'static'/*,
+                         resolve: {searchController:searchController}*/
+                    });
+                    // check if the eror occurred before the dialog has actually been shown
+                    progressModal.opened.then(function () {
+                        if (searchController.status.type === 'error') {
+                            progressModal.close();
+                        }
+                    });
+                };
+                searchProcessCallback = function (current, max, type) {
+                    //console.log('searchProcess: type=' + type + ', current=' + current + ", max=" + max)
+                    // the maximum object count
+                    searchController.status.progress.max = 100;
+                    // the scaled progress: 0 <fake progress> 100 <real progress> 200
+                    // searchController.searchStatus.current = ...
+
+                    // start of search (indeterminate)
+                    if (max === -1 && type === 'success') {
+                        // count up fake progress to 100
+                        searchController.status.progress.current = current;
+                        if (current < 95) {
+                            searchController.status.message = 'Die Suche im UIM2020-DI Indexdatenbestand wird durchgeführt';
+                            searchController.status.type = 'success';
+                        } else {
+                            searchController.status.message = 'Die UIM2020-DI Server sind z.Z. ausgelastet, bitte warten Sie einen Augenblick.';
+                            searchController.status.type = 'warning';
+                        }
+
+                        // search completed
+                    } else if (current === max && type === 'success') {
+                        if (current > 0) {
+                            searchController.status.progress.current = 100;
+                            searchController.status.message = 'Suche erfolgreich, ' +
+                                    (current === 1 ? 'eine Messstelle' : (current + ' Messstellen')) + ' im UIM2020-DI Indexdatenbestand gefunden.';
+                            searchController.status.type = 'success';
+                        } else {
+                            // feature request #59
+                            searchController.status.progress.current = 100;
+                            searchController.status.message = 'Es wurden keine zu den Suchkriterien passenden Messstellen im UIM2020-DI Indexdatenbestand gefunden';
+                            searchController.status.type = 'warning';
+                        }
+
+                        if (progressModal) {
+                            // wait 1/2 sec before closing to allow the progressbar to advance to 100% (see #59)
+                            $timeout(function () {
+                                progressModal.close();
+                            }, 500);
+                        }
+                        // search error ...
+                    } else if (type === 'error') {
+                        searchController.status.progress.current = 100;
+                        searchController.status.message = 'Die Suche konnte aufgrund eines Server-Fehlers nicht durchgeführt werden.';
+                        searchController.status.type = 'danger';
+                        $timeout(function () {
+                            progressModal.close(searchController.status.message);
+                        }, 2000);
+                    }
+                };
+                // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
                 searchController.gotoLocation = function () {
                     // TODO: check if paramters are selected ...
@@ -2314,39 +2432,108 @@ angular.module(
 
                     $scope.$broadcast('gotoLocation()');
                 };
-
                 // FIXME: implement Mock Function
-                searchController.search = function (mockNodes) {
-                    if (!mockNodes) {
-                        mockNodes = dataService.getMockNodes();
-                    }
+                searchController.search = function (/*mockNodes*/) {
+                    var geometry, themes, pollutants, limit, offset;
 
-                    if (mockNodes.$resolved) {
-                        var tmpMockNodes;
+                    geometry = sharedControllers.searchMapController.getSearchWktString();
+                    themes = [];
+                    pollutants = [];
+                    limit = 500;
+                    offset = 0;
 
-                        sharedDatamodel.resultNodes.length = 0;
-                        // must use push() or the referenc ein other controllers is destroyed!
-                        //tmpMockNodes = angular.copy(mockNodes.slice(0, 20));
-                        tmpMockNodes = angular.copy(mockNodes);
-                        sharedDatamodel.resultNodes.push.apply(sharedDatamodel.resultNodes, tmpMockNodes);
+                    sharedDatamodel.selectedSearchThemes.forEach(function (theme) {
+                        themes.push(theme.id);
+                    });
 
-                        sharedDatamodel.analysisNodes.length = 0;
-                        // make a copy -> 2 map instances -> 2 feature instances needed
-                        //tmpMockNodes = angular.copy(mockNodes.slice(5, 15));
-                        //sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, tmpMockNodes);
+                    sharedDatamodel.selectedSearchPollutants.forEach(function (pollutant) {
+                        pollutants.push(pollutant.id);
+                    });
 
-                        $scope.$broadcast('searchSuccess()');
+                    searchService.defaultSearch(
+                            geometry,
+                            themes,
+                            pollutants,
+                            limit,
+                            offset,
+                            searchProcessCallback).$promise.then(
+                            function (searchResult)
+                            {
+                                sharedDatamodel.resultNodes.length = 0;
+                                if (searchResult.$collection && searchResult.$collection.length > 0) {
+                                    //console.log(success);
+                                    /**
+                                     * The .push method can take multiple arguments, so by using 
+                                     * .apply to pass all the elements of the second array as 
+                                     * arguments to .push, you can get the result you want because
+                                     * resultNodes.push(searchResult.$collection) would push the 
+                                     * array object, not its elements!!!
+                                     */
+                                    sharedDatamodel.resultNodes.push.apply(
+                                            sharedDatamodel.resultNodes, searchResult.$collection);
+                                }
 
-                        // access controller from child scope leaked into parent scope
-                        //$scope.mapController.setNodes(mockNodes.slice(0, 10));
-                        //$scope.listController.setNodes(mockNodes.slice(0, 15));
+                                $scope.$broadcast('searchSuccess()');
+                            },
+                            function (searchError) {
+                                //console.log(searchError);
+                                sharedDatamodel.resultNodes.length = 0;
+                                $scope.$broadcast('searchError()');
+                            });
 
-
-                    } else {
-                        mockNodes.$promise.then(function (resolvedMockNodes) {
-                            searchController.search(resolvedMockNodes);
-                        });
-                    }
+                    // <editor-fold defaultstate="collapsed" desc="[!!!!] DISABLED MOCK DATA ----------------">        
+                    /*                     
+                     if (mockNodes.$resolved) {
+                     showProgress();
+                     searchService.defaultSearch(
+                     geometry,
+                     themes,
+                     pollutants,
+                     limit,
+                     offset,
+                     searchProcessCallback).$promise.then(
+                     function (searchResult)
+                     {
+                     sharedDatamodel.resultNodes.length = 0;
+                     if (searchResult.$collection && searchResult.$collection.length > 0) {
+                     //console.log(success);
+                     sharedDatamodel.resultNodes.push.apply(
+                     sharedDatamodel.resultNodes, searchResult.$collection);
+                     }
+                     
+                     $scope.$broadcast('searchSuccess()');
+                     },
+                     function (searchError) {
+                     //console.log(searchError);
+                     sharedDatamodel.resultNodes.length = 0;
+                     $scope.$broadcast('searchError()');
+                     });
+                     //var tmpMockNodes;
+                     
+                     //sharedDatamodel.resultNodes.length = 0;
+                     // must use push() or the reference in other controllers is destroyed!
+                     //tmpMockNodes = angular.copy(mockNodes.slice(0, 20));
+                     //tmpMockNodes = angular.copy(mockNodes);
+                     //sharedDatamodel.resultNodes.push.apply(sharedDatamodel.resultNodes, tmpMockNodes);
+                     
+                     //sharedDatamodel.analysisNodes.length = 0;
+                     // make a copy -> 2 map instances -> 2 feature instances needed
+                     //tmpMockNodes = angular.copy(mockNodes.slice(5, 15));
+                     //sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, tmpMockNodes);
+                     
+                     //$scope.$broadcast('searchSuccess()');
+                     
+                     // access controller from child scope leaked into parent scope
+                     //$scope.mapController.setNodes(mockNodes.slice(0, 10));
+                     //$scope.listController.setNodes(mockNodes.slice(0, 15));
+                     
+                     
+                     } else {
+                     mockNodes.$promise.then(function (resolvedMockNodes) {
+                     searchController.search(resolvedMockNodes);
+                     });
+                     }*/
+                    // </editor-fold>
                 };
                 // </editor-fold>
 
@@ -2368,7 +2555,6 @@ angular.module(
                                             $scope.mapWidth = map._container.parentElement.offsetWidth;
                                             //console.log('searchController::stateChangeSuccess new size: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
                                             map.invalidateSize(false);
-
                                         } else {
                                             //console.warn('searchController::stateChangeSuccess saved size: ' + $scope.mapWidth + "x" + $scope.mapHeight);
                                             map.invalidateSize(false);
@@ -2379,7 +2565,6 @@ angular.module(
                         }
                     }
                 });
-
                 //                var fireResize = function () {
                 //                    //$scope.currentHeight = $window.innerHeight - $scope.navbarHeight;
                 //                    //$scope.currentWidth = $window.innerWidth - ($scope.toolbarShowing ? $scope.toolbarWidth : 0);
@@ -2397,7 +2582,7 @@ angular.module(
                 //                angular.element($window).bind('resize', function () {
                 //                    fireResize(false);
                 //                });
-                
+
                 console.log('searchController instance created');
             }
         ]
@@ -2807,17 +2992,23 @@ angular.module(
                         overlayLayers, overlays;
 
                 configurationService = this;
+                
+                configurationService.developmentMode = true;
+                
+                configurationService.cidsRestApi = {};
+                configurationService.cidsRestApi.host = 'http://localhost:8890';
+                configurationService.cidsRestApi.domain = 'UDM2020-DI';
+                configurationService.cidsRestApi.defaultRestApiSearch = 'de.cismet.cids.custom.udm2020di.serversearch.DefaultRestApiSearch';
+                //configurationService.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
+                //configurationService.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
 
                 configurationService.authentication = {};
-                configurationService.authentication.domain = 'UDM2020-DI';
+                configurationService.authentication.domain = configurationService.cidsRestApi.domain;
                 configurationService.authentication.username = 'uba';
                 configurationService.authentication.password = '';
                 configurationService.authentication.cookie = 'de.cismet.uim2020-html5-demonstrator.identity';
 
-                configurationService.cidsRestApi = {};
-                configurationService.cidsRestApi.host = 'http://localhost:8890';
-                //configurationService.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
-                //configurationService.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
+                
 
                 configurationService.searchService = {};
                 configurationService.searchService.defautLimit = 10;
@@ -3114,7 +3305,7 @@ angular.module(
                 configurationService.multiselect.settings = {
                     styleActive: true,
                     displayProp: 'name',
-                    idProp: 'classId',
+                    idProp: 'id',
                     buttonClasses: 'btn btn-default navbar-btn cs-search-multiselect'
                 };
                 configurationService.multiselect.translationTexts = {
@@ -3159,7 +3350,8 @@ angular.module(
                     }, {
                         name: 'Boundingbox Auswahl',
                         id: 1,
-                        geometry: null
+                        geometry: null,
+                        disabled: true
                     }
                 ];
 
@@ -3263,6 +3455,47 @@ angular.module(
  * ***************************************************
  */
 
+/*global angular*/
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.services'
+        ).factory('entitiyService',
+        ['$resource', '$q', '$interval', 'configurationService', 'authenticationService',
+            function ($resource, $q, $interval, configurationService, authenticationService) {
+                'use strict';
+
+                var cidsRestApiConfig, entityResource;
+
+                cidsRestApiConfig = configurationService.cidsRestApi;
+
+                entityResource = $resource(
+                        cidsRestApiConfig.host + '/' + cidsRestApiConfig.domain + '.:classname/:objId',
+                        {
+                            omitNullValues: true,
+                            deduplicate: true
+                        },
+                        {
+                            get: {
+                                method: 'GET',
+                                isArray: false,
+                                headers: {
+                                    'Authorization': authenticationService.getAuthorizationToken()
+                                }
+                            }
+                        }
+                );
+            }]
+        );
+
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
 /*global angular, L, Wkt */
 
 angular.module(
@@ -3289,11 +3522,11 @@ angular.module(
                  * @returns {featureRendererService_L18.createNodeFeature.feature}
                  */
                 createNodeFeature = function (node, theme) {
-                    if (node.hasOwnProperty('geometry')) {
+                    if (node.hasOwnProperty('cachedGeometry')) {
                         var wktString, wktObject, feature, icon;
 
                         icon = config.icons[theme];
-                        wktString = node.geometry;
+                        wktString = node.cachedGeometry;
                         wktObject = new Wkt.Wkt();
                         wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
 
@@ -3762,6 +3995,186 @@ angular.module(
 /*global angular*/
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.services'
+        ).factory('searchService',
+        ['$resource', '$q', '$interval', 'configurationService', 'authenticationService',
+            function ($resource, $q, $interval, configurationService, authenticationService) {
+                'use strict';
+
+                var cidsRestApiConfig, defaultSearchFunction;
+                cidsRestApiConfig = configurationService.cidsRestApi;
+
+                /**
+                 * Default Search Function exposed by the Service.
+                 * 
+                 * @param {type} geometry
+                 * @param {type} themes
+                 * @param {type} pollutants
+                 * @param {type} limit
+                 * @param {type} offset
+                 * @param {type} progressCallback
+                 * @returns {undefined}
+                 */
+                defaultSearchFunction = function (
+                        geometry,
+                        themes,
+                        pollutants,
+                        limit,
+                        offset,
+                        progressCallback) {
+                    var deferred, noop, queryObject, defaultSearchResult, defaultRestApiSearch,
+                            defaultRestApiSearchResult, timer, fakeProgress;
+
+                    //console.log('searchService::defaultSearchFunction()');
+
+                    // FIXME: get rid of this noop stuff -> makes code unreadable
+                    noop = angular.noop;
+                    // current value, max value, type, max = -1 indicates indeterminate
+                    (progressCallback || noop)(0, -1, 'success');
+                    fakeProgress = 1;
+                    timer = $interval(function () {
+                        (progressCallback || noop)(fakeProgress, -1, 'success');
+                        fakeProgress++;
+                    }, 100, 100);
+
+                    deferred = $q.defer();
+
+                    queryObject = {
+                        'list': [
+                            {'key': 'geometry', 'value': geometry},
+                            {'key': 'themes', 'value': themes},
+                            {'key': 'pollutants', 'value': pollutants}
+                        ]
+                    };
+
+                    if (offset && limit && limit > 0 && offset > 0 && (offset % limit !== 0)) {
+                        offset = 0;
+                    }
+
+                    // result of this search operation set a new promise 
+                    defaultSearchResult = {
+                        $promise: deferred.promise,
+                        $resolved: false,
+                        $offset: offset,
+                        $limit: limit,
+                        $length: 0
+                    };
+
+                    // remote legagy search core search
+                    // FIXME: limit and offset not implemented in legacy search!
+                    // currently, limit and offset are appended to the POST query parameter!
+                    defaultRestApiSearch = $resource(cidsRestApiConfig.host +
+                            '/searches/' + cidsRestApiConfig.domain + '.' + cidsRestApiConfig.defaultRestApiSearch + '/results',
+                            {
+                                limit: 100,
+                                offset: 0,
+                                omitNullValues: true,
+                                deduplicate: true
+                            }, {
+                        search: {
+                            method: 'POST',
+                            params: {
+                                limit: '@limit',
+                                offset: '@offset'
+                            },
+                            isArray: false,
+                            headers: {
+                                'Authorization': authenticationService.getAuthorizationToken()
+                            }
+                        }
+                    });
+
+                    // result of the remote search operation (promise)
+                    // starting the search!
+                    // FIXME:   limit an offset GET parameters currently not evaluated 
+                    //          by the leagcy service. There we have to add them also
+                    //          to the queryObject.
+                    defaultRestApiSearchResult = defaultRestApiSearch.search({
+                        limit: limit,
+                        offset: offset},
+                            queryObject
+                            );
+
+                    defaultRestApiSearchResult.$promise.then(
+                            function success(searchResult) {
+                                //console.log('searchService::defaultSearchFunction()->success()');
+                                var key, i, length, curentNode, dataObject, className;
+                                // doing the same as ngResource: copying the results in the already returned obj (shallow)
+                                for (key in searchResult) {
+                                    if (searchResult.hasOwnProperty(key) &&
+                                            !(key.charAt(0) === '$' && key.charAt(1) === '$')) {
+
+                                        defaultSearchResult[key] = searchResult[key];
+                                        if (key === '$collection' && angular.isArray(defaultSearchResult.$collection)) {
+                                            length = defaultSearchResult.$collection.length;
+                                            for (i = 0; i < length; i++) {
+                                                curentNode = defaultSearchResult.$collection[i];
+                                                if (curentNode.lightweightJson) {
+
+                                                    try {
+                                                        dataObject = angular.fromJson(curentNode.lightweightJson);
+                                                        curentNode.$data = dataObject;
+                                                        delete defaultSearchResult.$collection[i].lightweightJson;
+                                                        
+                                                        className = curentNode.classKey.split(".").slice(1, 2).pop();
+
+                                                        curentNode.className = dataObject.className ?
+                                                                dataObject.className : className;
+                                                         
+                                                        if(configurationService.featureRenderer.icons[className]) {
+                                                            curentNode.$icon = configurationService.featureRenderer.icons[className].iconUrl; 
+                                                        }
+                                                    } catch (err) {
+                                                        console.error(err.message);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                defaultSearchResult.$length = searchResult.$collection ? searchResult.$collection.length : 0;
+                                if (!defaultSearchResult.$total || defaultSearchResult.$total === 0) {
+                                    defaultSearchResult.$total = defaultSearchResult.length;
+                                }
+
+                                deferred.resolve(defaultSearchResult);
+
+                                $interval.cancel(timer);
+
+                                // set current AND max to node count -> signalise search completed
+                                (progressCallback || noop)(defaultSearchResult.$length, defaultSearchResult.$length, 'success');
+                            }, function error(searchError) {
+                        console.log('searchService::defaultSearchFunction()->error()');
+                        defaultSearchResult.$error = 'cannot search for resources';
+                        defaultSearchResult.$response = searchError;
+                        defaultSearchResult.$resolved = true;
+                        deferred.reject(defaultSearchResult);
+                        $interval.cancel(timer);
+                        (progressCallback || noop)(1, 1, 'error');
+                    });
+
+                    return defaultSearchResult;
+                };
+
+                return {
+                    defaultSearch: defaultSearchFunction
+                };
+            }]
+        );
+
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+/*global angular*/
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.services'
         ).service('sharedControllers',
         [function () {
                 'use strict';
@@ -3799,8 +4212,10 @@ angular.module(
                 this.selectedSearchThemes = [];
                 this.selectedSearchPollutants = [];
                 this.selectedGazetteerLocation = {};
-                this.selectedSearchGeometry = {};
-                this.selectedSearchLocation = {};
+                //this.selectedSearchGeometry = {};
+                this.selectedSearchLocation = {
+                    id:0
+                };
 
                 // search results
                 this.resultNodes = [];
@@ -3810,4 +4225,11 @@ angular.module(
                 this.selectedGlobalDatasources = [];
                 this.localDatasources = [];
                 this.selectedLocalDatasources = [];
+                
+                this.status = {};
+                this.status.type = 'success';
+                this.status.message = 'UIM-2020 Demonstrator Datenintegration';
+                this.status.progress = {};
+                this.status.progress.current = 0;
+                this.status.progress.max = 0;  
             }]);

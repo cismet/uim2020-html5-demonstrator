@@ -1,4 +1,4 @@
-/*global angular, L */
+/*global angular, L, Wkt */
 /*jshint sub:true*/
 
 angular.module(
@@ -154,6 +154,28 @@ angular.module(
 
 
                 // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
+
+                /**
+                 * Returns the current search location wkt. If no search bbox or polygon
+                 * is drawn, retuns the map bounds as wkt;
+                 * @returns {undefined}
+                 */
+                mapController.getSearchWktString = function () {
+                    var searchGeometryLayer, wkt, wktString;
+                    // bbox available ....
+                    if (searchGeometryLayerGroup.getLayers().length === 1) {
+                        searchGeometryLayer = searchGeometryLayerGroup.getLayers()[0];
+                    } else {
+                        searchGeometryLayer = new L.rectangle(leafletMap.getBounds());
+                    }
+
+                    wkt = new Wkt.Wkt().fromObject(searchGeometryLayer);
+                    wktString = 'SRID=4326;' + wkt.write();
+
+                    return wktString;
+
+                };
+
                 mapController.unSelectOverlayByKey = function (layerKey) {
                     if (layerKey &&
                             layerControlMappings[layerKey] &&
@@ -447,9 +469,9 @@ angular.module(
                         mapController.clearNodes();
                     }
                 });
-                
+
                 $scope.$on('setSearchLocation()', function (event) {
-                    if (mapController.mode === 'search' && 
+                    if (mapController.mode === 'search' &&
                             sharedDatamodel.selectedSearchLocation.id === 0) {
                         setSearchGeometry(null);
                     }

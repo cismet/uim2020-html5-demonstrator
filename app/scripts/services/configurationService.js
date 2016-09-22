@@ -29,7 +29,7 @@ angular.module(
                 configurationService.cidsRestApi = {};
                 configurationService.cidsRestApi.host = 'http://localhost:8890';
                 configurationService.cidsRestApi.domain = 'UDM2020-DI';
-                configurationService.cidsRestApi.defaultRestApiSearch = 'de.cismet.cids.custom.udm2020di.serversearch.DefaultRestApiSearch'
+                configurationService.cidsRestApi.defaultRestApiSearch = 'de.cismet.cids.custom.udm2020di.serversearch.DefaultRestApiSearch';
                 //configurationService.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
                 //configurationService.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
 
@@ -336,7 +336,7 @@ angular.module(
                 configurationService.multiselect.settings = {
                     styleActive: true,
                     displayProp: 'name',
-                    idProp: 'classId',
+                    idProp: 'id',
                     buttonClasses: 'btn btn-default navbar-btn cs-search-multiselect'
                 };
                 configurationService.multiselect.translationTexts = {
