@@ -170,10 +170,7 @@ angular.module(
                     }
 
                     wkt = new Wkt.Wkt().fromObject(searchGeometryLayer);
-                    wktString = 'SRID=4326;' + wkt.write();
-
-                    return wktString;
-
+                    return wkt.write();
                 };
 
                 mapController.unSelectOverlayByKey = function (layerKey) {
@@ -466,6 +463,7 @@ angular.module(
                 $scope.$on('searchError()', function (event) {
                     if (mapController.mode === 'search') {
                         setSearchGeometry(null);
+                        sharedDatamodel.selectedSearchLocation.id = 0;
                         mapController.clearNodes();
                     }
                 });
@@ -474,6 +472,7 @@ angular.module(
                     if (mapController.mode === 'search' &&
                             sharedDatamodel.selectedSearchLocation.id === 0) {
                         setSearchGeometry(null);
+                        sharedDatamodel.selectedSearchLocation.id = 0;
                     }
                 });
 

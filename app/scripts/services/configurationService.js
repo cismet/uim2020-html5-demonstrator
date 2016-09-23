@@ -51,7 +51,7 @@ angular.module(
 
                 configurationService.map.options = {};
                 configurationService.map.options.centerOnSearchGeometry = true;
-                configurationService.map.options.preserveZoomOnCenter = true;
+                configurationService.map.options.preserveZoomOnCenter = false;
 
                 configurationService.map.home = {};
                 configurationService.map.home.lat = 47.61;

@@ -57,10 +57,10 @@
 
             <button type="submit" 
                     class="btn btn-success navbar-btn cs-toolbar-form-action"
+                    ng-disabled="(searchController.selectedSearchThemes.length === 0 || searchController.selectedSearchPollutants.length === 0)"
                     ng-click="searchController.search()">
                 <span class="fa fa-search"></span>
             </button>
-            <!-- ng-disabled="(searchController.selectedSearchThemes.length === 0 || searchController.selectedSearchPollutants.length === 0)" -->
         </form>
 
         <!-- Gazzetteer  -->
