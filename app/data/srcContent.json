@@ -1,0 +1,197 @@
+{
+    "pk": "2000110",
+    "standortbezeichnung": null,
+    "standortnummer": "69",
+    "hochwert": 294545.0,
+    "institut": "Umweltbundesamt Wien",
+    "literatur": "Schwermetalle in Böden im Raum Arnoldstein.",
+    "rechtswert": 427727.0,
+    "standortparameter": [{
+            "pk": "S129",
+            "name": "Auflösung des digitalen GM bei d. Berechnung der Seehöhe",
+            "wert": null
+        }, {
+            "pk": "S226",
+            "name": "Entfernung zum Hauptemittenten (m)",
+            "wert": null
+        }, {
+            "pk": "S112",
+            "name": "Gemeinde- und Bezirkkennziffer",
+            "wert": "20702"
+        }, {
+            "pk": "S223",
+            "name": "Haupt-Emittent",
+            "wert": "6"
+        }, {
+            "pk": "S224",
+            "name": "Haupt-Emittent-Text",
+            "wert": "Bleiberger Bergwerksunion (BBU)"
+        }, {
+            "pk": "S178",
+            "name": "Landnutzung",
+            "wert": "620"
+        }, {
+            "pk": "S115",
+            "name": "Nummer der Katastralgemeinde",
+            "wert": "75402"
+        }, {
+            "pk": "S105",
+            "name": "Originalstandortnummer",
+            "wert": "69"
+        }, {
+            "pk": "S109",
+            "name": "Probepunktverteilung",
+            "wert": "20"
+        }, {
+            "pk": "S113",
+            "name": "Quelle der Gemeindekennziffer",
+            "wert": "1"
+        }, {
+            "pk": "S144",
+            "name": "Quelle der Katastralgemeindenummer",
+            "wert": "2"
+        }, {
+            "pk": "S122",
+            "name": "Quelle der Lagekoordinaten",
+            "wert": "12"
+        }, {
+            "pk": "S128",
+            "name": "Quelle der Seehöhe",
+            "wert": "6"
+        }, {
+            "pk": "S125",
+            "name": "Quelle von Rechtswert und Hochwert (Lambert)",
+            "wert": "1"
+        }, {
+            "pk": "S106",
+            "name": "Untersuchungstyp - Zeitlicher Rahmen",
+            "wert": "10"
+        }, {
+            "pk": "S108",
+            "name": "Untersuchungstyp-Ausdehnung",
+            "wert": "30"
+        }, {
+            "pk": "S107",
+            "name": "Untersuchungstyp-Belastungsintensität",
+            "wert": "91"
+        }],
+    "probenparameter": [{
+            "parameterpk": "BCD1",
+            "parametergruppepk": "B30000",
+            "parametername": "Cd [mg/kg]",
+            "parametergruppename": "Metalle, Schwermetalle",
+            "parametereinheit": "mg/kg"
+        }, {
+            "parameterpk": "BCU1",
+            "parametergruppepk": "B30000",
+            "parametername": "Cu [mg/kg]",
+            "parametergruppename": "Metalle, Schwermetalle",
+            "parametereinheit": "mg/kg"
+        }, {
+            "parameterpk": "BPB1",
+            "parametergruppepk": "B30000",
+            "parametername": "Pb [mg/kg]",
+            "parametergruppename": "Metalle, Schwermetalle",
+            "parametereinheit": "mg/kg"
+        }, {
+            "parameterpk": "B102",
+            "parametergruppepk": "B10000",
+            "parametername": "TC %",
+            "parametergruppename": "Allgemeine Bodenkennwerte und Nährstoffzustand",
+            "parametereinheit": null
+        }, {
+            "parameterpk": "BZN1",
+            "parametergruppepk": "B30000",
+            "parametername": "Zn [mg/kg]",
+            "parametergruppename": "Metalle, Schwermetalle",
+            "parametereinheit": "mg/kg"
+        }, {
+            "parameterpk": "B105",
+            "parametergruppepk": "B10000",
+            "parametername": "pH-Wert",
+            "parametergruppename": "Allgemeine Bodenkennwerte und Nährstoffzustand",
+            "parametereinheit": null
+        }],
+    "tags": [{
+            "id": 137,
+            "key": "Cd",
+            "name": "Cadmium",
+            "description": "Cadmium und Verbindungen (Cd)",
+            "taggroupid": 2,
+            "taggroupkey": "POLLUTANT"
+        }, {
+            "id": 147,
+            "key": "Cu",
+            "name": "Kupfer",
+            "description": "Kupfer und Verbindungen (Cu)",
+            "taggroupid": 2,
+            "taggroupkey": "POLLUTANT"
+        }, {
+            "id": 211,
+            "key": "Pb",
+            "name": "Blei",
+            "description": "Blei und Verbindungen (Pb)",
+            "taggroupid": 2,
+            "taggroupkey": "POLLUTANT"
+        }, {
+            "id": 240,
+            "key": "Zn",
+            "name": "Zink",
+            "description": "Zink und Verbindungen (Zn)",
+            "taggroupid": 2,
+            "taggroupkey": "POLLUTANT"
+        }, {
+            "id": 182,
+            "key": "MET",
+            "name": "Metalle und Schwermetalle",
+            "description": "Metalle und Schwermetalle",
+            "taggroupid": 1,
+            "taggroupkey": "POLLUTANTGROUP"
+        }],
+    "proben": ["2911000068"],
+    "aggregationvalues": [{
+            "name": "Cd [mg/kg]",
+            "pollutantkey": "Cd",
+            "pollutantgroupkey": "MET",
+            "mindate": "1998-10-22",
+            "maxdate": "1998-10-22",
+            "minvalue": 0.7099999785423279,
+            "maxvalue": 9.399999618530273,
+            "unit": "mg/kg",
+            "probepk": null,
+            "releasetype": null
+        }, {
+            "name": "Cu [mg/kg]",
+            "pollutantkey": "Cu",
+            "pollutantgroupkey": "MET",
+            "mindate": "1998-10-22",
+            "maxdate": "1998-10-22",
+            "minvalue": 0.029999999329447746,
+            "maxvalue": 55.599998474121094,
+            "unit": "mg/kg",
+            "probepk": null,
+            "releasetype": null
+        }, {
+            "name": "Pb [mg/kg]",
+            "pollutantkey": "Pb",
+            "pollutantgroupkey": "MET",
+            "mindate": "1998-10-22",
+            "maxdate": "1998-10-22",
+            "minvalue": 0.12999999523162842,
+            "maxvalue": 1620.0,
+            "unit": "mg/kg",
+            "probepk": null,
+            "releasetype": null
+        }, {
+            "name": "Zn [mg/kg]",
+            "pollutantkey": "Zn",
+            "pollutantgroupkey": "MET",
+            "mindate": "1998-10-22",
+            "maxdate": "1998-10-22",
+            "minvalue": 14.0,
+            "maxvalue": 2300.0,
+            "unit": "mg/kg",
+            "probepk": null,
+            "releasetype": null
+        }]
+}

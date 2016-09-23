@@ -168,7 +168,7 @@ app.config(
                             state: "main.search"
                         }
                     },
-                    // disables since resolve is called after stateChangeStart event! :-(
+                    // disabled since resolve is called after stateChangeStart event! :-(
                     /*resolve: {
                      identity: [
                      'authenticationService',
@@ -217,7 +217,7 @@ app.config(
                             templateUrl: 'views/search/toolbar.html',
                             controller: ['$scope',
                                 function ($scope) {
-                                    console.log('main.search.toolbar instance created');
+                                    //console.log('main.search.toolbar instance created');
                                     $scope.name = 'main.search.toolbar';
                                     this.name = 'this.main.search.toolbar';
                                 }],
@@ -280,7 +280,7 @@ app.config(
                             templateUrl: 'views/analysis/toolbar.html',
                             controller: ['$scope',
                                 function ($scope) {
-                                    console.log('main.analysis.toolbar instance created');
+                                    //console.log('main.analysis.toolbar instance created');
                                     $scope.name = 'main.analysis.toolbar';
                                     this.name = 'this.main.analysis.toolbar';
                                 }],
@@ -433,7 +433,7 @@ app.run(
 
                 $rootScope.$on('$stateChangeStart',
                         function (event, toState, toParams, fromState, fromParams) {
-                            console.log('$stateChangeStart: ' + toState.name);
+                            //console.log('$stateChangeStart: ' + toState.name);
                             if (toState.name !== 'main.authentication') {
 //                                if ((!authenticationService.isIdentityResolved() &&
 //                                        !authenticationService.getIdentity()) ||
@@ -516,7 +516,7 @@ angular.module(
                     if ($state.includes("main.analysis") && !$state.is("main.analysis")) {
                         //$scope.mode = $state.current.name.split(".").slice(1, 2).pop();
                         analysisController.mode = $state.current.name.split(".").slice(1, 3).pop();
-                        console.log('analysisController::mode: ' + analysisController.mode);
+                        //console.log('analysisController::mode: ' + analysisController.mode);
 
                         // resize the map on stzate change
                         if (analysisController.mode === 'map') {
@@ -527,11 +527,11 @@ angular.module(
                                                 map._container.parentElement.offsetWidth > 0) {
                                             $scope.mapHeight = map._container.parentElement.offsetHeight;
                                             $scope.mapWidth = map._container.parentElement.offsetWidth;
-                                            console.log('analysisController::stateChangeSuccess new size: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
+                                            //console.log('analysisController::stateChangeSuccess new size: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
                                             map.invalidateSize(false);
 
                                         } else {
-                                            console.warn('analysisController::stateChangeSuccess saved size: ' + $scope.mapWidth + "x" + $scope.mapHeight);
+                                            //console.warn('analysisController::stateChangeSuccess saved size: ' + $scope.mapWidth + "x" + $scope.mapHeight);
                                             map.invalidateSize(false);
                                         }
                                     }
@@ -1588,8 +1588,8 @@ angular.module(
                     if ($state.includes("main") && !$state.is("main")) {
                         //$scope.mode = $state.current.name.split(".").slice(1, 2).pop();
                         mainController.mode = $state.current.name.split(".").slice(1, 2).pop();
-                        console.log('mainController::mainController.mode: ' + mainController.mode + 
-                                '(toState: ' + toState.name + ')');
+                        //console.log('mainController::mainController.mode: ' + mainController.mode + 
+                        //        '(toState: ' + toState.name + ')');
 
                         var previousState = $previousState.get();
                         if (previousState && previousState.state && previousState.state.name) {
@@ -1778,10 +1778,7 @@ angular.module(
                     }
 
                     wkt = new Wkt.Wkt().fromObject(searchGeometryLayer);
-                    wktString = 'SRID=4326;' + wkt.write();
-
-                    return wktString;
-
+                    return wkt.write();
                 };
 
                 mapController.unSelectOverlayByKey = function (layerKey) {
@@ -2074,6 +2071,7 @@ angular.module(
                 $scope.$on('searchError()', function (event) {
                     if (mapController.mode === 'search') {
                         setSearchGeometry(null);
+                        sharedDatamodel.selectedSearchLocation.id = 0;
                         mapController.clearNodes();
                     }
                 });
@@ -2082,6 +2080,7 @@ angular.module(
                     if (mapController.mode === 'search' &&
                             sharedDatamodel.selectedSearchLocation.id === 0) {
                         setSearchGeometry(null);
+                        sharedDatamodel.selectedSearchLocation.id = 0;
                     }
                 });
 
@@ -2215,378 +2214,359 @@ angular.module(
 
 /*global angular,Wkt*/
 angular.module(
-        'de.cismet.uim2020-html5-demonstrator.controllers'
-        ).controller(
-        'searchController',
-        [
-            '$rootScope', '$window', '$timeout', '$scope', '$state', '$uibModal', 'leafletData',
-            'configurationService', 'sharedDatamodel', 'sharedControllers', 'dataService', 'searchService',
-            function ($rootScope, $window, $timeout, $scope, $state, $uibModal, leafletData,
-                    configurationService, sharedDatamodel, sharedControllers, dataService, searchService) {
-                'use strict';
-                var searchController, searchProcessCallback, showProgress, progressModal;
-                searchController = this;
-                // set default mode according to default route in app.js 
-                searchController.mode = 'map';
-                searchController.status = sharedDatamodel.status;
-                // === Configurations ==========================================
-                // <editor-fold defaultstate="collapsed" desc="   - Search Locations Selection Box Configuration">
-                // TODO: add coordinates to selectedSearchLocation on selection!
-                searchController.searchLocations = dataService.getSearchLocations();
-                //sharedDatamodel.selectedSearchLocation = 0; //angular.copy(searchController.searchLocations[0]);
-                searchController.selectedSearchLocation = sharedDatamodel.selectedSearchLocation;
-                searchController.searchLocationsSettings = angular.extend(
-                        {},
-                        configurationService.multiselect.settings, {
-                            showCheckAll: false,
-                            showUncheckAll: false,
-                            styleActive: false,
-                            closeOnSelect: true,
-                            scrollable: false,
-                            displayProp: 'name',
-                            idProp: 'id',
-                            enableSearch: false,
-                            smartButtonMaxItems: 1,
-                            selectionLimit: 1, // -> the selection model will contain a single object instead of array. 
-                            externalIdProp: 'id' // -> Full Object as model
-                        });
-                searchController.selectedSearchLocationEvents = {
-                    onItemSelect: function (selectedSearchLocation) {
-                        // Gesamter Kartenausschnitt
-                        if (selectedSearchLocation.id === 0) {
-                            $scope.$broadcast('setSearchLocation()');
-                        }
+    'de.cismet.uim2020-html5-demonstrator.controllers'
+    ).controller(
+    'searchController',
+    [
+        '$rootScope', '$window', '$timeout', '$scope', '$state', '$uibModal', 'leafletData',
+        'configurationService', 'sharedDatamodel', 'sharedControllers', 'dataService', 'searchService',
+        function ($rootScope, $window, $timeout, $scope, $state, $uibModal, leafletData,
+            configurationService, sharedDatamodel, sharedControllers, dataService, searchService) {
+            'use strict';
+            var searchController, searchProcessCallback, showProgressModal, progressModal;
+            searchController = this;
+            // set default mode according to default route in app.js 
+            searchController.mode = 'map';
+            searchController.status = sharedDatamodel.status;
+            // === Configurations ==========================================
+            // <editor-fold defaultstate="collapsed" desc="   - Search Locations Selection Box Configuration">
+            // TODO: add coordinates to selectedSearchLocation on selection!
+            searchController.searchLocations = dataService.getSearchLocations();
+            //sharedDatamodel.selectedSearchLocation = 0; //angular.copy(searchController.searchLocations[0]);
+            searchController.selectedSearchLocation = sharedDatamodel.selectedSearchLocation;
+            searchController.searchLocationsSettings = angular.extend(
+                {},
+                configurationService.multiselect.settings, {
+                    showCheckAll: false,
+                    showUncheckAll: false,
+                    styleActive: false,
+                    closeOnSelect: true,
+                    scrollable: false,
+                    displayProp: 'name',
+                    idProp: 'id',
+                    enableSearch: false,
+                    smartButtonMaxItems: 1,
+                    selectionLimit: 1, // -> the selection model will contain a single object instead of array. 
+                    externalIdProp: 'id' // -> Full Object as model
+                });
+            searchController.selectedSearchLocationEvents = {
+                onItemSelect: function (selectedSearchLocation) {
+                    // Gesamter Kartenausschnitt
+                    if (selectedSearchLocation.id === 0) {
+                        $scope.$broadcast('setSearchLocation()');
                     }
-                };
-                // </editor-fold>
-                // <editor-fold defaultstate="collapsed" desc="   - Search Themes Selection Box Configuration">
-                searchController.searchThemes = dataService.getSearchThemes();
-                searchController.selectedSearchThemes = sharedDatamodel.selectedSearchThemes;
-                searchController.searchThemesSettings = angular.extend(
-                        {},
-                        configurationService.multiselect.settings, {
-                            smartButtonMaxItems: 0,
-                            idProp: 'className',
-                            smartButtonTextConverter: function (itemText, originalItem) {
-                                return searchController.selectedSearchThemes.length === 1 ?
-                                        '1 Thema ausgewählt' : '';
-                            }
-                        });
-                searchController.searchThemesTranslationTexts = angular.extend(
-                        {},
-                        configurationService.multiselect.translationTexts, {
-                            buttonDefaultText: 'Themen auswählen',
-                            dynamicButtonTextSuffix: 'Themen ausgewählt'
-                        });
-                // FIXME: translationTexts not updated in directive
-                // See https://github.com/cismet/uim2020-html5-demonstrator/issues/2
-                /*searchController.selectEvents = {
-                 onItemSelect: function (item) {
-                 searchController.searchThemesTranslationTexts.dynamicButtonTextSuffix =
-                 searchController.selectedSearchThemes.length === 1 ?
-                 'Thema ausgewählt' : 'Themen ausgewählt';
-                 console.log(searchController.searchThemesTranslationTexts.dynamicButtonTextSuffix);
-                 }
-                 };*/
-                // </editor-fold>
-                // <editor-fold defaultstate="collapsed" desc="   - Search Pollutants Selection Box Configuration">
-                if (dataService.getSearchPollutants().$resolved) {
-                    searchController.searchPollutants = dataService.getSearchPollutants();
-                } else {
-                    dataService.getSearchPollutants().$promise.then(function (searchPollutants) {
-                        searchController.searchPollutants = searchPollutants;
-                    });
                 }
-
-                searchController.selectedSearchPollutants = sharedDatamodel.selectedSearchPollutants;
-                searchController.searchPollutantsSettings = angular.extend(
-                        {},
-                        configurationService.multiselect.settings, {
-                            scrollableHeight: '600px',
-                            scrollable: true,
-                            displayProp: 'pollutant_name',
-                            idProp: 'pollutant_key',
-                            searchField: 'pollutant_name',
-                            enableSearch: true,
-                            showEnableSearchButton: false,
-                            selectByGroups: ['Metalle und Schwermetalle']
-                        });
-                searchController.searchPollutantsTranslationTexts = angular.extend(
-                        {},
-                        configurationService.multiselect.translationTexts, {
-                            buttonDefaultText: 'Schadstoffe auswählen',
-                            dynamicButtonTextSuffix: 'Schadstoffe ausgewählt'
-                        });
-                // </editor-fold>
-                // <editor-fold defaultstate="collapsed" desc="   - Gazetteer Locations Selection Box Configuration">
-                if (dataService.getGazetteerLocations().$resolved) {
-                    searchController.gazetteerLocations = dataService.getGazetteerLocations();
-                } else {
-                    dataService.getGazetteerLocations().$promise.then(function (gazetteerLocations) {
-                        searchController.gazetteerLocations = gazetteerLocations;
-                    });
-                }
-
-                searchController.selectedGazetteerLocation = sharedDatamodel.selectedGazetteerLocation;
-                searchController.gazetteerLocationsSettings = angular.extend(
-                        {},
-                        configurationService.multiselect.settings, {
-                            styleActive: false,
-                            closeOnSelect: true,
-                            scrollableHeight: '600px',
-                            scrollable: true,
-                            displayProp: 'name',
-                            idProp: '$self',
-                            searchField: 'name',
-                            enableSearch: true,
-                            smartButtonMaxItems: 1,
-                            selectionLimit: 1, // -> the selection model will contain a single object instead of array. 
-                            externalIdProp: '' // -> Full Object as model
-                        });
-                searchController.gazetteerLocationsTranslationTexts = angular.extend(
-                        {},
-                        configurationService.multiselect.translationTexts, {
-                            buttonDefaultText: 'Ort auswählen'
-                        });
-                // </editor-fold>
-                // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ====================================">
-
-                showProgress = function () {
-                    var modalScope;
-                    //console.log('searchController::showProgress()');
-                    modalScope = $rootScope.$new(true);
-                    modalScope.status = searchController.status;
-                    progressModal = $uibModal.open({
-                        templateUrl: 'templates/search-progress-modal.html',
-                        scope: modalScope,
-                        size: 'lg',
-                        backdrop: 'static'/*,
-                         resolve: {searchController:searchController}*/
-                    });
-                    // check if the eror occurred before the dialog has actually been shown
-                    progressModal.opened.then(function () {
-                        if (searchController.status.type === 'error') {
-                            progressModal.close();
-                        }
-                    });
-                };
-                searchProcessCallback = function (current, max, type) {
-                    //console.log('searchProcess: type=' + type + ', current=' + current + ", max=" + max)
-                    // the maximum object count
-                    searchController.status.progress.max = 100;
-                    // the scaled progress: 0 <fake progress> 100 <real progress> 200
-                    // searchController.searchStatus.current = ...
-
-                    // start of search (indeterminate)
-                    if (max === -1 && type === 'success') {
-                        // count up fake progress to 100
-                        searchController.status.progress.current = current;
-                        if (current < 95) {
-                            searchController.status.message = 'Die Suche im UIM2020-DI Indexdatenbestand wird durchgeführt';
-                            searchController.status.type = 'success';
-                        } else {
-                            searchController.status.message = 'Die UIM2020-DI Server sind z.Z. ausgelastet, bitte warten Sie einen Augenblick.';
-                            searchController.status.type = 'warning';
-                        }
-
-                        // search completed
-                    } else if (current === max && type === 'success') {
-                        if (current > 0) {
-                            searchController.status.progress.current = 100;
-                            searchController.status.message = 'Suche erfolgreich, ' +
-                                    (current === 1 ? 'eine Messstelle' : (current + ' Messstellen')) + ' im UIM2020-DI Indexdatenbestand gefunden.';
-                            searchController.status.type = 'success';
-                        } else {
-                            // feature request #59
-                            searchController.status.progress.current = 100;
-                            searchController.status.message = 'Es wurden keine zu den Suchkriterien passenden Messstellen im UIM2020-DI Indexdatenbestand gefunden';
-                            searchController.status.type = 'warning';
-                        }
-
-                        if (progressModal) {
-                            // wait 1/2 sec before closing to allow the progressbar to advance to 100% (see #59)
-                            $timeout(function () {
-                                progressModal.close();
-                            }, 500);
-                        }
-                        // search error ...
-                    } else if (type === 'error') {
-                        searchController.status.progress.current = 100;
-                        searchController.status.message = 'Die Suche konnte aufgrund eines Server-Fehlers nicht durchgeführt werden.';
-                        searchController.status.type = 'danger';
-                        $timeout(function () {
-                            progressModal.close(searchController.status.message);
-                        }, 2000);
-                    }
-                };
-                // </editor-fold>
-                // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
-                searchController.gotoLocation = function () {
-                    // TODO: check if paramters are selected ...
-
-                    // check state, activate map if necessary
-                    if (searchController.mode !== 'map') {
-                        $state.go('^.map'); // will go to the sibling map state.
-                        // $state.go('main.search.map');
-                    }
-
-                    $scope.$broadcast('gotoLocation()');
-                };
-                // FIXME: implement Mock Function
-                searchController.search = function (/*mockNodes*/) {
-                    var geometry, themes, pollutants, limit, offset;
-
-                    geometry = sharedControllers.searchMapController.getSearchWktString();
-                    themes = [];
-                    pollutants = [];
-                    limit = 500;
-                    offset = 0;
-
-                    sharedDatamodel.selectedSearchThemes.forEach(function (theme) {
-                        themes.push(theme.id);
-                    });
-
-                    sharedDatamodel.selectedSearchPollutants.forEach(function (pollutant) {
-                        pollutants.push(pollutant.id);
-                    });
-
-                    searchService.defaultSearch(
-                            geometry,
-                            themes,
-                            pollutants,
-                            limit,
-                            offset,
-                            searchProcessCallback).$promise.then(
-                            function (searchResult)
-                            {
-                                sharedDatamodel.resultNodes.length = 0;
-                                if (searchResult.$collection && searchResult.$collection.length > 0) {
-                                    //console.log(success);
-                                    /**
-                                     * The .push method can take multiple arguments, so by using 
-                                     * .apply to pass all the elements of the second array as 
-                                     * arguments to .push, you can get the result you want because
-                                     * resultNodes.push(searchResult.$collection) would push the 
-                                     * array object, not its elements!!!
-                                     */
-                                    sharedDatamodel.resultNodes.push.apply(
-                                            sharedDatamodel.resultNodes, searchResult.$collection);
-                                }
-
-                                $scope.$broadcast('searchSuccess()');
-                            },
-                            function (searchError) {
-                                //console.log(searchError);
-                                sharedDatamodel.resultNodes.length = 0;
-                                $scope.$broadcast('searchError()');
-                            });
-
-                    // <editor-fold defaultstate="collapsed" desc="[!!!!] DISABLED MOCK DATA ----------------">        
-                    /*                     
-                     if (mockNodes.$resolved) {
-                     showProgress();
-                     searchService.defaultSearch(
-                     geometry,
-                     themes,
-                     pollutants,
-                     limit,
-                     offset,
-                     searchProcessCallback).$promise.then(
-                     function (searchResult)
-                     {
-                     sharedDatamodel.resultNodes.length = 0;
-                     if (searchResult.$collection && searchResult.$collection.length > 0) {
-                     //console.log(success);
-                     sharedDatamodel.resultNodes.push.apply(
-                     sharedDatamodel.resultNodes, searchResult.$collection);
-                     }
-                     
-                     $scope.$broadcast('searchSuccess()');
-                     },
-                     function (searchError) {
-                     //console.log(searchError);
-                     sharedDatamodel.resultNodes.length = 0;
-                     $scope.$broadcast('searchError()');
-                     });
-                     //var tmpMockNodes;
-                     
-                     //sharedDatamodel.resultNodes.length = 0;
-                     // must use push() or the reference in other controllers is destroyed!
-                     //tmpMockNodes = angular.copy(mockNodes.slice(0, 20));
-                     //tmpMockNodes = angular.copy(mockNodes);
-                     //sharedDatamodel.resultNodes.push.apply(sharedDatamodel.resultNodes, tmpMockNodes);
-                     
-                     //sharedDatamodel.analysisNodes.length = 0;
-                     // make a copy -> 2 map instances -> 2 feature instances needed
-                     //tmpMockNodes = angular.copy(mockNodes.slice(5, 15));
-                     //sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, tmpMockNodes);
-                     
-                     //$scope.$broadcast('searchSuccess()');
-                     
-                     // access controller from child scope leaked into parent scope
-                     //$scope.mapController.setNodes(mockNodes.slice(0, 10));
-                     //$scope.listController.setNodes(mockNodes.slice(0, 15));
-                     
-                     
-                     } else {
-                     mockNodes.$promise.then(function (resolvedMockNodes) {
-                     searchController.search(resolvedMockNodes);
-                     });
-                     }*/
-                    // </editor-fold>
-                };
-                // </editor-fold>
-
-                // TODO: put into parent scope?
-                $scope.$on('$stateChangeSuccess', function (toState) {
-                    if ($state.includes("main.search") && !$state.is("main.search")) {
-                        //$scope.mode = $state.current.name.split(".").slice(1, 2).pop();
-                        searchController.mode = $state.current.name.split(".").slice(1, 3).pop();
-                        //console.log('searchController::mode: ' + searchController.mode);
-
-                        // resize the map on state change
-                        if (searchController.mode === 'map') {
-                            leafletData.getMap('search-map').then(function (map) {
-                                $timeout(function () {
-                                    if (map && map._container.parentElement) {
-                                        if (map._container.parentElement.offsetHeight > 0 &&
-                                                map._container.parentElement.offsetWidth) {
-                                            $scope.mapHeight = map._container.parentElement.offsetHeight;
-                                            $scope.mapWidth = map._container.parentElement.offsetWidth;
-                                            //console.log('searchController::stateChangeSuccess new size: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
-                                            map.invalidateSize(false);
-                                        } else {
-                                            //console.warn('searchController::stateChangeSuccess saved size: ' + $scope.mapWidth + "x" + $scope.mapHeight);
-                                            map.invalidateSize(false);
-                                        }
-                                    }
-                                }, 100);
-                            });
-                        }
+            };
+            // </editor-fold>
+            // <editor-fold defaultstate="collapsed" desc="   - Search Themes Selection Box Configuration">
+            searchController.searchThemes = dataService.getSearchThemes();
+            searchController.selectedSearchThemes = sharedDatamodel.selectedSearchThemes;
+            searchController.searchThemesSettings = angular.extend(
+                {},
+                configurationService.multiselect.settings, {
+                    smartButtonMaxItems: 0,
+                    idProp: 'className',
+                    smartButtonTextConverter: function (itemText, originalItem) {
+                        return searchController.selectedSearchThemes.length === 1 ?
+                            '1 Thema ausgewählt' : '';
                     }
                 });
-                //                var fireResize = function () {
-                //                    //$scope.currentHeight = $window.innerHeight - $scope.navbarHeight;
-                //                    //$scope.currentWidth = $window.innerWidth - ($scope.toolbarShowing ? $scope.toolbarWidth : 0);
-                //                    leafletData.getMap('search-map').then(function (map) {
-                //                        if (map && map._container.parentElement) {
-                //                            console.log('searchController::fireResize: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
-                //                            $scope.mapHeight = map._container.parentElement.offsetHeight;
-                //                            $scope.mapWidth = map._container.parentElement.offsetWidth;
-                //                            //map.invalidateSize(animate);
-                //                        }
-                //
-                //                    });
-                //                };
-                //
-                //                angular.element($window).bind('resize', function () {
-                //                    fireResize(false);
-                //                });
-
-                console.log('searchController instance created');
+            searchController.searchThemesTranslationTexts = angular.extend(
+                {},
+                configurationService.multiselect.translationTexts, {
+                    buttonDefaultText: 'Themen auswählen',
+                    dynamicButtonTextSuffix: 'Themen ausgewählt'
+                });
+            // FIXME: translationTexts not updated in directive
+            // See https://github.com/cismet/uim2020-html5-demonstrator/issues/2
+            /*searchController.selectEvents = {
+             onItemSelect: function (item) {
+             searchController.searchThemesTranslationTexts.dynamicButtonTextSuffix =
+             searchController.selectedSearchThemes.length === 1 ?
+             'Thema ausgewählt' : 'Themen ausgewählt';
+             console.log(searchController.searchThemesTranslationTexts.dynamicButtonTextSuffix);
+             }
+             };*/
+            // </editor-fold>
+            // <editor-fold defaultstate="collapsed" desc="   - Search Pollutants Selection Box Configuration">
+            if (dataService.getSearchPollutants().$resolved) {
+                searchController.searchPollutants = dataService.getSearchPollutants();
+            } else {
+                dataService.getSearchPollutants().$promise.then(function (searchPollutants) {
+                    searchController.searchPollutants = searchPollutants;
+                });
             }
-        ]
-        );
+
+            searchController.selectedSearchPollutants = sharedDatamodel.selectedSearchPollutants;
+            searchController.searchPollutantsSettings = angular.extend(
+                {},
+                configurationService.multiselect.settings, {
+                    scrollableHeight: '600px',
+                    scrollable: true,
+                    displayProp: 'pollutant_name',
+                    idProp: 'pollutant_key',
+                    searchField: 'pollutant_name',
+                    enableSearch: true,
+                    showEnableSearchButton: false,
+                    selectByGroups: ['Metalle und Schwermetalle']
+                });
+            searchController.searchPollutantsTranslationTexts = angular.extend(
+                {},
+                configurationService.multiselect.translationTexts, {
+                    buttonDefaultText: 'Schadstoffe auswählen',
+                    dynamicButtonTextSuffix: 'Schadstoffe ausgewählt'
+                });
+            // </editor-fold>
+            // <editor-fold defaultstate="collapsed" desc="   - Gazetteer Locations Selection Box Configuration">
+            if (dataService.getGazetteerLocations().$resolved) {
+                searchController.gazetteerLocations = dataService.getGazetteerLocations();
+            } else {
+                dataService.getGazetteerLocations().$promise.then(function (gazetteerLocations) {
+                    searchController.gazetteerLocations = gazetteerLocations;
+                });
+            }
+
+            searchController.selectedGazetteerLocation = sharedDatamodel.selectedGazetteerLocation;
+            searchController.gazetteerLocationsSettings = angular.extend(
+                {},
+                configurationService.multiselect.settings, {
+                    styleActive: false,
+                    closeOnSelect: true,
+                    scrollableHeight: '600px',
+                    scrollable: true,
+                    displayProp: 'name',
+                    idProp: '$self',
+                    searchField: 'name',
+                    enableSearch: true,
+                    smartButtonMaxItems: 1,
+                    selectionLimit: 1, // -> the selection model will contain a single object instead of array. 
+                    externalIdProp: '' // -> Full Object as model
+                });
+            searchController.gazetteerLocationsTranslationTexts = angular.extend(
+                {},
+                configurationService.multiselect.translationTexts, {
+                    buttonDefaultText: 'Ort auswählen'
+                });
+            // </editor-fold>
+            // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ====================================">
+
+            showProgressModal = function () {
+                var modalScope;
+                //console.log('searchController::showProgress()');
+                modalScope = $rootScope.$new(true);
+                modalScope.status = searchController.status;
+                progressModal = $uibModal.open({
+                    templateUrl: 'templates/search-progress-modal.html',
+                    scope: modalScope,
+                    size: 'lg',
+                    backdrop: 'static'/*,
+                     resolve: {searchController:searchController}*/
+                });
+                // check if the eror occurred before the dialog has actually been shown
+                progressModal.opened.then(function () {
+                    if (searchController.status.type === 'error') {
+                        progressModal.close();
+                    }
+                });
+            };
+            searchProcessCallback = function (current, max, type) {
+                //console.log('searchProcess: type=' + type + ', current=' + current + ", max=" + max)
+                // the maximum object count
+                searchController.status.progress.max = 100;
+                // the scaled progress: 0 <fake progress> 100 <real progress> 200
+                // searchController.searchStatus.current = ...
+
+                // start of search (indeterminate)
+                if (max === -1 && type === 'success') {
+                    // count up fake progress to 100
+                    searchController.status.progress.current = current;
+                    if (current < 95) {
+                        searchController.status.message = 'Die Suche im UIM2020-DI Indexdatenbestand wird durchgeführt';
+                        searchController.status.type = 'success';
+                    } else {
+                        searchController.status.message = 'Die UIM2020-DI Server sind z.Z. ausgelastet, bitte warten Sie einen Augenblick.';
+                        searchController.status.type = 'warning';
+                    }
+
+                    // search completed
+                } else if (current === max && type === 'success') {
+                    if (current > 0) {
+                        searchController.status.progress.current = 100;
+                        searchController.status.message = 'Suche erfolgreich, ' +
+                            (current === 1 ? 'eine Messstelle' : (current + ' Messstellen')) + ' im UIM2020-DI Indexdatenbestand gefunden.';
+                        searchController.status.type = 'success';
+                    } else {
+                        // feature request #59
+                        searchController.status.progress.current = 100;
+                        searchController.status.message = 'Es wurden keine zu den Suchkriterien passenden Messstellen im UIM2020-DI Indexdatenbestand gefunden';
+                        searchController.status.type = 'warning';
+                    }
+
+                    if (progressModal) {
+                        // wait 1/2 sec before closing to allow the progressbar to advance to 100% (see #59)
+                        $timeout(function () {
+                            progressModal.close();
+                        }, 500);
+                    }
+                    // search error ...
+                } else if (type === 'error') {
+                    searchController.status.progress.current = 100;
+                    searchController.status.message = 'Die Suche konnte aufgrund eines Server-Fehlers nicht durchgeführt werden.';
+                    searchController.status.type = 'danger';
+                    $timeout(function () {
+                        if (progressModal) {
+                            progressModal.close(searchController.status.message);
+                        }
+                    }, 2000);
+                }
+            };
+            // </editor-fold>
+            // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
+            searchController.gotoLocation = function () {
+                // TODO: check if paramters are selected ...
+
+                // check state, activate map if necessary
+                if (searchController.mode !== 'map') {
+                    $state.go('^.map'); // will go to the sibling map state.
+                    // $state.go('main.search.map');
+                }
+
+                $scope.$broadcast('gotoLocation()');
+            };
+            
+            /**
+             * Main Search Function
+             * 
+             * @returns {undefined}
+             */
+            searchController.search = function (mockNodes) {
+                var geometry, themes, pollutants, limit, offset;
+
+                geometry = sharedControllers.searchMapController.getSearchWktString();
+                themes = [];
+                pollutants = [];
+                limit = 500;
+                offset = 0;
+
+                sharedDatamodel.selectedSearchThemes.forEach(function (theme) {
+                    themes.push(theme.id);
+                });
+
+                sharedDatamodel.selectedSearchPollutants.forEach(function (pollutant) {
+                    pollutants.push(pollutant.id);
+                });
+                
+                showProgressModal();
+                
+                searchService.defaultSearch(
+                    geometry,
+                    themes,
+                    pollutants,
+                    limit,
+                    offset,
+                    searchProcessCallback).$promise.then(
+                    function (searchResult)
+                    {
+                        sharedDatamodel.resultNodes.length = 0;
+                        if (searchResult.$collection && searchResult.$collection.length > 0) {
+                            //console.log(success);
+                            //
+                             // The .push method can take multiple arguments, so by using 
+                             // .apply to pass all the elements of the second array as 
+                             // arguments to .push, you can get the result you want because
+                             // resultNodes.push(searchResult.$collection) would push the 
+                             // array object, not its elements!!!
+                             //
+                            sharedDatamodel.resultNodes.push.apply(
+                                sharedDatamodel.resultNodes, searchResult.$collection);
+                        }
+
+                        $scope.$broadcast('searchSuccess()');
+                    },
+                    function (searchError) {
+                        //console.log(searchError);
+                        sharedDatamodel.resultNodes.length = 0;
+                        $scope.$broadcast('searchError()');
+                    });
+
+                // <editor-fold defaultstate="collapsed" desc="[!!!!] MOCK DATA (DISABLED) ----------------">        
+                /*                    
+                if(mockNodes === null || mockNodes === undefined) {
+                    mockNodes = dataService.getMockNodes();
+                }             
+                                    
+                 if (mockNodes.$resolved) {
+                 
+                //var tmpMockNodes;
+                 
+                 sharedDatamodel.resultNodes.length = 0;
+                 // must use push() or the reference in other controllers is destroyed!
+                 //tmpMockNodes = angular.copy(mockNodes.slice(0, 20));
+                 //tmpMockNodes = angular.copy(mockNodes);
+                 //sharedDatamodel.resultNodes.push.apply(sharedDatamodel.resultNodes, tmpMockNodes);
+                 sharedDatamodel.resultNodes.push.apply(sharedDatamodel.resultNodes, mockNodes);
+                 $scope.$broadcast('searchSuccess()');
+                 
+                 
+                 } else {
+                 mockNodes.$promise.then(function (resolvedMockNodes) {
+                 searchController.search(resolvedMockNodes);
+                 });
+                 }*/
+                // </editor-fold>
+            };
+            // </editor-fold>
+
+            // TODO: put into parent scope?
+            $scope.$on('$stateChangeSuccess', function (toState) {
+                if ($state.includes("main.search") && !$state.is("main.search")) {
+                    //$scope.mode = $state.current.name.split(".").slice(1, 2).pop();
+                    searchController.mode = $state.current.name.split(".").slice(1, 3).pop();
+                    //console.log('searchController::mode: ' + searchController.mode);
+
+                    // resize the map on state change
+                    if (searchController.mode === 'map') {
+                        leafletData.getMap('search-map').then(function (map) {
+                            $timeout(function () {
+                                if (map && map._container.parentElement) {
+                                    if (map._container.parentElement.offsetHeight > 0 &&
+                                        map._container.parentElement.offsetWidth) {
+                                        $scope.mapHeight = map._container.parentElement.offsetHeight;
+                                        $scope.mapWidth = map._container.parentElement.offsetWidth;
+                                        //console.log('searchController::stateChangeSuccess new size: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
+                                        map.invalidateSize(false);
+                                    } else {
+                                        //console.warn('searchController::stateChangeSuccess saved size: ' + $scope.mapWidth + "x" + $scope.mapHeight);
+                                        map.invalidateSize(false);
+                                    }
+                                }
+                            }, 100);
+                        });
+                    }
+                }
+            });
+            //                var fireResize = function () {
+            //                    //$scope.currentHeight = $window.innerHeight - $scope.navbarHeight;
+            //                    //$scope.currentWidth = $window.innerWidth - ($scope.toolbarShowing ? $scope.toolbarWidth : 0);
+            //                    leafletData.getMap('search-map').then(function (map) {
+            //                        if (map && map._container.parentElement) {
+            //                            console.log('searchController::fireResize: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
+            //                            $scope.mapHeight = map._container.parentElement.offsetHeight;
+            //                            $scope.mapWidth = map._container.parentElement.offsetWidth;
+            //                            //map.invalidateSize(animate);
+            //                        }
+            //
+            //                    });
+            //                };
+            //
+            //                angular.element($window).bind('resize', function () {
+            //                    fireResize(false);
+            //                });
+
+            console.log('searchController instance created');
+        }
+    ]
+    );
 
 // module initialiser for the directives, shall always be named like that so that concat will pick it up first!
 // however, the actual directives implementations shall be put in their own files
@@ -2680,6 +2660,129 @@ angular.module(
     'de.cismet.uim2020-html5-demonstrator.filters',
     [
     ]
+);
+
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+/*global angular*/
+
+angular.module(
+    'de.cismet.uim2020-html5-demonstrator.filters'
+    ).filter(
+    'textLengthFilter',
+    function () {
+        'use strict';
+
+        var escapePattern, getRegex;
+
+        escapePattern = /[-\/\\^$*+?.()|[\]{}]/g;
+
+        getRegex = function (s, f) {
+            return new RegExp('[' + s.replace(escapePattern, '\\$&') + ']', f);
+        };
+
+        /* filter to cut of text if it is longer than the given length. if the input or the txtlen are null or undefined
+         * the filter will return 'null'. the filter has the following parameters
+         * 
+         * - input: string, the text input, if it is not a string the behaviour may not be as expected
+         * - txtLen: integer, the length of the resulting string, including 'tpl'
+         * - exact: boolean (default=false), if the result string should exactly match 'txtLen' or if it should try to 
+         *   cut of the text after a white space character. In any case the resulting string will not exceed 'txtLen'.
+         * - tpl: string (default='[...]', the string to use as indicator that the text has been cut off. If the text 
+         *   is actually shorter than txtLen it will not be appended.
+         * - sentence: boolean (default=false), the filter tries to match one or more sentences within 'txtLen'. 
+         *   If 'txtLen' is '0' it will use the first full sentence regardless of the length of the result. 
+         *   If 'sentence' is set to 'true' 'exact' will be ignored.
+         *   If no sentence is found using the 'sentenceDelimiters' the behaviour is the same as if sentence is set to
+         *   'false' which implies that only the 'tpl' is returned if 'txtLen' is '0'
+         * - sentenceDelimiters: string (default='.!?;:')
+         * */
+        return function (input, txtLen, exact, tpl, sentence, sentenceDelimiters) {
+            var _exact, _sentence, _sentenceDelimiters, _tpl, match, out, regex;
+
+            if (!input || txtLen === undefined || txtLen === null) {
+                return null;
+            }
+
+            if (txtLen >= input.length) {
+                out = input;
+            } else {
+                if (exact === undefined || exact === null) {
+                    _exact = false;
+                } else {
+                    _exact = exact;
+                }
+
+                if (tpl === undefined || tpl === null) {
+                    _tpl = '[...]';
+                } else {
+                    _tpl = tpl;
+                }
+
+                if (sentence === undefined || sentence === null) {
+                    _sentence = false;
+                } else {
+                    _sentence = sentence;
+                }
+
+                if (sentenceDelimiters === undefined || sentenceDelimiters === null) {
+                    _sentenceDelimiters = '.!?;:';
+                } else {
+                    _sentenceDelimiters = sentenceDelimiters;
+                }
+
+                if (_sentence && txtLen === 0) {
+                    match = input.match(getRegex(_sentenceDelimiters, ''));
+                    if (match) {
+                        if (match.index >= input.length - 1) {
+                            out = input;
+                        } else {
+                            out = input.substr(0, match.index + 1) + ' ' + _tpl;
+                        }
+                    } else {
+                        // nothing found, thus processing as if sentence == false,
+                        // which basically means only the tpl (len = 0)
+                        out = _tpl;
+                    }
+                } else {
+                    out = input.substr(0, txtLen - _tpl.length);
+
+                    if (_sentence) {
+                        regex = getRegex(_sentenceDelimiters, 'g');
+                        match = 0;
+                        // one char less as we add one if matched
+                        while (regex.exec(out.substr(0, out.length - 1)) !== null) {
+                            match = regex.lastIndex;
+                        }
+                        if (match > 0) {
+                            out = out.substr(0, match + 1) + ' ';
+                        }
+                    }
+
+                    if (_exact) {
+                        out += _tpl;
+                    } else {
+                        match = out.match(/\s+\w*$/);
+                        if (match) {
+                            out = out.substr(0, match.index + 1) + _tpl;
+                        } else {
+                            out += _tpl;
+                        }
+                    }
+                }
+            }
+
+            return out;
+        };
+    }
 );
 
 // module initialiser for the services, shall always be named like that so that concat will pick it up first!
@@ -3020,7 +3123,7 @@ angular.module(
 
                 configurationService.map.options = {};
                 configurationService.map.options.centerOnSearchGeometry = true;
-                configurationService.map.options.preserveZoomOnCenter = true;
+                configurationService.map.options.preserveZoomOnCenter = false;
 
                 configurationService.map.home = {};
                 configurationService.map.home.lat = 47.61;
@@ -3499,32 +3602,33 @@ angular.module(
 /*global angular, L, Wkt */
 
 angular.module(
-        'de.cismet.uim2020-html5-demonstrator.services'
-        ).factory(
-        'featureRendererService',
-        ['configurationService',
-            function (configurationService) {
-                'use strict';
+    'de.cismet.uim2020-html5-demonstrator.services'
+    ).factory(
+    'featureRendererService',
+    ['configurationService',
+        function (configurationService) {
+            'use strict';
 
-                var config, getFeatureRenderer, createNodeFeature,
-                        createGazetteerLocationLayer, createNodeFeatureGroups,
-                        createOverlayLayer;
+            var config, getFeatureRenderer, createNodeFeature,
+                createGazetteerLocationLayer, createNodeFeatureGroups,
+                createOverlayLayer;
 
-                config = configurationService.featureRenderer;
+            config = configurationService.featureRenderer;
 
-                // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ===========================">
-                /**
-                 * Helper Method for creating a Feature (Leaflet Marker) from a cids 
-                 * JSON Node Object
-                 * 
-                 * @param {type} node
-                 * @param {type} theme
-                 * @returns {featureRendererService_L18.createNodeFeature.feature}
-                 */
-                createNodeFeature = function (node, theme) {
-                    if (node.hasOwnProperty('cachedGeometry')) {
-                        var wktString, wktObject, feature, icon;
+            // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ===========================">
+            /**
+             * Helper Method for creating a Feature (Leaflet Marker) from a cids 
+             * JSON Node Object
+             * 
+             * @param {type} node
+             * @param {type} theme
+             * @returns {featureRendererService_L18.createNodeFeature.feature}
+             */
+            createNodeFeature = function (node, theme) {
+                if (node.hasOwnProperty('cachedGeometry')) {
+                    var wktString, wktObject, feature, icon;
 
+                    if (node.cachedGeometry) {
                         icon = config.icons[theme];
                         wktString = node.cachedGeometry;
                         wktObject = new Wkt.Wkt();
@@ -3539,315 +3643,319 @@ angular.module(
                         feature = wktObject.toObject(objectConfig);
                         feature.bindPopup(node.name);
                         feature.$name = node.name;
-                        feature.$key = node.$self;
+                        feature.$key = node.objectKey;
                         feature.$groupKey = theme;
 
                         node.$feature = feature;
                         node.$icon = icon.options.iconUrl;
 
                         return feature;
-                    }
-                };
-                // </editor-fold>
-
-                // <editor-fold defaultstate="collapsed" desc="=== Public Service API Functions =============================">
-                /**
-                 * Creates a new GazetteerLocationLayer from a gazetteer Location
-                 * JSON Object (see data/gazetteerLocations.json)
-                 * 
-                 * @param {type} gazetteerLocation
-                 * @returns {featureRendererService_L18.createGazetteerLocationLayer.featureLayer}
-                 */
-                createGazetteerLocationLayer = function (gazetteerLocation) {
-                    var wktString, wktObject, geometryCollection, featureLayer;
-                    if (gazetteerLocation.hasOwnProperty('area')) {
-                        wktString = gazetteerLocation.area.geo_field;
-                        geometryCollection = false;
-                    } else if (gazetteerLocation.hasOwnProperty('geometry')) {
-                        wktString = gazetteerLocation.geometry.geo_field;
-                        geometryCollection = true;
                     } else {
+                        console.warn('no cached geometry for node ' + node.name + ' (' + node.objectKey + ')');
                         return null;
                     }
+                }
+            };
+            // </editor-fold>
 
-                    wktObject = new Wkt.Wkt();
-                    wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
+            // <editor-fold defaultstate="collapsed" desc="=== Public Service API Functions =============================">
+            /**
+             * Creates a new GazetteerLocationLayer from a gazetteer Location
+             * JSON Object (see data/gazetteerLocations.json)
+             * 
+             * @param {type} gazetteerLocation
+             * @returns {featureRendererService_L18.createGazetteerLocationLayer.featureLayer}
+             */
+            createGazetteerLocationLayer = function (gazetteerLocation) {
+                var wktString, wktObject, geometryCollection, featureLayer;
+                if (gazetteerLocation.hasOwnProperty('area')) {
+                    wktString = gazetteerLocation.area.geo_field;
+                    geometryCollection = false;
+                } else if (gazetteerLocation.hasOwnProperty('geometry')) {
+                    wktString = gazetteerLocation.geometry.geo_field;
+                    geometryCollection = true;
+                } else {
+                    return null;
+                }
 
-                    if (geometryCollection === true) {
-                        featureLayer = wktObject.toObject().getLayers()[0];
-                    } else {
-                        featureLayer = wktObject.toObject();
-                    }
+                wktObject = new Wkt.Wkt();
+                wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
 
-                    featureLayer.setStyle(angular.copy(config.gazetteerStyle));
-                    featureLayer.$name = gazetteerLocation.name;
-                    featureLayer.$key = 'gazetteerLocation';
+                if (geometryCollection === true) {
+                    featureLayer = wktObject.toObject().getLayers()[0];
+                } else {
+                    featureLayer = wktObject.toObject();
+                }
 
-                    // not needed atm:
-                    //gazetteerLocation.$layer = featureLayer;
+                featureLayer.setStyle(angular.copy(config.gazetteerStyle));
+                featureLayer.$name = gazetteerLocation.name;
+                featureLayer.$key = 'gazetteerLocation';
 
-                    return featureLayer;
-                };
+                // not needed atm:
+                //gazetteerLocation.$layer = featureLayer;
 
-                /**
-                 * Creates arrays of Node Features (Markers) from an array of 
-                 * cids JSON Node objects. Does not create Feature groups directly, 
-                 * since the respective feature groups (EPRTR, BORIS, ...) are maintained
-                 * by the StyleLayers Control of the Analysis / Search Map
-                 * 
-                 * @param {type} nodes
-                 * @returns {Array}
-                 */
-                createNodeFeatureGroups = function (nodes) {
-                    var i, node, theme, feature, featureGroup, featureGroups;
-                    featureGroups = [];
-                    for (i = 0; i < nodes.length; ++i) {
-                        node = nodes[i];
-                        theme = node.classKey.split(".").slice(1, 2).pop();
-                        feature = createNodeFeature(node, theme);
+                return featureLayer;
+            };
 
-                        if (feature) {
-                            if (!featureGroups.hasOwnProperty(theme)) {
-                                featureGroup = [];
-                                featureGroups[theme] = featureGroup;
-                            } else {
-                                featureGroup = featureGroups[theme];
-                            }
+            /**
+             * Creates arrays of Node Features (Markers) from an array of 
+             * cids JSON Node objects. Does not create Feature groups directly, 
+             * since the respective feature groups (EPRTR, BORIS, ...) are maintained
+             * by the StyleLayers Control of the Analysis / Search Map
+             * 
+             * @param {type} nodes
+             * @returns {Array}
+             */
+            createNodeFeatureGroups = function (nodes) {
+                var i, node, theme, feature, featureGroup, featureGroups;
+                featureGroups = [];
+                for (i = 0; i < nodes.length; ++i) {
+                    node = nodes[i];
+                    theme = node.classKey.split(".").slice(1, 2).pop();
+                    feature = createNodeFeature(node, theme);
 
-                            featureGroup.push(feature);
-                        }
-                    }
-
-                    return featureGroups;
-                };
-
-                /**
-                 * 
-                 * @param {type} buffer
-                 * @param {type} fileName
-                 * @returns {undefined}
-                 * 
-                 */
-                createOverlayLayer = function (localDatasource, geojson, progressCallBack) {
-                    var i = 0;
-                    var overlayLayer;
-
-                    geojson.fileName = localDatasource.fileName;
-
-                    // onEachFeature: Helper Method for GeoJson Features to open a popup dialog for each Feature
-                    overlayLayer = L.geoJson(geojson, {
-                        onEachFeature: function (feature, layer) {
-                            if (feature.properties) {
-                                layer.bindPopup(Object.keys(feature.properties).map(function (k) {
-                                    return k + ": " + feature.properties[k];
-                                }).join("<br />"), {
-                                    maxHeight: 200
-                                });
-                            }
-
-                            if (progressCallBack) {
-                                progressCallBack(geojson.features.length, i++);
-                            }
+                    if (feature) {
+                        if (!featureGroups.hasOwnProperty(theme)) {
+                            featureGroup = [];
+                            featureGroups[theme] = featureGroup;
+                        } else {
+                            featureGroup = featureGroups[theme];
                         }
 
-                        /**
-                         var promise = $q(function (resolve, reject) {
-                         if (feature.properties) {
-                         layer.bindPopup(Object.keys(feature.properties).map(function (k) {
-                         return k + ": " + feature.properties[k];
-                         }).join("<br />"), {
-                         maxHeight: 200
-                         });
-                         }
-                         resolve({max: geojson.features.length, current: i++});
-                         });
-                         
-                         if (progressCallBack) {
-                         promise.then(function (progress) {
-                         progressCallBack(progress.max, progress.current);
-                         });
-                         }*/
-
-                    });
-
-                    overlayLayer.$name = localDatasource.name;
-                    overlayLayer.$key = localDatasource.fileName;
-                    overlayLayer.$selected = true;
-                    overlayLayer.StyledLayerControl = {
-                        removable: true,
-                        visible: false
-                    };
-
-                    localDatasource.$layer = overlayLayer;
-
-                    return overlayLayer;
-                };
-
-
-
-                // </editor-fold>
-
-                // <editor-fold defaultstate="collapsed" desc="=== DISABLED =============================">
-                /*
-                 createNodeFeatureLayers = function (nodes) {
-                 var i, node, theme, featureGroup, featureRender, featureRenders;
-                 featureRenders = {};
-                 for (i = 0; i < nodes.length; ++i) {
-                 node = nodes[i];
-                 theme = node.classKey.split(".").slice(1, 2).pop();
-                 featureRender = createNodeFeatureRenderer(node, theme);
-                 
-                 if (featureRender) {
-                 if (!featureRenders.hasOwnProperty(theme)) {
-                 featureGroup = new L.FeatureGroup();
-                 featureGroup.$name = config.layergroupNames[theme];
-                 featureGroup.$key = theme;
-                 featureGroup.StyledLayerControl = {
-                 removable: false,
-                 visible: false
-                 };
-                 featureRenders[theme] = featureGroup;
-                 } else {
-                 featureGroup = featureRenders[theme];
-                 }
-                 
-                 featureRender.addTo(featureGroup);
-                 }
-                 }
-                 
-                 return featureRenders;
-                 };*/
-
-
-                //L.marker([51.5, -0.09])
-
-                //defaultStyle = {color: '#0000FF', fill: false, weight: 2, riseOnHover: true, clickable: false};
-                //highlightStyle = {fillOpacity: 0.4, fill: true, fillColor: '#1589FF', riseOnHover: true, clickable: false};
-
-                /**
-                 * Returns a "Feature Renderer" (Leaflet Layer) for a resource.
-                 * If the resources contains a WMS preview representation a WMS Layer
-                 * is instantiated and returned, otherwise, the spatialextent (geom)
-                 * of the resourc eis used.
-                 *
-                 * @param {type} obj
-                 * @returns {L.TileLayer.WMS|featureRendererService_L7.getFeatureRenderer.renderer}
-                 */
-                getFeatureRenderer = function (obj) {
-                    // this is only an indirection to hide the conrete implementation
-                    // however, as not specified yet, we hardcode this for now
-
-                    var wktString, wktObject, renderer, objectStyle;
-
-                    renderer = null;
-
-                    // the geo_field property comes from the server so ...  
-                    // if no preview (WMS layer representation) is found,
-                    // use the spatial extent
-                    if (!renderer && obj.spatialcoverage && obj.spatialcoverage.geo_field) { // jshint ignore:line
-                        wktString = obj.spatialcoverage.geo_field; // jshint ignore:line
-                        wktObject = new Wkt.Wkt();
-                        wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
-                        objectStyle = Object.create(config.defaultStyle);
-                        if (obj.name) {
-                            objectStyle.title = obj.name;
-                        }
-                        renderer = wktObject.toObject(objectStyle);
-                        renderer.setStyle(config.defaultStyle);
+                        featureGroup.push(feature);
                     }
+                }
 
+                return featureGroups;
+            };
 
-                    if (obj &&
-                            obj.$self &&
-                            obj.$self.substr(0, 18).toLowerCase() === '/switchon.resource') {
-                        if (obj.representation) {
-                            obj.representation.every(function (representation) {
-                                var capabilities, layername;
+            /**
+             * 
+             * @param {type} buffer
+             * @param {type} fileName
+             * @returns {undefined}
+             * 
+             */
+            createOverlayLayer = function (localDatasource, geojson, progressCallBack) {
+                var i = 0;
+                var overlayLayer;
 
-                                if (representation.name && representation.contentlocation &&
-                                        representation.type && representation.type.name === 'aggregated data' &&
-                                        representation['function'] && representation['function'].name === 'service' &&
-                                        representation.protocol) {
+                geojson.fileName = localDatasource.fileName;
 
-                                    // PRIORITY on TMS!
-                                    if (representation.protocol.name === 'WWW:TILESERVER') {
-                                        renderer = L.tileLayer(representation.contentlocation,
-                                                {
-                                                    // FIXME: make configurable per layer
-                                                    tms: 'true',
-                                                    zIndex: 999
-                                                });
-
-                                        // unfortunately leaflet does not parse the capabilities, etc, thus no bounds present :(
-                                        // todo: resolve performance problems with multipoint / multipolygon!
-                                        renderer.getBounds = function () {
-                                            // the geo_field property comes from the server so ...  
-                                            if (obj.spatialcoverage && obj.spatialcoverage.geo_field) { // jshint ignore:line
-                                                wktString = obj.spatialcoverage.geo_field; // jshint ignore:line
-                                                wktObject = new Wkt.Wkt();
-                                                wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
-
-                                                return wktObject.toObject().getBounds();
-                                            }
-                                        };
-
-                                        // disable the layer by default and show it only when it is selected!
-                                        renderer.setOpacity(0.0);
-                                        //renderer.bringToBack();
-                                    } else if (representation.protocol.name === 'OGC:WMS-1.1.1-http-get-capabilities') {
-                                        capabilities = representation.contentlocation;
-                                        layername = representation.name;
-                                        renderer = L.tileLayer.wms(
-                                                capabilities,
-                                                {
-                                                    layers: layername,
-                                                    format: 'image/png',
-                                                    transparent: true,
-                                                    version: '1.1.1',
-                                                    zIndex: 999
-                                                }
-                                        );
-
-                                        // unfortunately leaflet does not parse the capabilities, etc, thus no bounds present :(
-                                        // todo: resolve performance problems with multipoint / multipolygon!
-                                        renderer.getBounds = function () {
-                                            // the geo_field property comes from the server so ...  
-                                            if (obj.spatialcoverage && obj.spatialcoverage.geo_field) { // jshint ignore:line
-                                                wktString = obj.spatialcoverage.geo_field; // jshint ignore:line
-                                                wktObject = new Wkt.Wkt();
-                                                wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
-
-                                                return wktObject.toObject().getBounds();
-                                            }
-                                        };
-
-                                        // disable the layer by default and show it only when it is selected!
-                                        renderer.setOpacity(0.0);
-                                        //renderer.bringToBack();
-                                    }
-                                }
-
-                                // execute callback function until renderer is found 
-                                return renderer === null;
+                // onEachFeature: Helper Method for GeoJson Features to open a popup dialog for each Feature
+                overlayLayer = L.geoJson(geojson, {
+                    onEachFeature: function (feature, layer) {
+                        if (feature.properties) {
+                            layer.bindPopup(Object.keys(feature.properties).map(function (k) {
+                                return k + ": " + feature.properties[k];
+                            }).join("<br />"), {
+                                maxHeight: 200
                             });
                         }
+
+                        if (progressCallBack) {
+                            progressCallBack(geojson.features.length, i++);
+                        }
                     }
 
-                    return renderer;
+                    /**
+                     var promise = $q(function (resolve, reject) {
+                     if (feature.properties) {
+                     layer.bindPopup(Object.keys(feature.properties).map(function (k) {
+                     return k + ": " + feature.properties[k];
+                     }).join("<br />"), {
+                     maxHeight: 200
+                     });
+                     }
+                     resolve({max: geojson.features.length, current: i++});
+                     });
+                     
+                     if (progressCallBack) {
+                     promise.then(function (progress) {
+                     progressCallBack(progress.max, progress.current);
+                     });
+                     }*/
+
+                });
+
+                overlayLayer.$name = localDatasource.name;
+                overlayLayer.$key = localDatasource.fileName;
+                overlayLayer.$selected = true;
+                overlayLayer.StyledLayerControl = {
+                    removable: true,
+                    visible: false
                 };
 
-                // </editor-fold>
+                localDatasource.$layer = overlayLayer;
 
-                return {
-                    createNodeFeatureGroups: createNodeFeatureGroups,
-                    createGazetteerLocationLayer: createGazetteerLocationLayer,
-                    createOverlayLayer: createOverlayLayer,
-                    defaultStyle: config.defaultStyle,
-                    highlightStyle: config.highlightStyle
-                };
-            }
-        ]
-        );
+                return overlayLayer;
+            };
+
+
+
+            // </editor-fold>
+
+            // <editor-fold defaultstate="collapsed" desc="=== DISABLED =============================">
+            /*
+             createNodeFeatureLayers = function (nodes) {
+             var i, node, theme, featureGroup, featureRender, featureRenders;
+             featureRenders = {};
+             for (i = 0; i < nodes.length; ++i) {
+             node = nodes[i];
+             theme = node.classKey.split(".").slice(1, 2).pop();
+             featureRender = createNodeFeatureRenderer(node, theme);
+             
+             if (featureRender) {
+             if (!featureRenders.hasOwnProperty(theme)) {
+             featureGroup = new L.FeatureGroup();
+             featureGroup.$name = config.layergroupNames[theme];
+             featureGroup.$key = theme;
+             featureGroup.StyledLayerControl = {
+             removable: false,
+             visible: false
+             };
+             featureRenders[theme] = featureGroup;
+             } else {
+             featureGroup = featureRenders[theme];
+             }
+             
+             featureRender.addTo(featureGroup);
+             }
+             }
+             
+             return featureRenders;
+             };*/
+
+
+            //L.marker([51.5, -0.09])
+
+            //defaultStyle = {color: '#0000FF', fill: false, weight: 2, riseOnHover: true, clickable: false};
+            //highlightStyle = {fillOpacity: 0.4, fill: true, fillColor: '#1589FF', riseOnHover: true, clickable: false};
+
+            /**
+             * Returns a "Feature Renderer" (Leaflet Layer) for a resource.
+             * If the resources contains a WMS preview representation a WMS Layer
+             * is instantiated and returned, otherwise, the spatialextent (geom)
+             * of the resourc eis used.
+             *
+             * @param {type} obj
+             * @returns {L.TileLayer.WMS|featureRendererService_L7.getFeatureRenderer.renderer}
+             */
+            getFeatureRenderer = function (obj) {
+                // this is only an indirection to hide the conrete implementation
+                // however, as not specified yet, we hardcode this for now
+
+                var wktString, wktObject, renderer, objectStyle;
+
+                renderer = null;
+
+                // the geo_field property comes from the server so ...  
+                // if no preview (WMS layer representation) is found,
+                // use the spatial extent
+                if (!renderer && obj.spatialcoverage && obj.spatialcoverage.geo_field) { // jshint ignore:line
+                    wktString = obj.spatialcoverage.geo_field; // jshint ignore:line
+                    wktObject = new Wkt.Wkt();
+                    wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
+                    objectStyle = Object.create(config.defaultStyle);
+                    if (obj.name) {
+                        objectStyle.title = obj.name;
+                    }
+                    renderer = wktObject.toObject(objectStyle);
+                    renderer.setStyle(config.defaultStyle);
+                }
+
+
+                if (obj &&
+                    obj.$self &&
+                    obj.$self.substr(0, 18).toLowerCase() === '/switchon.resource') {
+                    if (obj.representation) {
+                        obj.representation.every(function (representation) {
+                            var capabilities, layername;
+
+                            if (representation.name && representation.contentlocation &&
+                                representation.type && representation.type.name === 'aggregated data' &&
+                                representation['function'] && representation['function'].name === 'service' &&
+                                representation.protocol) {
+
+                                // PRIORITY on TMS!
+                                if (representation.protocol.name === 'WWW:TILESERVER') {
+                                    renderer = L.tileLayer(representation.contentlocation,
+                                        {
+                                            // FIXME: make configurable per layer
+                                            tms: 'true',
+                                            zIndex: 999
+                                        });
+
+                                    // unfortunately leaflet does not parse the capabilities, etc, thus no bounds present :(
+                                    // todo: resolve performance problems with multipoint / multipolygon!
+                                    renderer.getBounds = function () {
+                                        // the geo_field property comes from the server so ...  
+                                        if (obj.spatialcoverage && obj.spatialcoverage.geo_field) { // jshint ignore:line
+                                            wktString = obj.spatialcoverage.geo_field; // jshint ignore:line
+                                            wktObject = new Wkt.Wkt();
+                                            wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
+
+                                            return wktObject.toObject().getBounds();
+                                        }
+                                    };
+
+                                    // disable the layer by default and show it only when it is selected!
+                                    renderer.setOpacity(0.0);
+                                    //renderer.bringToBack();
+                                } else if (representation.protocol.name === 'OGC:WMS-1.1.1-http-get-capabilities') {
+                                    capabilities = representation.contentlocation;
+                                    layername = representation.name;
+                                    renderer = L.tileLayer.wms(
+                                        capabilities,
+                                        {
+                                            layers: layername,
+                                            format: 'image/png',
+                                            transparent: true,
+                                            version: '1.1.1',
+                                            zIndex: 999
+                                        }
+                                    );
+
+                                    // unfortunately leaflet does not parse the capabilities, etc, thus no bounds present :(
+                                    // todo: resolve performance problems with multipoint / multipolygon!
+                                    renderer.getBounds = function () {
+                                        // the geo_field property comes from the server so ...  
+                                        if (obj.spatialcoverage && obj.spatialcoverage.geo_field) { // jshint ignore:line
+                                            wktString = obj.spatialcoverage.geo_field; // jshint ignore:line
+                                            wktObject = new Wkt.Wkt();
+                                            wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
+
+                                            return wktObject.toObject().getBounds();
+                                        }
+                                    };
+
+                                    // disable the layer by default and show it only when it is selected!
+                                    renderer.setOpacity(0.0);
+                                    //renderer.bringToBack();
+                                }
+                            }
+
+                            // execute callback function until renderer is found 
+                            return renderer === null;
+                        });
+                    }
+                }
+
+                return renderer;
+            };
+
+            // </editor-fold>
+
+            return {
+                createNodeFeatureGroups: createNodeFeatureGroups,
+                createGazetteerLocationLayer: createGazetteerLocationLayer,
+                createOverlayLayer: createOverlayLayer,
+                defaultStyle: config.defaultStyle,
+                highlightStyle: config.highlightStyle
+            };
+        }
+    ]
+    );
 /* 
  * ***************************************************
  * 
@@ -3994,173 +4102,188 @@ angular.module(
 
 /*global angular*/
 angular.module(
-        'de.cismet.uim2020-html5-demonstrator.services'
-        ).factory('searchService',
-        ['$resource', '$q', '$interval', 'configurationService', 'authenticationService',
-            function ($resource, $q, $interval, configurationService, authenticationService) {
-                'use strict';
+    'de.cismet.uim2020-html5-demonstrator.services'
+    ).factory('searchService',
+    ['$resource', '$q', '$interval', 'configurationService', 'authenticationService',
+        function ($resource, $q, $interval, configurationService, authenticationService) {
+            'use strict';
 
-                var cidsRestApiConfig, defaultSearchFunction;
-                cidsRestApiConfig = configurationService.cidsRestApi;
+            var cidsRestApiConfig, defaultSearchFunction;
+            cidsRestApiConfig = configurationService.cidsRestApi;
 
-                /**
-                 * Default Search Function exposed by the Service.
-                 * 
-                 * @param {type} geometry
-                 * @param {type} themes
-                 * @param {type} pollutants
-                 * @param {type} limit
-                 * @param {type} offset
-                 * @param {type} progressCallback
-                 * @returns {undefined}
-                 */
-                defaultSearchFunction = function (
-                        geometry,
-                        themes,
-                        pollutants,
-                        limit,
-                        offset,
-                        progressCallback) {
-                    var deferred, noop, queryObject, defaultSearchResult, defaultRestApiSearch,
-                            defaultRestApiSearchResult, timer, fakeProgress;
+            /**
+             * Default Search Function exposed by the Service.
+             * 
+             * @param {type} geometry
+             * @param {type} themes
+             * @param {type} pollutants
+             * @param {type} limit
+             * @param {type} offset
+             * @param {type} progressCallback
+             * @returns {undefined}
+             */
+            defaultSearchFunction = function (
+                geometry,
+                themes,
+                pollutants,
+                limit,
+                offset,
+                progressCallback) {
+                var deferred, noop, queryObject, defaultSearchResult, defaultRestApiSearch,
+                    defaultRestApiSearchResult, timer, fakeProgress;
 
-                    //console.log('searchService::defaultSearchFunction()');
+                //console.log('searchService::defaultSearchFunction()');
 
-                    // FIXME: get rid of this noop stuff -> makes code unreadable
-                    noop = angular.noop;
-                    // current value, max value, type, max = -1 indicates indeterminate
-                    (progressCallback || noop)(0, -1, 'success');
-                    fakeProgress = 1;
-                    timer = $interval(function () {
-                        (progressCallback || noop)(fakeProgress, -1, 'success');
-                        fakeProgress++;
-                    }, 100, 100);
+                // FIXME: get rid of this noop stuff -> makes code unreadable
+                noop = angular.noop;
+                // current value, max value, type, max = -1 indicates indeterminate
+                (progressCallback || noop)(0, -1, 'success');
+                fakeProgress = 1;
+                timer = $interval(function () {
+                    (progressCallback || noop)(fakeProgress, -1, 'success');
+                    fakeProgress++;
+                }, 100, 100);
 
-                    deferred = $q.defer();
+                deferred = $q.defer();
 
-                    queryObject = {
-                        'list': [
-                            {'key': 'geometry', 'value': geometry},
-                            {'key': 'themes', 'value': themes},
-                            {'key': 'pollutants', 'value': pollutants}
-                        ]
-                    };
-
-                    if (offset && limit && limit > 0 && offset > 0 && (offset % limit !== 0)) {
-                        offset = 0;
-                    }
-
-                    // result of this search operation set a new promise 
-                    defaultSearchResult = {
-                        $promise: deferred.promise,
-                        $resolved: false,
-                        $offset: offset,
-                        $limit: limit,
-                        $length: 0
-                    };
-
-                    // remote legagy search core search
-                    // FIXME: limit and offset not implemented in legacy search!
-                    // currently, limit and offset are appended to the POST query parameter!
-                    defaultRestApiSearch = $resource(cidsRestApiConfig.host +
-                            '/searches/' + cidsRestApiConfig.domain + '.' + cidsRestApiConfig.defaultRestApiSearch + '/results',
-                            {
-                                limit: 100,
-                                offset: 0,
-                                omitNullValues: true,
-                                deduplicate: true
-                            }, {
-                        search: {
-                            method: 'POST',
-                            params: {
-                                limit: '@limit',
-                                offset: '@offset'
-                            },
-                            isArray: false,
-                            headers: {
-                                'Authorization': authenticationService.getAuthorizationToken()
-                            }
+                queryObject = {
+                    'list': [
+                        {
+                            'key': 'geometry', 'value': geometry
+                        },
+                        {
+                            'key': 'themes', 'value': themes
+                        },
+                        {
+                            'key': 'pollutants', 'value': pollutants
                         }
-                    });
+                    ]
+                };
 
-                    // result of the remote search operation (promise)
-                    // starting the search!
-                    // FIXME:   limit an offset GET parameters currently not evaluated 
-                    //          by the leagcy service. There we have to add them also
-                    //          to the queryObject.
-                    defaultRestApiSearchResult = defaultRestApiSearch.search({
-                        limit: limit,
-                        offset: offset},
-                            queryObject
-                            );
+                if (offset && limit && limit > 0 && offset > 0 && (offset % limit !== 0)) {
+                    offset = 0;
+                }
 
-                    defaultRestApiSearchResult.$promise.then(
-                            function success(searchResult) {
-                                //console.log('searchService::defaultSearchFunction()->success()');
-                                var key, i, length, curentNode, dataObject, className;
-                                // doing the same as ngResource: copying the results in the already returned obj (shallow)
-                                for (key in searchResult) {
-                                    if (searchResult.hasOwnProperty(key) &&
-                                            !(key.charAt(0) === '$' && key.charAt(1) === '$')) {
+                // result of this search operation set a new promise 
+                defaultSearchResult = {
+                    $promise: deferred.promise,
+                    $resolved: false,
+                    $offset: offset,
+                    $limit: limit,
+                    $length: 0
+                };
 
-                                        defaultSearchResult[key] = searchResult[key];
-                                        if (key === '$collection' && angular.isArray(defaultSearchResult.$collection)) {
-                                            length = defaultSearchResult.$collection.length;
-                                            for (i = 0; i < length; i++) {
-                                                curentNode = defaultSearchResult.$collection[i];
-                                                if (curentNode.lightweightJson) {
+                // remote legagy search core search
+                // FIXME: limit and offset not implemented in legacy search!
+                // currently, limit and offset are appended to the POST query parameter!
+                defaultRestApiSearch = $resource(cidsRestApiConfig.host +
+                    '/searches/' + cidsRestApiConfig.domain + '.' + cidsRestApiConfig.defaultRestApiSearch + '/results',
+                    {
+                        limit: 100,
+                        offset: 0,
+                        omitNullValues: true,
+                        deduplicate: true
+                    }, {
+                    search: {
+                        method: 'POST',
+                        params: {
+                            limit: '@limit',
+                            offset: '@offset'
+                        },
+                        isArray: false,
+                        headers: {
+                            'Authorization': authenticationService.getAuthorizationToken()
+                        }
+                    }
+                });
 
-                                                    try {
-                                                        dataObject = angular.fromJson(curentNode.lightweightJson);
-                                                        curentNode.$data = dataObject;
-                                                        delete defaultSearchResult.$collection[i].lightweightJson;
-                                                        
-                                                        className = curentNode.classKey.split(".").slice(1, 2).pop();
+                // result of the remote search operation (promise)
+                // starting the search!
+                // FIXME:   limit an offset GET parameters currently not evaluated 
+                //          by the leagcy service. There we have to add them also
+                //          to the queryObject.
+                defaultRestApiSearchResult = defaultRestApiSearch.search({
+                    limit: limit,
+                    offset: offset
+                },
+                    queryObject
+                    );
 
-                                                        curentNode.className = dataObject.className ?
-                                                                dataObject.className : className;
-                                                         
-                                                        if(configurationService.featureRenderer.icons[className]) {
-                                                            curentNode.$icon = configurationService.featureRenderer.icons[className].iconUrl; 
-                                                        }
-                                                    } catch (err) {
-                                                        console.error(err.message);
-                                                    }
-                                                }
+                defaultRestApiSearchResult.$promise.then(
+                    function success(searchResult) {
+                        //console.log('searchService::defaultSearchFunction()->success()');
+                        var key, i, length, curentNode, dataObject, className;
+                        // doing the same as ngResource: copying the results in the already returned obj (shallow)
+                        for (key in searchResult) {
+                            if (searchResult.hasOwnProperty(key) &&
+                                !(key.charAt(0) === '$' && key.charAt(1) === '$')) {
+
+                                defaultSearchResult[key] = searchResult[key];
+                                if (key === '$collection' && angular.isArray(defaultSearchResult.$collection)) {
+                                    length = defaultSearchResult.$collection.length;
+                                    for (i = 0; i < length; i++) {
+                                        curentNode = defaultSearchResult.$collection[i];
+
+                                        className = curentNode.classKey.split(".").slice(1, 2).pop();
+
+                                        if (configurationService.featureRenderer.icons[className]) {
+                                            curentNode.$icon = configurationService.featureRenderer.icons[className].iconUrl;
+                                        }
+
+                                        // FIXME: extract class name from CS_CLASS description (server-side)
+                                        if (configurationService.featureRenderer.layergroupNames[className]) {
+                                            className = configurationService.featureRenderer.layergroupNames[className];
+                                        }
+
+                                        curentNode.className = className;
+
+                                        if (curentNode.lightweightJson) {
+
+                                            try {
+                                                dataObject = angular.fromJson(curentNode.lightweightJson);
+                                                curentNode.$data = dataObject;
+                                                delete defaultSearchResult.$collection[i].lightweightJson;
+                                                // FIXME: extract class name from CS_CLASS description (server-side)
+                                                curentNode.className = dataObject.className ?
+                                                    dataObject.className : className;
+                                            } catch (err) {
+                                                console.error(err.message);
                                             }
                                         }
                                     }
                                 }
+                            }
+                        }
 
-                                defaultSearchResult.$length = searchResult.$collection ? searchResult.$collection.length : 0;
-                                if (!defaultSearchResult.$total || defaultSearchResult.$total === 0) {
-                                    defaultSearchResult.$total = defaultSearchResult.length;
-                                }
+                        defaultSearchResult.$length = searchResult.$collection ? searchResult.$collection.length : 0;
+                        if (!defaultSearchResult.$total || defaultSearchResult.$total === 0) {
+                            defaultSearchResult.$total = defaultSearchResult.length;
+                        }
 
-                                deferred.resolve(defaultSearchResult);
+                        deferred.resolve(defaultSearchResult);
 
-                                $interval.cancel(timer);
-
-                                // set current AND max to node count -> signalise search completed
-                                (progressCallback || noop)(defaultSearchResult.$length, defaultSearchResult.$length, 'success');
-                            }, function error(searchError) {
-                        console.log('searchService::defaultSearchFunction()->error()');
-                        defaultSearchResult.$error = 'cannot search for resources';
-                        defaultSearchResult.$response = searchError;
-                        defaultSearchResult.$resolved = true;
-                        deferred.reject(defaultSearchResult);
                         $interval.cancel(timer);
-                        (progressCallback || noop)(1, 1, 'error');
-                    });
 
-                    return defaultSearchResult;
-                };
+                        // set current AND max to node count -> signalise search completed
+                        (progressCallback || noop)(defaultSearchResult.$length, defaultSearchResult.$length, 'success');
+                    }, function error(searchError) {
+                    console.log('searchService::defaultSearchFunction()->error()');
+                    defaultSearchResult.$error = 'cannot search for resources';
+                    defaultSearchResult.$response = searchError;
+                    defaultSearchResult.$resolved = true;
+                    deferred.reject(defaultSearchResult);
+                    $interval.cancel(timer);
+                    (progressCallback || noop)(1, 1, 'error');
+                });
 
-                return {
-                    defaultSearch: defaultSearchFunction
-                };
-            }]
-        );
+                return defaultSearchResult;
+            };
+
+            return {
+                defaultSearch: defaultSearchFunction
+            };
+        }]
+    );
 
 /* 
  * ***************************************************

@@ -27,8 +27,8 @@
                 {{node.description}}
             </td>
             <td title="'Schadstoffe'">
-                <span ng-repeat="pollutant in node.$data.pollutants track by pollutant.id">
-                    <span class="label label-warning">{{pollutant.name}}</span>
+                <span ng-repeat="pollutant in node.$data.aggregationvalues track by pollutant.name">
+                    <span class="label label-warning">{{pollutant.pollutantkey}}</span>
                 </span>
             </td>
             <td title="''">

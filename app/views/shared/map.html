@@ -14,6 +14,7 @@
                     <img src="{{node.$icon}}" alt="{{node.className}}">
                 </span>
                 <span class="btn-link"
+                      ng-disabled="!node.$feature"
                       ng-click="mapController.gotoNode(node)">
                     {{node.name}} 
                 </span>
