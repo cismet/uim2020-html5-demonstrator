@@ -9,13 +9,14 @@
     <div class="cs-result-list">
         <ul class="list-group">
             <li class="list-group-item"
-                ng-repeat="node in mapController.nodes track by node.objectKey">  
+                ng-repeat="node in mapController.nodes track by node.objectKey | orderBy:['className','name']">
                 <span class="btn-icon">
                     <img src="{{node.$icon}}" alt="{{node.className}}">
                 </span>
                 <span class="btn-link"
+                      ng-disabled="!node.$feature"
                       ng-click="mapController.gotoNode(node)">
-                    {{node.name}} 
+                    {{node.name | textLengthFilter:35}} 
                 </span>
                 
                 <a class="btn btn-sm btn-icon pull-right"
@@ -26,23 +27,28 @@
                     <span class="fa fa-plus-circle fa-2x"></span>
                 </a>
                 
+                <!-- ng-style="!node.description && {'clear':'right'}" -->
+                
                 <a class="btn btn-sm btn-icon pull-right"
                    style="padding:5px"
                    title="Von der Merkliste entfernen"
                    ng-if="mainController.mode === 'analysis'"
+                   ng-style="!node.description && {'clear':'right'}"
                    ng-click="mainController.removeAnalysisNode(node)">
                     <span class="fa fa-minus-circle fa-2x"></span>
                 </a>
 
                 <a class="btn btn-sm btn-icon pull-right"
+                   ng-if="node.LEGACY_OBJECT_ID"
                    data-ui-sref="modal.entity({class: node.classKey.split('.').slice(1, 2).pop(), id:node.LEGACY_OBJECT_ID})"
                    title="Informationen zum Object anzeigen"
                    style="padding-right:0; padding-left:0">
                     <span class="fa fa-info-circle fa-2x"></span>
                 </a>
-                <p>
-                    <small><small>{{node.description}}</small></small>
+                <p ng-if="node.description">
+                    <small><small>{{node.description | textLengthFilter:60:false:'...':true}}</small></small>
                 </p>
+                <div ng-if="!node.description" style="clear:right"><!-- clearfix hack --></div>
             </li>
 
             <!--
@@ -58,7 +64,7 @@
                 </a>
                 <p>
                     <small><small>
-                            {{node.object.description| txtLen:80:false:'...':true}}
+                            {{node.object.description | txtLen:80:false:'...':true}}
                         </small></small>
                 </p>
             </li>

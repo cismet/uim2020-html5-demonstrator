@@ -23,13 +23,13 @@ angular.module(
                         overlayLayers, overlays;
 
                 configurationService = this;
-                
+
                 configurationService.developmentMode = true;
-                
+
                 configurationService.cidsRestApi = {};
                 configurationService.cidsRestApi.host = 'http://localhost:8890';
                 configurationService.cidsRestApi.domain = 'UDM2020-DI';
-                configurationService.cidsRestApi.defaultRestApiSearch = 'de.cismet.cids.custom.udm2020di.serversearch.DefaultRestApiSearch'
+                configurationService.cidsRestApi.defaultRestApiSearch = 'de.cismet.cids.custom.udm2020di.serversearch.DefaultRestApiSearch';
                 //configurationService.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
                 //configurationService.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
 
@@ -39,7 +39,7 @@ angular.module(
                 configurationService.authentication.password = '';
                 configurationService.authentication.cookie = 'de.cismet.uim2020-html5-demonstrator.identity';
 
-                
+
 
                 configurationService.searchService = {};
                 configurationService.searchService.defautLimit = 10;
@@ -51,7 +51,7 @@ angular.module(
 
                 configurationService.map.options = {};
                 configurationService.map.options.centerOnSearchGeometry = true;
-                configurationService.map.options.preserveZoomOnCenter = true;
+                configurationService.map.options.preserveZoomOnCenter = false;
 
                 configurationService.map.home = {};
                 configurationService.map.home.lat = 47.61;
@@ -220,15 +220,16 @@ angular.module(
                 overlayLayers[configurationService.map.layerMappings['WAOW_STATION']] = waowFeatureGroup;
 
                 configurationService.map.nodeOverlays = {
-                        groupName: configurationService.map.layerGroupMappings['nodes'],
-                        expanded: true,
-                        layers: overlayLayers
-                    };
+                    groupName: configurationService.map.layerGroupMappings['nodes'],
+                    expanded: true,
+                    layers: overlayLayers
+                };
 
                 // angular.extend creates a shallow copy!
                 // angular.copy creates a deep copy!
                 // angular.merge creates a deep copy!
-                configurationService.map.searchOverlays = [];angular.merge([],
+                configurationService.map.searchOverlays = [];
+                angular.merge([],
                         [
                             {
                                 groupName: configurationService.map.layerGroupMappings['gazetteer'],
@@ -281,9 +282,11 @@ angular.module(
 
                 configurationService.featureRenderer = {};
                 configurationService.featureRenderer.gazetteerStyle = {
-                    color: '#dadaeb',
-                    fill: false,
-                    weight: 1,
+                    color: '#8856a7',
+                    fillColor: '#feb24c',
+                    fillOpacity: 0.3,
+                    fill: true,
+                    weight: 4,
                     riseOnHover: false,
                     clickable: false
                 };
@@ -305,23 +308,80 @@ angular.module(
                 configurationService.featureRenderer.icons = {};
                 configurationService.featureRenderer.icons.BORIS_SITE = L.icon({
                     iconUrl: 'icons/showel_16.png',
-                    iconSize: [16, 16]
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0]
                 });
                 configurationService.featureRenderer.icons.WAGW_STATION = L.icon({
                     iconUrl: 'icons/wagw_16.png',
-                    iconSize: [16, 16]
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0]
                 });
                 configurationService.featureRenderer.icons.WAOW_STATION = L.icon({
                     iconUrl: 'icons/waow_16.png',
-                    iconSize: [16, 16]
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0]
                 });
                 configurationService.featureRenderer.icons.EPRTR_INSTALLATION = L.icon({
                     iconUrl: 'icons/factory_16.png',
-                    iconSize: [16, 16]
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0]
                 });
                 configurationService.featureRenderer.icons.MOSS = L.icon({
                     iconUrl: 'icons/grass_16.png',
-                    iconSize: [16, 16]
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0]
+                });
+
+                configurationService.featureRenderer.highlightIcons = {};
+                configurationService.featureRenderer.highlightIcons.BORIS_SITE = L.icon({
+                    iconUrl: 'icons/showel_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0],
+                    shadowUrl: "icons/icon_shadow.png",
+                    shadowSize: [24, 24],
+                    shadowAnchor: [12, 12]
+                });
+                configurationService.featureRenderer.highlightIcons.WAGW_STATION = L.icon({
+                    iconUrl: 'icons/wagw_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0],
+                    shadowUrl: "icons/icon_shadow.png",
+                    shadowSize: [24, 24],
+                    shadowAnchor: [12, 12]
+                });
+                configurationService.featureRenderer.highlightIcons.WAOW_STATION = L.icon({
+                    iconUrl: 'icons/waow_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0],
+                    shadowUrl: "icons/icon_shadow.png",
+                    shadowSize: [24, 24],
+                    shadowAnchor: [12, 12]
+                });
+                configurationService.featureRenderer.highlightIcons.EPRTR_INSTALLATION = L.icon({
+                    iconUrl: 'icons/factory_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0],
+                    shadowUrl: "icons/icon_shadow.png",
+                    shadowSize: [24, 24],
+                    shadowAnchor: [12, 12]
+                });
+                configurationService.featureRenderer.highlightIcons.MOSS = L.icon({
+                    iconUrl: 'icons/grass_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0],
+                    shadowUrl: "icons/icon_shadow.png",
+                    shadowSize: [24, 24],
+                    shadowAnchor: [12, 12]
                 });
 
                 configurationService.featureRenderer.layergroupNames = {};
@@ -336,7 +396,7 @@ angular.module(
                 configurationService.multiselect.settings = {
                     styleActive: true,
                     displayProp: 'name',
-                    idProp: 'classId',
+                    idProp: 'id',
                     buttonClasses: 'btn btn-default navbar-btn cs-search-multiselect'
                 };
                 configurationService.multiselect.translationTexts = {

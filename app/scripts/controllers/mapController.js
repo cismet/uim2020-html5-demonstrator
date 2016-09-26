@@ -1,4 +1,4 @@
-/*global angular, L */
+/*global angular, L, Wkt */
 /*jshint sub:true*/
 
 angular.module(
@@ -21,7 +21,7 @@ angular.module(
                 var leafletMap, mapId, mapController, config, layerControl, searchGeometryLayerGroup, drawControl,
                         defaults, center, basemaps, overlays, layerControlOptions,
                         drawOptions, maxBounds, setSearchGeometry, gazetteerLocationLayer, layerControlMappings,
-                        overlaysNodeLayersIndex, fitBoundsOptions;
+                        overlaysNodeLayersIndex, fitBoundsOptions, selectedNode;
 
                 mapController = this;
                 mapController.mode = $scope.mainController.mode;
@@ -43,6 +43,8 @@ angular.module(
                 layerControlOptions = angular.copy(config.layerControlOptions);
                 drawOptions = angular.copy(config.drawOptions);
                 fitBoundsOptions = angular.copy(config.fitBoundsOptions);
+
+                selectedNode = null;
 
                 if (mapController.mode === 'search') {
                     mapController.nodes = sharedDatamodel.resultNodes;
@@ -154,6 +156,25 @@ angular.module(
 
 
                 // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
+
+                /**
+                 * Returns the current search location wkt. If no search bbox or polygon
+                 * is drawn, retuns the map bounds as wkt;
+                 * @returns {undefined}
+                 */
+                mapController.getSearchWktString = function () {
+                    var searchGeometryLayer, wkt, wktString;
+                    // bbox available ....
+                    if (searchGeometryLayerGroup.getLayers().length === 1) {
+                        searchGeometryLayer = searchGeometryLayerGroup.getLayers()[0];
+                    } else {
+                        searchGeometryLayer = new L.rectangle(leafletMap.getBounds());
+                    }
+
+                    wkt = new Wkt.Wkt().fromObject(searchGeometryLayer);
+                    return wkt.write();
+                };
+
                 mapController.unSelectOverlayByKey = function (layerKey) {
                     if (layerKey &&
                             layerControlMappings[layerKey] &&
@@ -245,9 +266,22 @@ angular.module(
                 };
 
                 mapController.gotoNode = function (node) {
+                    var icon;
+
+                    // reset selection
+                    if (selectedNode !== null && selectedNode.$feature) {
+                        icon = featureRendererService.getIconForNode(selectedNode);
+                        selectedNode.$feature.setIcon(icon);
+                    }
+
                     if (node.$feature) {
-                        leafletMap.setView(node.$feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
-                        node.$feature.togglePopup();
+                        selectedNode = node;
+                        icon = featureRendererService.getHighlightIconForNode(selectedNode);
+                        selectedNode.$feature.setIcon(icon);
+                        leafletMap.setView(selectedNode.$feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
+                        //node.$feature.togglePopup();
+                    } else {
+                        selectedNode = null;
                     }
                 };
 
@@ -315,6 +349,11 @@ angular.module(
                         fitBounds = mapController.mode === 'search' ? true : false;
                     }
 
+                    // clear layers on search map
+                    if (clearLayers) {
+                        mapController.clearNodes();
+                    }
+
                     if (nodes !== null && nodes.length > 0) {
                         featureGroups = featureRendererService.createNodeFeatureGroups(nodes);
                         for (theme in featureGroups) {
@@ -322,11 +361,6 @@ angular.module(
                             if (layerControlId && layerControl._layers[layerControlId] && layerControl._layers[layerControlId].layer) {
                                 featureGroup = featureGroups[theme];
                                 featureGroupLayer = layerControl._layers[layerControlId].layer;
-
-                                // clear layers on analysis map
-                                if (clearLayers) {
-                                    featureGroupLayer.clearLayers();
-                                }
 
                                 /*jshint loopfunc:true */
                                 featureGroup.forEach(function (feature) {
@@ -420,30 +454,46 @@ angular.module(
 
                 //</editor-fold>
 
-                $scope.$on('gotoLocation()', function (event) {
-                    if (mapController.mode === 'search') {
-                        console.log('mapController::gotoLocation(' + sharedDatamodel.selectedGazetteerLocation.name + ')');
-                        mapController.setGazetteerLocation(sharedDatamodel.selectedGazetteerLocation);
-                    }
-                });
+                // register search map event handlers
+                if (mapController.mode === 'search') {
+                    $scope.$on('gotoLocation()', function (event) {
+                        if (mapController.mode === 'search') {
+                            console.log('mapController::gotoLocation(' + sharedDatamodel.selectedGazetteerLocation.name + ')');
+                            mapController.setGazetteerLocation(sharedDatamodel.selectedGazetteerLocation);
+                        }
+                    });
 
-                $scope.$on('searchSuccess()', function (event) {
-                    //console.log(mapId + '::searchSuccess()');
-                    if (mapController.mode === 'search') {
+                    $scope.$on('searchSuccess()', function (event) {
+                        // reset search geom
+                        setSearchGeometry(null);
+                        // Gesamter Kartenausschnitt
+                        sharedDatamodel.selectedSearchLocation.id = 0;
                         if (sharedDatamodel.resultNodes.length > 0) {
                             mapController.setNodes(sharedDatamodel.resultNodes);
                         } else {
                             mapController.clearNodes();
                         }
+                        /*else if (mapController.mode === 'analysis' && sharedDatamodel.analysisNodes.length > 0) {
+                         mapController.setNodes(sharedDatamodel.analysisNodes);
+                         }*/
+                    });
 
-                    } /*else if (mapController.mode === 'analysis' && sharedDatamodel.analysisNodes.length > 0) {
-                     mapController.setNodes(sharedDatamodel.analysisNodes);
-                     }*/
-                });
+                    $scope.$on('searchError()', function (event) {
+                        // reset search geom
+                        setSearchGeometry(null);
+                        // Gesamter Kartenausschnitt
+                        sharedDatamodel.selectedSearchLocation.id = 0;
+                        mapController.clearNodes();
 
-                $scope.$on('searchError()', function (event) {
-                    mapController.clearNodes();
-                });
+                    });
+
+                    $scope.$on('setSearchLocation()', function (event) {
+                        if (sharedDatamodel.selectedSearchLocation.id === 0) {
+                            setSearchGeometry(null);
+                            sharedDatamodel.selectedSearchLocation.id = 0;
+                        }
+                    });
+                }
 
                 // <editor-fold defaultstate="collapsed" desc="=== DISABLED               ===========================">
                 /*$scope.$watch(function () {
@@ -505,10 +555,13 @@ angular.module(
 
                         map.on('draw:created', function (event) {
                             setSearchGeometry(event.layer, event.layerType);
+                            // this is madness!
+                            sharedDatamodel.selectedSearchLocation.id = 1;
                         });
 
                         map.on('draw:deleted', function (event) {
                             setSearchGeometry(null);
+                            sharedDatamodel.selectedSearchLocation.id = 0;
                         });
                     }
 
@@ -543,12 +596,17 @@ angular.module(
                         }
                     });
 
-                    // analysis nodes added bofre controller instance created ....
+                    // analysis nodes added before controller instance created ....
                     if (mapController.mode === 'analysis' &&
                             sharedDatamodel.analysisNodes &&
                             sharedDatamodel.analysisNodes.length > 0) {
 
                         mapController.setNodes(sharedDatamodel.analysisNodes);
+                    } else if (mapController.mode === 'search' &&
+                            sharedDatamodel.resultNodes &&
+                            sharedDatamodel.resultNodes.length > 0) {
+                        console.warn(sharedDatamodel.resultNodes.length + ' result nodes available before search map controler instance created: possible sticky state synchrnoisation problem!');
+                        mapController.setNodes(sharedDatamodel.resultNodes, true, true);
                     }
                 });
 

@@ -168,7 +168,7 @@ app.config(
                             state: "main.search"
                         }
                     },
-                    // disables since resolve is called after stateChangeStart event! :-(
+                    // disabled since resolve is called after stateChangeStart event! :-(
                     /*resolve: {
                      identity: [
                      'authenticationService',
@@ -217,7 +217,7 @@ app.config(
                             templateUrl: 'views/search/toolbar.html',
                             controller: ['$scope',
                                 function ($scope) {
-                                    console.log('main.search.toolbar instance created');
+                                    //console.log('main.search.toolbar instance created');
                                     $scope.name = 'main.search.toolbar';
                                     this.name = 'this.main.search.toolbar';
                                 }],
@@ -280,7 +280,7 @@ app.config(
                             templateUrl: 'views/analysis/toolbar.html',
                             controller: ['$scope',
                                 function ($scope) {
-                                    console.log('main.analysis.toolbar instance created');
+                                    //console.log('main.analysis.toolbar instance created');
                                     $scope.name = 'main.analysis.toolbar';
                                     this.name = 'this.main.analysis.toolbar';
                                 }],
@@ -433,7 +433,7 @@ app.run(
 
                 $rootScope.$on('$stateChangeStart',
                         function (event, toState, toParams, fromState, fromParams) {
-                            console.log('$stateChangeStart: ' + toState.name);
+                            //console.log('$stateChangeStart: ' + toState.name);
                             if (toState.name !== 'main.authentication') {
 //                                if ((!authenticationService.isIdentityResolved() &&
 //                                        !authenticationService.getIdentity()) ||

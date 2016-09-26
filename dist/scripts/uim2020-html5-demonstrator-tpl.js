@@ -443,6 +443,49 @@ angular.module('').run(['$templateCache', function($templateCache) {
   );
 
 
+  $templateCache.put('templates/search-progress-modal.html',
+    "<div class=\"modal-header\">\r" +
+    "\n" +
+    "    <center><h4>Bitte warten Sie, die Suche wird durchgeführt.</h4></center>\r" +
+    "\n" +
+    "</div>\r" +
+    "\n" +
+    "<div class=\"modal-body\">\r" +
+    "\n" +
+    "    <div class=\"row\">\r" +
+    "\n" +
+    "        <div class=\"col-lg-12\">\r" +
+    "\n" +
+    "            <uib-progressbar class=\"progress-striped active\" \r" +
+    "\n" +
+    "                         max=\"100\" \r" +
+    "\n" +
+    "                         value=\"status.progress.current\" \r" +
+    "\n" +
+    "                         type=\"{{status.type}}\">\r" +
+    "\n" +
+    "            </uib-progressbar>\r" +
+    "\n" +
+    "        </div>\r" +
+    "\n" +
+    "    </div>\r" +
+    "\n" +
+    "    <div class=\"row\">\r" +
+    "\n" +
+    "        <div class=\"col-lg-12\">\r" +
+    "\n" +
+    "            <span><i>{{status.message}}</i></span>\r" +
+    "\n" +
+    "        </div>\r" +
+    "\n" +
+    "    </div>\r" +
+    "\n" +
+    "</div>\r" +
+    "\n" +
+    "<div class=\"modal-footer\"><!-- empty --></div>"
+  );
+
+
   $templateCache.put('templates/wizard-step-tpl.html',
     "<section ng-show=\"selected\" ng-class=\"{current: selected, done: completed}\" class=\"step\">\r" +
     "\n" +

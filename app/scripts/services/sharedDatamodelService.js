@@ -22,8 +22,10 @@ angular.module(
                 this.selectedSearchThemes = [];
                 this.selectedSearchPollutants = [];
                 this.selectedGazetteerLocation = {};
-                this.selectedSearchGeometry = {};
-                this.selectedSearchLocation = {};
+                //this.selectedSearchGeometry = {};
+                this.selectedSearchLocation = {
+                    id:0
+                };
 
                 // search results
                 this.resultNodes = [];

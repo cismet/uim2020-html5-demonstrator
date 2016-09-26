@@ -124,7 +124,7 @@ angular.module(
                     _identity = $cookieStore.get(configurationService.authentication.cookie);
                     if (!isAuthenticated()) {
                         // may return null or empty object 
-                        console.warn("no stored session cookie avilalbe, user has to re-authenticate");
+                        console.warn("no stored session cookie available, user has to re-authenticate");
                         return $q.when(_identity);
                     }
 
