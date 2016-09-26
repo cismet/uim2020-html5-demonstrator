@@ -21,7 +21,7 @@ angular.module(
                 var leafletMap, mapId, mapController, config, layerControl, searchGeometryLayerGroup, drawControl,
                         defaults, center, basemaps, overlays, layerControlOptions,
                         drawOptions, maxBounds, setSearchGeometry, gazetteerLocationLayer, layerControlMappings,
-                        overlaysNodeLayersIndex, fitBoundsOptions;
+                        overlaysNodeLayersIndex, fitBoundsOptions, selectedNode;
 
                 mapController = this;
                 mapController.mode = $scope.mainController.mode;
@@ -43,6 +43,8 @@ angular.module(
                 layerControlOptions = angular.copy(config.layerControlOptions);
                 drawOptions = angular.copy(config.drawOptions);
                 fitBoundsOptions = angular.copy(config.fitBoundsOptions);
+
+                selectedNode = null;
 
                 if (mapController.mode === 'search') {
                     mapController.nodes = sharedDatamodel.resultNodes;
@@ -264,9 +266,22 @@ angular.module(
                 };
 
                 mapController.gotoNode = function (node) {
+                    var icon;
+
+                    // reset selection
+                    if (selectedNode !== null && selectedNode.$feature) {
+                        icon = featureRendererService.getIconForNode(selectedNode);
+                        selectedNode.$feature.setIcon(icon);
+                    }
+
                     if (node.$feature) {
-                        leafletMap.setView(node.$feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
-                        node.$feature.togglePopup();
+                        selectedNode = node;
+                        icon = featureRendererService.getHighlightIconForNode(selectedNode);
+                        selectedNode.$feature.setIcon(icon);
+                        leafletMap.setView(selectedNode.$feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
+                        //node.$feature.togglePopup();
+                    } else {
+                        selectedNode = null;
                     }
                 };
 
@@ -581,12 +596,17 @@ angular.module(
                         }
                     });
 
-                    // analysis nodes added bofre controller instance created ....
+                    // analysis nodes added before controller instance created ....
                     if (mapController.mode === 'analysis' &&
                             sharedDatamodel.analysisNodes &&
                             sharedDatamodel.analysisNodes.length > 0) {
 
                         mapController.setNodes(sharedDatamodel.analysisNodes);
+                    } else if (mapController.mode === 'search' &&
+                            sharedDatamodel.resultNodes &&
+                            sharedDatamodel.resultNodes.length > 0) {
+                        console.warn(sharedDatamodel.resultNodes.length + ' result nodes available before search map controler instance created: possible sticky state synchrnoisation problem!');
+                        mapController.setNodes(sharedDatamodel.resultNodes, true, true);
                     }
                 });
 

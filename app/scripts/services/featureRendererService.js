@@ -20,7 +20,7 @@ angular.module(
 
             var config, getFeatureRenderer, createNodeFeature,
                 createGazetteerLocationLayer, createNodeFeatureGroups,
-                createOverlayLayer;
+                createOverlayLayer, getIconForNode, getHighlightIconForNode;
 
             config = configurationService.featureRenderer;
 
@@ -199,8 +199,22 @@ angular.module(
 
                 return overlayLayer;
             };
-
-
+            
+            getIconForNode = function (node) {
+                var theme, icon;
+                theme = node.classKey.split(".").slice(1, 2).pop();
+                icon = config.icons[theme];
+                
+                return icon;
+            };
+            
+            getHighlightIconForNode = function (node) {
+                var theme, icon;
+                theme = node.classKey.split(".").slice(1, 2).pop();
+                icon = config.highlightIcons[theme];
+                
+                return icon;
+            };
 
             // </editor-fold>
 
@@ -359,6 +373,8 @@ angular.module(
                 createNodeFeatureGroups: createNodeFeatureGroups,
                 createGazetteerLocationLayer: createGazetteerLocationLayer,
                 createOverlayLayer: createOverlayLayer,
+                getIconForNode: getIconForNode,
+                getHighlightIconForNode: getHighlightIconForNode,
                 defaultStyle: config.defaultStyle,
                 highlightStyle: config.highlightStyle
             };

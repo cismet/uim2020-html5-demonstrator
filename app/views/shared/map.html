@@ -16,7 +16,7 @@
                 <span class="btn-link"
                       ng-disabled="!node.$feature"
                       ng-click="mapController.gotoNode(node)">
-                    {{node.name}} 
+                    {{node.name | textLengthFilter:35}} 
                 </span>
                 
                 <a class="btn btn-sm btn-icon pull-right"

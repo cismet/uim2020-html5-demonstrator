@@ -1629,7 +1629,7 @@ angular.module(
                 var leafletMap, mapId, mapController, config, layerControl, searchGeometryLayerGroup, drawControl,
                         defaults, center, basemaps, overlays, layerControlOptions,
                         drawOptions, maxBounds, setSearchGeometry, gazetteerLocationLayer, layerControlMappings,
-                        overlaysNodeLayersIndex, fitBoundsOptions;
+                        overlaysNodeLayersIndex, fitBoundsOptions, selectedNode;
 
                 mapController = this;
                 mapController.mode = $scope.mainController.mode;
@@ -1651,6 +1651,8 @@ angular.module(
                 layerControlOptions = angular.copy(config.layerControlOptions);
                 drawOptions = angular.copy(config.drawOptions);
                 fitBoundsOptions = angular.copy(config.fitBoundsOptions);
+
+                selectedNode = null;
 
                 if (mapController.mode === 'search') {
                     mapController.nodes = sharedDatamodel.resultNodes;
@@ -1872,9 +1874,22 @@ angular.module(
                 };
 
                 mapController.gotoNode = function (node) {
+                    var icon;
+
+                    // reset selection
+                    if (selectedNode !== null && selectedNode.$feature) {
+                        icon = featureRendererService.getIconForNode(selectedNode);
+                        selectedNode.$feature.setIcon(icon);
+                    }
+
                     if (node.$feature) {
-                        leafletMap.setView(node.$feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
-                        node.$feature.togglePopup();
+                        selectedNode = node;
+                        icon = featureRendererService.getHighlightIconForNode(selectedNode);
+                        selectedNode.$feature.setIcon(icon);
+                        leafletMap.setView(selectedNode.$feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
+                        //node.$feature.togglePopup();
+                    } else {
+                        selectedNode = null;
                     }
                 };
 
@@ -2189,12 +2204,17 @@ angular.module(
                         }
                     });
 
-                    // analysis nodes added bofre controller instance created ....
+                    // analysis nodes added before controller instance created ....
                     if (mapController.mode === 'analysis' &&
                             sharedDatamodel.analysisNodes &&
                             sharedDatamodel.analysisNodes.length > 0) {
 
                         mapController.setNodes(sharedDatamodel.analysisNodes);
+                    } else if (mapController.mode === 'search' &&
+                            sharedDatamodel.resultNodes &&
+                            sharedDatamodel.resultNodes.length > 0) {
+                        console.warn(sharedDatamodel.resultNodes.length + ' result nodes available before search map controler instance created: possible sticky state synchrnoisation problem!');
+                        mapController.setNodes(sharedDatamodel.resultNodes, true, true);
                     }
                 });
 
@@ -3160,9 +3180,9 @@ angular.module(
                         overlayLayers, overlays;
 
                 configurationService = this;
-                
+
                 configurationService.developmentMode = true;
-                
+
                 configurationService.cidsRestApi = {};
                 configurationService.cidsRestApi.host = 'http://localhost:8890';
                 configurationService.cidsRestApi.domain = 'UDM2020-DI';
@@ -3176,7 +3196,7 @@ angular.module(
                 configurationService.authentication.password = '';
                 configurationService.authentication.cookie = 'de.cismet.uim2020-html5-demonstrator.identity';
 
-                
+
 
                 configurationService.searchService = {};
                 configurationService.searchService.defautLimit = 10;
@@ -3357,15 +3377,16 @@ angular.module(
                 overlayLayers[configurationService.map.layerMappings['WAOW_STATION']] = waowFeatureGroup;
 
                 configurationService.map.nodeOverlays = {
-                        groupName: configurationService.map.layerGroupMappings['nodes'],
-                        expanded: true,
-                        layers: overlayLayers
-                    };
+                    groupName: configurationService.map.layerGroupMappings['nodes'],
+                    expanded: true,
+                    layers: overlayLayers
+                };
 
                 // angular.extend creates a shallow copy!
                 // angular.copy creates a deep copy!
                 // angular.merge creates a deep copy!
-                configurationService.map.searchOverlays = [];angular.merge([],
+                configurationService.map.searchOverlays = [];
+                angular.merge([],
                         [
                             {
                                 groupName: configurationService.map.layerGroupMappings['gazetteer'],
@@ -3444,23 +3465,80 @@ angular.module(
                 configurationService.featureRenderer.icons = {};
                 configurationService.featureRenderer.icons.BORIS_SITE = L.icon({
                     iconUrl: 'icons/showel_16.png',
-                    iconSize: [16, 16]
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0]
                 });
                 configurationService.featureRenderer.icons.WAGW_STATION = L.icon({
                     iconUrl: 'icons/wagw_16.png',
-                    iconSize: [16, 16]
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0]
                 });
                 configurationService.featureRenderer.icons.WAOW_STATION = L.icon({
                     iconUrl: 'icons/waow_16.png',
-                    iconSize: [16, 16]
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0]
                 });
                 configurationService.featureRenderer.icons.EPRTR_INSTALLATION = L.icon({
                     iconUrl: 'icons/factory_16.png',
-                    iconSize: [16, 16]
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0]
                 });
                 configurationService.featureRenderer.icons.MOSS = L.icon({
                     iconUrl: 'icons/grass_16.png',
-                    iconSize: [16, 16]
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0]
+                });
+
+                configurationService.featureRenderer.highlightIcons = {};
+                configurationService.featureRenderer.highlightIcons.BORIS_SITE = L.icon({
+                    iconUrl: 'icons/showel_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0],
+                    shadowUrl: "icons/icon_shadow.png",
+                    shadowSize: [24, 24],
+                    shadowAnchor: [12, 12]
+                });
+                configurationService.featureRenderer.highlightIcons.WAGW_STATION = L.icon({
+                    iconUrl: 'icons/wagw_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0],
+                    shadowUrl: "icons/icon_shadow.png",
+                    shadowSize: [24, 24],
+                    shadowAnchor: [12, 12]
+                });
+                configurationService.featureRenderer.highlightIcons.WAOW_STATION = L.icon({
+                    iconUrl: 'icons/waow_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0],
+                    shadowUrl: "icons/icon_shadow.png",
+                    shadowSize: [24, 24],
+                    shadowAnchor: [12, 12]
+                });
+                configurationService.featureRenderer.highlightIcons.EPRTR_INSTALLATION = L.icon({
+                    iconUrl: 'icons/factory_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0],
+                    shadowUrl: "icons/icon_shadow.png",
+                    shadowSize: [24, 24],
+                    shadowAnchor: [12, 12]
+                });
+                configurationService.featureRenderer.highlightIcons.MOSS = L.icon({
+                    iconUrl: 'icons/grass_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0],
+                    shadowUrl: "icons/icon_shadow.png",
+                    shadowSize: [24, 24],
+                    shadowAnchor: [12, 12]
                 });
 
                 configurationService.featureRenderer.layergroupNames = {};
@@ -3678,7 +3756,7 @@ angular.module(
 
             var config, getFeatureRenderer, createNodeFeature,
                 createGazetteerLocationLayer, createNodeFeatureGroups,
-                createOverlayLayer;
+                createOverlayLayer, getIconForNode, getHighlightIconForNode;
 
             config = configurationService.featureRenderer;
 
@@ -3857,8 +3935,22 @@ angular.module(
 
                 return overlayLayer;
             };
-
-
+            
+            getIconForNode = function (node) {
+                var theme, icon;
+                theme = node.classKey.split(".").slice(1, 2).pop();
+                icon = config.icons[theme];
+                
+                return icon;
+            };
+            
+            getHighlightIconForNode = function (node) {
+                var theme, icon;
+                theme = node.classKey.split(".").slice(1, 2).pop();
+                icon = config.highlightIcons[theme];
+                
+                return icon;
+            };
 
             // </editor-fold>
 
@@ -4017,6 +4109,8 @@ angular.module(
                 createNodeFeatureGroups: createNodeFeatureGroups,
                 createGazetteerLocationLayer: createGazetteerLocationLayer,
                 createOverlayLayer: createOverlayLayer,
+                getIconForNode: getIconForNode,
+                getHighlightIconForNode: getHighlightIconForNode,
                 defaultStyle: config.defaultStyle,
                 highlightStyle: config.highlightStyle
             };
