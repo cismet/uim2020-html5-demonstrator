@@ -9,7 +9,7 @@
     <div class="cs-result-list">
         <ul class="list-group">
             <li class="list-group-item"
-                ng-repeat="node in mapController.nodes track by node.objectKey">
+                ng-repeat="node in mapController.nodes track by node.objectKey | orderBy:['className','name']">
                 <span class="btn-icon">
                     <img src="{{node.$icon}}" alt="{{node.className}}">
                 </span>

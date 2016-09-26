@@ -281,9 +281,11 @@ angular.module(
 
                 configurationService.featureRenderer = {};
                 configurationService.featureRenderer.gazetteerStyle = {
-                    color: '#dadaeb',
-                    fill: false,
-                    weight: 1,
+                    color: '#8856a7',
+                    fillColor: '#feb24c',
+                    fillOpacity: 0.3,
+                    fill: true,
+                    weight: 4,
                     riseOnHover: false,
                     clickable: false
                 };

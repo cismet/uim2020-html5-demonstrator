@@ -135,7 +135,7 @@ angular.module(
                                         className = curentNode.classKey.split(".").slice(1, 2).pop();
 
                                         if (configurationService.featureRenderer.icons[className]) {
-                                            curentNode.$icon = configurationService.featureRenderer.icons[className].iconUrl;
+                                            curentNode.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
                                         }
 
                                         // FIXME: extract class name from CS_CLASS description (server-side)

@@ -24,11 +24,11 @@
                 {{node.className}}
             </td>
             <td title="'Beschreibung'">
-                {{node.description}}
-            </td>
+                {{node.$data | descriptionFilter}}
+            </td>                                       
             <td title="'Schadstoffe'">
-                <span ng-repeat="pollutant in node.$data.aggregationvalues track by pollutant.name">
-                    <span class="label label-warning">{{pollutant.pollutantkey}}</span>
+                <span ng-repeat="tag in node.$data.tags | filter:{taggroupkey:'POLLUTANT'}:true">
+                    <span class="label label-warning">{{tag.key}}</span>
                 </span>
             </td>
             <td title="''">

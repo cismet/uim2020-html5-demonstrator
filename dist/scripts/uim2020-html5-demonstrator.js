@@ -1942,6 +1942,11 @@ angular.module(
                         fitBounds = mapController.mode === 'search' ? true : false;
                     }
 
+                    // clear layers on search map
+                    if (clearLayers) {
+                        mapController.clearNodes();
+                    }
+
                     if (nodes !== null && nodes.length > 0) {
                         featureGroups = featureRendererService.createNodeFeatureGroups(nodes);
                         for (theme in featureGroups) {
@@ -1949,11 +1954,6 @@ angular.module(
                             if (layerControlId && layerControl._layers[layerControlId] && layerControl._layers[layerControlId].layer) {
                                 featureGroup = featureGroups[theme];
                                 featureGroupLayer = layerControl._layers[layerControlId].layer;
-
-                                // clear layers on analysis map
-                                if (clearLayers) {
-                                    featureGroupLayer.clearLayers();
-                                }
 
                                 /*jshint loopfunc:true */
                                 featureGroup.forEach(function (feature) {
@@ -2047,42 +2047,46 @@ angular.module(
 
                 //</editor-fold>
 
-                $scope.$on('gotoLocation()', function (event) {
-                    if (mapController.mode === 'search') {
-                        console.log('mapController::gotoLocation(' + sharedDatamodel.selectedGazetteerLocation.name + ')');
-                        mapController.setGazetteerLocation(sharedDatamodel.selectedGazetteerLocation);
-                    }
-                });
+                // register search map event handlers
+                if (mapController.mode === 'search') {
+                    $scope.$on('gotoLocation()', function (event) {
+                        if (mapController.mode === 'search') {
+                            console.log('mapController::gotoLocation(' + sharedDatamodel.selectedGazetteerLocation.name + ')');
+                            mapController.setGazetteerLocation(sharedDatamodel.selectedGazetteerLocation);
+                        }
+                    });
 
-                $scope.$on('searchSuccess()', function (event) {
-                    //console.log(mapId + '::searchSuccess()');
-                    if (mapController.mode === 'search') {
+                    $scope.$on('searchSuccess()', function (event) {
+                        // reset search geom
                         setSearchGeometry(null);
+                        // Gesamter Kartenausschnitt
+                        sharedDatamodel.selectedSearchLocation.id = 0;
                         if (sharedDatamodel.resultNodes.length > 0) {
                             mapController.setNodes(sharedDatamodel.resultNodes);
                         } else {
                             mapController.clearNodes();
                         }
-                    } /*else if (mapController.mode === 'analysis' && sharedDatamodel.analysisNodes.length > 0) {
-                     mapController.setNodes(sharedDatamodel.analysisNodes);
-                     }*/
-                });
+                        /*else if (mapController.mode === 'analysis' && sharedDatamodel.analysisNodes.length > 0) {
+                         mapController.setNodes(sharedDatamodel.analysisNodes);
+                         }*/
+                    });
 
-                $scope.$on('searchError()', function (event) {
-                    if (mapController.mode === 'search') {
+                    $scope.$on('searchError()', function (event) {
+                        // reset search geom
                         setSearchGeometry(null);
+                        // Gesamter Kartenausschnitt
                         sharedDatamodel.selectedSearchLocation.id = 0;
                         mapController.clearNodes();
-                    }
-                });
 
-                $scope.$on('setSearchLocation()', function (event) {
-                    if (mapController.mode === 'search' &&
-                            sharedDatamodel.selectedSearchLocation.id === 0) {
-                        setSearchGeometry(null);
-                        sharedDatamodel.selectedSearchLocation.id = 0;
-                    }
-                });
+                    });
+
+                    $scope.$on('setSearchLocation()', function (event) {
+                        if (sharedDatamodel.selectedSearchLocation.id === 0) {
+                            setSearchGeometry(null);
+                            sharedDatamodel.selectedSearchLocation.id = 0;
+                        }
+                    });
+                }
 
                 // <editor-fold defaultstate="collapsed" desc="=== DISABLED               ===========================">
                 /*$scope.$watch(function () {
@@ -2675,6 +2679,67 @@ angular.module(
 /*global angular*/
 
 angular.module(
+        'de.cismet.uim2020-html5-demonstrator.filters'
+        ).filter(
+        'descriptionFilter',
+        function () {
+            'use strict';
+
+            return function (data) {
+                var description = 'keine Beschreibung verfügbar';
+                // BORIS
+                if (data.literatur || data.institut) {
+                    if (data.literatur) {
+                        description = data.literatur;
+                        if (data.institut) {
+                            description += (' (' + data.institut + ")");
+                        }
+                    } else {
+                        description = data.institut;
+                    }
+                    // EPRTR
+                } else if (data.naceclass || data.erasid) {
+                    if (data.naceclass) {
+                        description = data.naceclass;
+                    } else {
+                        description = data.erasid;
+                    }
+                    // WAxW
+                } else if (data.zustaendigestelle || data.bundesland) {
+                    if (data.zustaendigestelle) {
+                        description = data.zustaendigestelle;
+                        if (data.bundesland && data.bundesland !== data.zustaendigestelle) {
+                            description += (' (' + data.bundesland + ")");
+                        }
+                    } else {
+                        description = data.bundesland;
+                    }
+                    // MOSS
+                } else if (data.labno || data.sampleid) {
+                    if (data.labNo) {
+                        description = 'Labornummer: ' + data.labNo;
+                    } else {
+                        description = data.sampleid;
+                    }
+                }
+                return description;
+            };
+        }
+);
+
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+/*global angular*/
+
+angular.module(
     'de.cismet.uim2020-html5-demonstrator.filters'
     ).filter(
     'textLengthFilter',
@@ -2919,7 +2984,7 @@ angular.module(
                     _identity = $cookieStore.get(configurationService.authentication.cookie);
                     if (!isAuthenticated()) {
                         // may return null or empty object 
-                        console.warn("no stored session cookie avilalbe, user has to re-authenticate");
+                        console.warn("no stored session cookie available, user has to re-authenticate");
                         return $q.when(_identity);
                     }
 
@@ -3353,9 +3418,11 @@ angular.module(
 
                 configurationService.featureRenderer = {};
                 configurationService.featureRenderer.gazetteerStyle = {
-                    color: '#dadaeb',
-                    fill: false,
-                    weight: 1,
+                    color: '#8856a7',
+                    fillColor: '#feb24c',
+                    fillOpacity: 0.3,
+                    fill: true,
+                    weight: 4,
                     riseOnHover: false,
                     clickable: false
                 };
@@ -4227,7 +4294,7 @@ angular.module(
                                         className = curentNode.classKey.split(".").slice(1, 2).pop();
 
                                         if (configurationService.featureRenderer.icons[className]) {
-                                            curentNode.$icon = configurationService.featureRenderer.icons[className].iconUrl;
+                                            curentNode.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
                                         }
 
                                         // FIXME: extract class name from CS_CLASS description (server-side)
