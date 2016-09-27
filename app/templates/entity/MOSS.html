@@ -1,0 +1,56 @@
+<uib-tabset active="active">
+    <uib-tab index="0" heading="Standortparameter">
+        <div class="cs-entityinfo">
+            <p ng-if="entity.$data.name">
+                <span style="display:inline-block; min-width: 300px;"><strong>Name:</strong></span>
+                <span class="pull-right" style="display:inline-block; min-width: 400px;">{{entity.$data.name}}</span>
+            </p>
+            <p ng-if="entity.$data.typ">
+                <span style="display:inline-block; min-width: 300px;"><strong>Typ:</strong></span>
+                <span class="pull-right" style="display:inline-block; min-width: 400px;">{{entity.$data.typ}}</span>
+            </p>
+            <p ng-if="entity.$data.status">
+                <span style="display:inline-block; min-width: 300px;"><strong>Status:</strong></span>
+                <span class="pull-right" style="display:inline-block; min-width: 400px;">{{entity.$data.status}}</span>
+            </p>
+            <p ng-if="entity.$data.zustaendigeStelle">
+                <span style="display:inline-block; min-width: 300px;"><strong>Zuständige Stelle:</strong></span>
+                <span class="pull-right" style="display:inline-block; min-width: 400px;">{{entity.$data.zustaendigeStelle}}</span>
+            </p>
+            <p ng-if="entity.$data.bundesland">
+                <span style="display:inline-block; min-width: 300px;"><strong>Bundesland:</strong></span>
+                <span class="pull-right" style="display:inline-block; min-width: 400px;">{{entity.$data.bundesland}}</span>
+            </p>
+            <p ng-if="entity.$data.gwkName">
+                <span style="display:inline-block; min-width: 300px;"><strong>Grundwasserkörper:</strong></span>
+                <span class="pull-right" style="display:inline-block; min-width: 400px;">{{entity.$data.gwkName}}</span>
+            </p>
+            <p ng-if="entity.$data.messstellenart">
+                <span style="display:inline-block; min-width: 300px;"><strong>Messstellenart:</strong></span>
+                <span class="pull-right" style="display:inline-block; min-width: 400px;">{{entity.$data.messstellenart}}</span>
+            </p>
+        </div>
+    </uib-tab>
+    <uib-tab index="1" heading="Probenparameter">
+        <div class="cs-entityinfo">
+            <div ng-repeat="(group, parameters) in entity.$data.probenparameter | groupBy:'parametergruppename'">
+                <span style="display:inline-block; min-width: 400px;"><strong>{{group}}</strong></span>
+                <ul>
+
+                    <li ng-repeat="parameter in parameters">
+                        <span style="display:inline-block; min-width: 400px;">{{ parameter.parametername}} </span>
+                    </li>
+                </ul></div>
+        </div>
+    </uib-tab>
+    <uib-tab index="2" heading="Aggregierte Messwerte">
+        <div class="cs-entityinfo">
+            <aggregation-table aggregation-values="entity.$data.aggregationvalues">Aggregierte Messwerte</aggregation-table>
+        </div>
+    </uib-tab>
+    <uib-tab index="3" heading="Datenvisualisierung">
+        <div class="cs-entityinfo">
+            <h1>Datenvisualisierung Platzhalter</h1>
+        </div>
+    </uib-tab>
+</uib-tabset>
