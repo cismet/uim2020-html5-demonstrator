@@ -66,7 +66,9 @@ angular.module(
                     }
                 };
                 
-
+                /**
+                 * set mode (search analysis, ...) and previous state name
+                 */
                 $scope.$on('$stateChangeSuccess', function (toState) {
                     if ($state.includes("main") && !$state.is("main")) {
                         //$scope.mode = $state.current.name.split(".").slice(1, 2).pop();
@@ -81,7 +83,7 @@ angular.module(
                             mainController.previousStateName = undefined;
                         }
                     } else {
-                        console.log("mainController::ingoring stateChange '" + $state.name + "'");
+                        // console.log("mainController::ingoring stateChange '" + $state.name + "'");
                     }
                 });
             }]

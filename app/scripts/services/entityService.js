@@ -11,9 +11,9 @@
 /*global angular*/
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.services'
-        ).factory('entitiyService',
-        ['$resource', '$q', '$interval', 'configurationService', 'authenticationService',
-            function ($resource, $q, $interval, configurationService, authenticationService) {
+        ).factory('entityService',
+        ['$resource', 'configurationService', 'authenticationService',
+            function ($resource, configurationService, authenticationService) {
                 'use strict';
 
                 var cidsRestApiConfig, entityResource;
@@ -21,7 +21,7 @@ angular.module(
                 cidsRestApiConfig = configurationService.cidsRestApi;
 
                 entityResource = $resource(
-                        cidsRestApiConfig.host + '/' + cidsRestApiConfig.domain + '.:classname/:objId',
+                        cidsRestApiConfig.host + '/' + cidsRestApiConfig.domain + '.:className/:objectId',
                         {
                             omitNullValues: true,
                             deduplicate: true
@@ -36,5 +36,9 @@ angular.module(
                             }
                         }
                 );
+
+                return {
+                    entityResource: entityResource
+                };
             }]
         );

@@ -43,12 +43,42 @@ app.config(
                 $logProvider.debugEnabled(false);
 
                 var resolveEntity;
-                resolveEntity = function ($stateParams) {
-                    console.log("resolve entity " + $stateParams.id + "@" + $stateParams.class);
-                    return {
-                        class: $stateParams.class,
-                        id: $stateParams.id
-                    };
+
+                /**
+                 * Resolve the entity to be shown in the entity modal (object info)
+                 * @param {type} $stateParams
+                 * @returns {app_L40.resolveEntity.appAnonym$2}
+                 */
+                resolveEntity = function ($q, $stateParams, entityService) {
+                    //console.log("resolve entity " + $stateParams.id + "@" + $stateParams.class);
+
+                    var entityResource, deferred, className, objectId;
+
+                    deferred = $q.defer();
+                    className = $stateParams.class;
+                    objectId = $stateParams.id;
+
+                    /*entityResource = {
+                     class: $stateParams.class,
+                     id: $stateParams.id
+                     };*/
+
+                    entityResource = entityService.entityResource.get({
+                        className: className,
+                        objectId: objectId
+                    }).$promise.then(
+                            function (obj) {
+                                deferred.resolve(obj);
+                            },
+                            function () {
+                                var message = 'Das Objekt "' + objectId + '@' + className +
+                                        '" konnte nicht im UIM2020-DI Indexdatenbestand gefunden werden!';
+                                console.warn(message);
+                                deferred.reject(message);
+                            }
+                    );
+
+                    return deferred.promise;
                 };
 
                 // <editor-fold defaultstate="collapsed" desc=" showEntityModal() " >
@@ -167,7 +197,7 @@ app.config(
                         default: {
                             state: "main.search"
                         }
-                    },
+                    }
                     // disabled since resolve is called after stateChangeStart event! :-(
                     /*resolve: {
                      identity: [
@@ -355,12 +385,21 @@ app.config(
                     modal: true,
                     resolve: {
                         entity: [
-                            '$stateParams',
+                            '$q', '$stateParams', 'entityService',
                             resolveEntity
                         ],
                         entityModalInvoker: function ($previousState) {
-                            $previousState.memo('entityModalInvoker');
-                            return $previousState.get('entityModalInvoker');
+                            if ($previousState.get() && $previousState.get().state) {
+                                var previousState = $previousState.get().state;
+
+                                // don't memo the modal state!
+                                if (previousState.name.indexOf('modal') !== 0) {
+                                    //console.log('entityModalInvoker: saving previous state ' + previousState.name);
+                                    $previousState.memo('entityModalInvoker');
+                                    return $previousState.get('entityModalInvoker');
+                                }
+                                //console.log('entityModalInvoker: ignoring previous state ' + previousState.name);
+                            }
                         }
                     }
                 });
