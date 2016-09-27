@@ -15,9 +15,12 @@ angular.module(
 
                 //$scope.class = $stateParams.class;
                 //$scope.id = $stateParams.id;
-                //$scope.entity = entity;
-
-                entityController.entity = entity;
+                
+                $scope.entity = entity;
+                //entityController.entity = entity;
+                
+                entityController.template = 'templates/entity/'+entity.$className+'.html';
+                
 
                 /*entity.$promise.then(
                         function (obj) {

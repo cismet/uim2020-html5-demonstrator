@@ -14,14 +14,14 @@
         <tr ng-repeat="node in $data track by node.objectKey">
             <td>
                 <span class="btn-icon">
-                    <img src="{{node.$icon}}" alt="{{node.className}}">
+                    <img src="{{node.$icon}}" alt="{{node.$classTitle}}">
                 </span>
             </td>
             <td title="'Name'" data-sortable="'name'">
                 {{node.name}}
             </td>
-            <td title="'Thema'" data-sortable="'className'">
-                {{node.className}}
+            <td title="'Thema'" data-sortable="'$classTitle'">
+                {{node.$classTitle}}
             </td>
             <td title="'Beschreibung'">
                 {{node.$data | descriptionFilter}}

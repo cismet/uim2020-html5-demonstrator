@@ -5,50 +5,19 @@
                 ng-click="entityController.close()">
             <span aria-hidden="true">&times;</span><span class="sr-only">Schließen</span>
         </button>
-        <h4 class="modal-title">Informationen zum Objekt</h4>
+        <h4 class="modal-title">
+            <span class="btn-icon">
+                <img src="icons/showel_16.png" alt="Bodenmessstelle"/>
+            </span>
+            {{entity.name}} ({{entity.$classTitle}})
+            
+            {{entityController.template}}
+        </h4>
     </div>
     <div class="modal-body">
-        <uib-tabset active="active">
-            <uib-tab index="0" heading="Standortparameter">
-                <h2>
-                    <span class="btn-icon">
-                        <img src="icons/showel_16.png" alt="Bodenmessstelle"/>
-                    </span>
-                    {{entityController.entity.$self}}
-                </h2>
-                <hr>
-                <p><span style="display:inline-block; width: 400px;"><strong>Originalstandortnummer:</strong></span>				170188</p>
-                <p><span style="display:inline-block; width: 400px;"><strong>Gemeinde- und Bezirkkennziffer:</strong></span>			23</p>
-                <p><span style="display:inline-block; width: 400px;"><strong>Quelle der Gemeindekennziffer:</strong></span>			47</p>
-                <p><span style="display:inline-block; width: 400px;"><strong>Nummer der Katastralgemeinde:</strong></span>			31337</p>
-                <p><span style="display:inline-block; width: 400px;"><strong>Bodentyp:</strong></span>						AA23</p>
-                <p><span style="display:inline-block; width: 400px;"><strong>Landwirtschaftliche Produktionsgebiete:</strong></span>		NEIN</p>
-                <p><span style="display:inline-block; width: 400px;"><strong>Forstliche Wuchsgebiete (GIS):</strong></span>			NEIN</p>
-                <p><span style="display:inline-block; width: 400px;"><strong>Kulturlandschaften nach Wrbka:</strong></span> 			512</p>
-            </uib-tab>
-            <uib-tab index="1" heading="Probenparameter">
-                <h1>Probenparameter Platzhalter</h1>
-            </uib-tab>
-            <uib-tab index="2" heading="Datenvisualisierung">
-                <h1>Datenvisualisierung Platzhalter</h1>
-            </uib-tab>
-        </uib-tabset>
-        <!--
-        <p>Modal contents. </p>
-        StatE: {{class}}:{{id}}
-        <hr>
-        Entity: {{entity.class}}:{{entity.id}}
-        <hr>
-        <div ui-view>ui-view contents ?!</div>
-        mode: {{mode}}<br>
-        name: {{name}}<br>
-        mainController.selectedStateName: {{mainController.selectedStateName}}<br>
-        -->
-
+        <div ng-include="entityController.template">aaaaaaaaaaaaa</div>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-default" ng-click="entityController.close()">Schließen</button>
     </div>
 </div><!-- /.modal-content -->
-
-

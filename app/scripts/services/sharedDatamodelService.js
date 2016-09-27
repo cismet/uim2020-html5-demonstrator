@@ -18,6 +18,9 @@ angular.module(
                 // auth token
                 this.identity = null;
                 
+                // resolved entity
+                this.resolvedEntity = null;
+                
                 // search selection
                 this.selectedSearchThemes = [];
                 this.selectedSearchPollutants = [];

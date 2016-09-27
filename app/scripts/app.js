@@ -49,10 +49,18 @@ app.config(
                  * @param {type} $stateParams
                  * @returns {app_L40.resolveEntity.appAnonym$2}
                  */
-                resolveEntity = function ($q, $stateParams, entityService) {
+                /**
+                 * 
+                 * @param {type} $q
+                 * @param {type} $stateParams
+                 * @param {type} entityService
+                 * @param {type} sharedDatamodel
+                 * @returns {nm$_deferred.exports.promise|nm$_deferred.module.exports.promise|$q@call;defer.promise}
+                 */
+                resolveEntity = function ($q, $stateParams, configurationService, entityService, sharedDatamodel) {
                     //console.log("resolve entity " + $stateParams.id + "@" + $stateParams.class);
 
-                    var entityResource, deferred, className, objectId;
+                    var entityResource, deferred, className, objectId, dataObject;
 
                     deferred = $q.defer();
                     className = $stateParams.class;
@@ -67,13 +75,54 @@ app.config(
                         className: className,
                         objectId: objectId
                     }).$promise.then(
-                            function (obj) {
-                                deferred.resolve(obj);
+                            function (resolvedEntity) {
+                                sharedDatamodel.status.message = 'Object "' + resolvedEntity.name + "' aus dem UIM2020-DI Indexdatenbestand geladen.";
+                                sharedDatamodel.status.type = 'success';
+
+                                // ----------------------------------------------------------
+                                // Extend the resolved object by local properties
+                                // ----------------------------------------------------------
+                                
+                                resolvedEntity.$className = className;
+                                
+                                if (configurationService.featureRenderer.icons[className]) {
+                                    resolvedEntity.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
+                                }
+
+                                // FIXME: extract class name from CS_CLASS description (server-side)
+                                if (configurationService.featureRenderer.layergroupNames[className]) {
+                                    resolvedEntity.$classTitle = configurationService.featureRenderer.layergroupNames[className];
+                                } else {
+                                    resolvedEntity.$classTitle = className;
+                                }
+
+                                if (resolvedEntity.src_content) {
+                                    try {
+                                        dataObject = angular.fromJson(resolvedEntity.src_content);
+                                        resolvedEntity.$data = dataObject;
+                                        delete resolvedEntity.src_content;
+                                    } catch (err) {
+                                        var message = 'Das Objekt "' + objectId + '@' + className +
+                                                '" konnte nicht geladen werden: ' + err.message;
+                                        sharedDatamodel.status.message = message;
+                                        sharedDatamodel.status.type = 'warning';
+                                        sharedDatamodel.resolvedEntity = null;
+                                        deferred.reject(message);
+                                    }
+                                }
+
+                                // ----------------------------------------------------------
+
+                                sharedDatamodel.resolvedEntity = resolvedEntity;
+                                deferred.resolve(resolvedEntity);
                             },
                             function () {
                                 var message = 'Das Objekt "' + objectId + '@' + className +
                                         '" konnte nicht im UIM2020-DI Indexdatenbestand gefunden werden!';
-                                console.warn(message);
+                                //console.warn(message);
+                                sharedDatamodel.status.message = message;
+                                sharedDatamodel.status.type = 'warning';
+                                sharedDatamodel.resolvedEntity = null;
                                 deferred.reject(message);
                             }
                     );
@@ -385,7 +434,7 @@ app.config(
                     modal: true,
                     resolve: {
                         entity: [
-                            '$q', '$stateParams', 'entityService',
+                            '$q', '$stateParams', 'configurationService', 'entityService', 'sharedDatamodel',
                             resolveEntity
                         ],
                         entityModalInvoker: function ($previousState) {
