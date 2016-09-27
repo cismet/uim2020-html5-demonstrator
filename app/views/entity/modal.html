@@ -7,15 +7,13 @@
         </button>
         <h4 class="modal-title">
             <span class="btn-icon">
-                <img src="icons/showel_16.png" alt="Bodenmessstelle"/>
+                <img src="{{entity.$icon}}" alt="{{entity.$className}}"/>
             </span>
             {{entity.name}} ({{entity.$classTitle}})
-            
-            {{entityController.template}}
         </h4>
     </div>
     <div class="modal-body">
-        <div ng-include="entityController.template">aaaaaaaaaaaaa</div>
+        <div ng-include="entityController.template"></div>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-default" ng-click="entityController.close()">Schließen</button>

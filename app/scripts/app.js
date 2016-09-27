@@ -17,7 +17,7 @@ var app = angular.module(
             'de.cismet.uim2020-html5-demonstrator.services',
             'de.cismet.uim2020-html5-demonstrator.filters',
             'ngResource', 'ngAnimate', 'ngSanitize', 'ngCookies',
-            'ui.bootstrap', 'ui.bootstrap.modal',
+            'ui.bootstrap', 'ui.bootstrap.modal', 'angular.filter',
             'ui.router', 'ui.router.modal',
             'ct.ui.router.extras.sticky', 'ct.ui.router.extras.dsr', 'ct.ui.router.extras.previous',
             'leaflet-directive',
@@ -430,6 +430,7 @@ app.config(
                     templateUrl: 'views/entity/modal.html',
                     controller: 'entityController',
                     controllerAs: 'entityController',
+                    size:'lg', // unbelievable gefrickel: pass options to $uibModel.open() function  ..... 
                     //onEnter: showEntityModal,
                     modal: true,
                     resolve: {

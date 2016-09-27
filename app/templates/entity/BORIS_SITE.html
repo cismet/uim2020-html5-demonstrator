@@ -1,25 +1,33 @@
 <uib-tabset active="active">
     <uib-tab index="0" heading="Standortparameter">
-        <h2>
-            <span class="btn-icon">
-                <img src="{{entity.$icon}}" alt="{{entity.$classTitle}}"/>
-            </span>
-            {{entity.$self}}
-        </h2>
-        <hr>
-        <p><span style="display:inline-block; width: 400px;"><strong>Originalstandortnummer:</strong></span>				170188</p>
-        <p><span style="display:inline-block; width: 400px;"><strong>Gemeinde- und Bezirkkennziffer:</strong></span>			23</p>
-        <p><span style="display:inline-block; width: 400px;"><strong>Quelle der Gemeindekennziffer:</strong></span>			47</p>
-        <p><span style="display:inline-block; width: 400px;"><strong>Nummer der Katastralgemeinde:</strong></span>			31337</p>
-        <p><span style="display:inline-block; width: 400px;"><strong>Bodentyp:</strong></span>						AA23</p>
-        <p><span style="display:inline-block; width: 400px;"><strong>Landwirtschaftliche Produktionsgebiete:</strong></span>		NEIN</p>
-        <p><span style="display:inline-block; width: 400px;"><strong>Forstliche Wuchsgebiete (GIS):</strong></span>			NEIN</p>
-        <p><span style="display:inline-block; width: 400px;"><strong>Kulturlandschaften nach Wrbka:</strong></span> 			512</p>
+        <div class="cs-entityinfo">
+            <p ng-repeat="standortparameter in entity.$data.standortparameter| filter:{pk:'!' + 'S100'} track by standortparameter.pk"
+               ng-if="standortparameter.wert && standortparameter.wert !== 'null'">
+                <span style="display:inline-block; min-width: 400px;"><strong>{{standortparameter.name}}</strong></span>
+                <span class="pull-right" style="display:inline-block; min-width: 300px;">{{standortparameter.wert}}</span>
+            </p>
+        </div>
     </uib-tab>
     <uib-tab index="1" heading="Probenparameter">
-        <h1>Probenparameter Platzhalter</h1>
+        <div class="cs-entityinfo">
+            <div ng-repeat="(group, parameters) in entity.$data.probenparameter | groupBy:'parametergruppename'">
+                <span style="display:inline-block; min-width: 400px;"><strong>{{group}}</strong></span>
+                <ul>
+
+                    <li ng-repeat="parameter in parameters">
+                        <span style="display:inline-block; min-width: 400px;">{{ parameter.parametername}} </span>
+                    </li>
+                </ul></div>
+        </div>
     </uib-tab>
-    <uib-tab index="2" heading="Datenvisualisierung">
-        <h1>Datenvisualisierung Platzhalter</h1>
+    <uib-tab index="2" heading="Aggregierte Messwerte">
+        <div class="cs-entityinfo" style="overflow-y: hidden">
+            <aggregation-table aggregation-values="entity.$data.aggregationvalues">Aggregierte Messwerte</aggregation-table>
+        </div>
+    </uib-tab>
+    <uib-tab index="3" heading="Datenvisualisierung">
+        <div class="cs-entityinfo">
+            <h1>Datenvisualisierung Platzhalter</h1>
+        </div>
     </uib-tab>
 </uib-tabset>
