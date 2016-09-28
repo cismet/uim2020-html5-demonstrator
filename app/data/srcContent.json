@@ -1,407 +1,224 @@
 {
+    "id": 158249,
+    "name": "Zuckerfabrik Leopoldsdorf",
+    "longitude": 16.702777862548828,
+    "latitude": 48.24305725097656,
     "tags": [{
-            "id": 122,
-            "key": "Al",
-            "name": "Aluminium",
-            "description": "Aluminium (Al)",
+            "id": 781,
+            "key": "2007",
+            "name": "PRTR-Meldung 2007",
+            "description": "PRTR-Meldung 2007",
+            "taggroupid": 101,
+            "taggroupkey": "EPRTR.NOTIFICATION_PERIOD"
+        }, {
+            "id": 782,
+            "key": "2008",
+            "name": "PRTR-Meldung 2008",
+            "description": "PRTR-Meldung 2008",
+            "taggroupid": 101,
+            "taggroupkey": "EPRTR.NOTIFICATION_PERIOD"
+        }, {
+            "id": 783,
+            "key": "2009",
+            "name": "PRTR-Meldung 2009",
+            "description": "PRTR-Meldung 2009",
+            "taggroupid": 101,
+            "taggroupkey": "EPRTR.NOTIFICATION_PERIOD"
+        }, {
+            "id": 784,
+            "key": "2010",
+            "name": "PRTR-Meldung 2010",
+            "description": "PRTR-Meldung 2010",
+            "taggroupid": 101,
+            "taggroupkey": "EPRTR.NOTIFICATION_PERIOD"
+        }, {
+            "id": 787,
+            "key": "LUFT",
+            "name": "Luft",
+            "description": "Freisetzung in die Luft",
+            "taggroupid": 102,
+            "taggroupkey": "EPRTR.RELEASE_TYPE"
+        }, {
+            "id": 133,
+            "key": "CO1",
+            "name": "Kohlenmonoxid",
+            "description": "Kohlenmonoxid (CO)",
             "taggroupid": 2,
             "taggroupkey": "POLLUTANT"
         }, {
-            "id": 126,
-            "key": "As",
-            "name": "Arsen",
-            "description": "Arsen und Verbindungen (As)",
+            "id": 192,
+            "key": "NOx",
+            "name": "Stickoxide",
+            "description": "Stickoxide (NO/NO2)",
             "taggroupid": 2,
             "taggroupkey": "POLLUTANT"
         }, {
-            "id": 137,
-            "key": "Cd",
-            "name": "Cadmium",
-            "description": "Cadmium und Verbindungen (Cd)",
-            "taggroupid": 2,
-            "taggroupkey": "POLLUTANT"
-        }, {
-            "id": 145,
-            "key": "Co",
-            "name": "Cobalt",
-            "description": "Cobalt (Co)",
-            "taggroupid": 2,
-            "taggroupkey": "POLLUTANT"
-        }, {
-            "id": 146,
-            "key": "Cr",
-            "name": "Chrom",
-            "description": "Chrom und Verbindungen (Cr)",
-            "taggroupid": 2,
-            "taggroupkey": "POLLUTANT"
-        }, {
-            "id": 147,
-            "key": "Cu",
-            "name": "Kupfer",
-            "description": "Kupfer und Verbindungen (Cu)",
-            "taggroupid": 2,
-            "taggroupkey": "POLLUTANT"
-        }, {
-            "id": 162,
-            "key": "Fe",
-            "name": "Eisen",
-            "description": "Eisen (Fe)",
-            "taggroupid": 2,
-            "taggroupkey": "POLLUTANT"
-        }, {
-            "id": 175,
-            "key": "Hg",
-            "name": "Quecksilber",
-            "description": "Quecksilber und Verbindungen (Hg)",
-            "taggroupid": 2,
-            "taggroupkey": "POLLUTANT"
-        }, {
-            "id": 187,
-            "key": "Mo",
-            "name": "Molybdän",
-            "description": "Molybdän (Mo)",
-            "taggroupid": 2,
-            "taggroupkey": "POLLUTANT"
-        }, {
-            "id": 188,
-            "key": "N",
-            "name": "Stickstoff",
-            "description": "Gesamtstickstoff (N)",
-            "taggroupid": 2,
-            "taggroupkey": "POLLUTANT"
-        }, {
-            "id": 196,
-            "key": "Ni",
-            "name": "Nickel",
-            "description": "Nickel und Verbindungen (Ni)",
-            "taggroupid": 2,
-            "taggroupkey": "POLLUTANT"
-        }, {
-            "id": 211,
-            "key": "Pb",
-            "name": "Blei",
-            "description": "Blei und Verbindungen (Pb)",
-            "taggroupid": 2,
-            "taggroupkey": "POLLUTANT"
-        }, {
-            "id": 214,
-            "key": "S",
-            "name": "Schwefel",
-            "description": "Schwefel (S)",
-            "taggroupid": 2,
-            "taggroupkey": "POLLUTANT"
-        }, {
-            "id": 219,
-            "key": "Sb",
-            "name": "Antimon",
-            "description": "Antimon (Sb)",
-            "taggroupid": 2,
-            "taggroupkey": "POLLUTANT"
-        }, {
-            "id": 221,
-            "key": "Sn",
-            "name": "Zinn",
-            "description": "Zinn (Sn)",
-            "taggroupid": 2,
-            "taggroupkey": "POLLUTANT"
-        }, {
-            "id": 237,
-            "key": "V",
-            "name": "Vanadium",
-            "description": "Vanadium (V)",
-            "taggroupid": 2,
-            "taggroupkey": "POLLUTANT"
-        }, {
-            "id": 151,
-            "key": "DNM",
-            "name": "Düngemittel",
-            "description": "Düngemittel",
-            "taggroupid": 1,
-            "taggroupkey": "POLLUTANTGROUP"
-        }, {
-            "id": 182,
-            "key": "MET",
-            "name": "Metalle und Schwermetalle",
-            "description": "Metalle und Schwermetalle",
+            "id": 225,
+            "key": "THGundLSS",
+            "name": "Treibhausgase und Luftschadstoffe",
+            "description": "Treibhausgase und Luftschadstoffe",
             "taggroupid": 1,
             "taggroupkey": "POLLUTANTGROUP"
         }],
-    "id": 1000,
-    "type": "Pleurozium schreberi",
-    "sampleid": "159-1",
-    "labno": "1011 5713",
+    "notifications": [{
+            "id": 16469,
+            "mnemonic": "2007",
+            "name": "PRTR-Meldung 2007",
+            "notificationstartdate": "2007-01-01",
+            "notificationenddate": "2007-12-31",
+            "reportingstartdate": "2008-01-01",
+            "reportingenddate": "2008-05-31"
+        }, {
+            "id": 73286,
+            "mnemonic": "2008",
+            "name": "PRTR-Meldung 2008",
+            "notificationstartdate": "2008-01-01",
+            "notificationenddate": "2008-12-31",
+            "reportingstartdate": "2009-01-01",
+            "reportingenddate": "2009-05-31"
+        }, {
+            "id": 122645,
+            "mnemonic": "2009",
+            "name": "PRTR-Meldung 2009",
+            "notificationstartdate": "2009-01-01",
+            "notificationenddate": "2009-12-31",
+            "reportingstartdate": "2010-01-01",
+            "reportingenddate": "2010-05-31"
+        }, {
+            "id": 158237,
+            "mnemonic": "2010",
+            "name": "PRTR-Meldung 2010",
+            "notificationstartdate": "2010-01-01",
+            "notificationenddate": "2010-12-31",
+            "reportingstartdate": "2011-01-01",
+            "reportingenddate": "2011-05-31"
+        }],
+    "activities": [{
+            "name": "Wärmekraftwerke und andere Verbrennungsanlagen",
+            "code": "mn8fwhcx9wrer6",
+            "mnemonic": "1.c",
+            "product": null,
+            "notificationperiod": "2007",
+            "primaryactivity": "N",
+            "productionvolume": -1,
+            "operatinghours": -1
+        }, {
+            "name": "Behandlung und Verarbeitung für die Herstellung von Nahrungsmittel- und Getränkeprodukten aus: i) tierischen Rohstoffen (außer Milch) ii) pflanzlichen Rohstoffen",
+            "code": "qrdewvstcjxcda",
+            "mnemonic": "8.b",
+            "product": null,
+            "notificationperiod": "2007",
+            "primaryactivity": "Y",
+            "productionvolume": -1,
+            "operatinghours": -1
+        }, {
+            "name": "Wärmekraftwerke und andere Verbrennungsanlagen",
+            "code": "mn8fwhcx9wrer6",
+            "mnemonic": "1.c",
+            "product": null,
+            "notificationperiod": "2008",
+            "primaryactivity": "N",
+            "productionvolume": -1,
+            "operatinghours": -1
+        }, {
+            "name": "Behandlung und Verarbeitung für die Herstellung von Nahrungsmittel- und Getränkeprodukten aus: i) tierischen Rohstoffen (außer Milch) ii) pflanzlichen Rohstoffen",
+            "code": "qrdewvstcjxcda",
+            "mnemonic": "8.b",
+            "product": null,
+            "notificationperiod": "2008",
+            "primaryactivity": "Y",
+            "productionvolume": -1,
+            "operatinghours": -1
+        }, {
+            "name": "Wärmekraftwerke und andere Verbrennungsanlagen",
+            "code": "mn8fwhcx9wrer6",
+            "mnemonic": "1.c",
+            "product": null,
+            "notificationperiod": "2009",
+            "primaryactivity": "N",
+            "productionvolume": -1,
+            "operatinghours": -1
+        }, {
+            "name": "Behandlung und Verarbeitung für die Herstellung von Nahrungsmittel- und Getränkeprodukten aus: i) tierischen Rohstoffen (außer Milch) ii) pflanzlichen Rohstoffen",
+            "code": "qrdewvstcjxcda",
+            "mnemonic": "8.b",
+            "product": null,
+            "notificationperiod": "2009",
+            "primaryactivity": "Y",
+            "productionvolume": -1,
+            "operatinghours": -1
+        }, {
+            "name": "Wärmekraftwerke und andere Verbrennungsanlagen",
+            "code": "mn8fwhcx9wrer6",
+            "mnemonic": "1.c",
+            "product": null,
+            "notificationperiod": "2010",
+            "primaryactivity": "N",
+            "productionvolume": -1,
+            "operatinghours": -1
+        }, {
+            "name": "Behandlung und Verarbeitung für die Herstellung von Nahrungsmittel- und Getränkeprodukten aus: i) tierischen Rohstoffen (außer Milch) ii) pflanzlichen Rohstoffen",
+            "code": "qrdewvstcjxcda",
+            "mnemonic": "8.b",
+            "product": null,
+            "notificationperiod": "2010",
+            "primaryactivity": "Y",
+            "productionvolume": -1,
+            "operatinghours": -1
+        }],
+    "addresses": [{
+            "type": "Adresse der Anlage",
+            "region": "Niederösterreich",
+            "district": "Gänserndorf",
+            "city": "Leopoldsdorf im Marchfelde",
+            "postcode": 2285,
+            "streetname": "Bahnstraße"
+        }, {
+            "type": "Firmenadresse des Anlagenbetreibers",
+            "region": "Wien",
+            "district": "Wien 22.,Donaustadt",
+            "city": "Wien,Donaustadt",
+            "postcode": 1220,
+            "streetname": "Donau-City-Straße"
+        }],
+    "erasid": 4236,
+    "naceclass": "Herstellung von Zucker",
+    "obligatedparty": "AGRANA Zucker GmbH",
+    "rivercatchment": "Donau unterhalb Jochenstein",
     "aggregationvalues": [{
-            "name": "Aluminium",
-            "pollutantkey": "Al",
-            "pollutantgroupkey": "MET",
-            "mindate": 1104534000000,
-            "maxdate": 946681200000,
-            "minvalue": 170.0,
-            "maxvalue": 197.0,
-            "unit": "mg/kg",
+            "name": "Kohlenmonoxid",
+            "pollutantkey": "CO1",
+            "pollutantgroupkey": "THGundLSS",
+            "mindate": "2007-01-01",
+            "maxdate": "2010-12-31",
+            "minvalue": 725278.0,
+            "maxvalue": 884278.0,
+            "unit": null,
             "probepk": null,
-            "releasetype": null
+            "releasetype": "LUFT"
         }, {
-            "name": "Antimon",
-            "pollutantkey": "Sb",
-            "pollutantgroupkey": "MET",
-            "mindate": 1262300400000,
-            "maxdate": 1262300400000,
-            "minvalue": 0.07407400012016296,
-            "maxvalue": 0.07407400012016296,
-            "unit": "mg/kg",
+            "name": "Stickoxide",
+            "pollutantkey": "NOx",
+            "pollutantgroupkey": "THGundLSS",
+            "mindate": "2009-01-01",
+            "maxdate": "2010-12-31",
+            "minvalue": 103035.0,
+            "maxvalue": 106831.0,
+            "unit": null,
             "probepk": null,
-            "releasetype": null
-        }, {
-            "name": "Arsen",
-            "pollutantkey": "As",
-            "pollutantgroupkey": "MET",
-            "mindate": 1262300400000,
-            "maxdate": 788914800000,
-            "minvalue": 0.04661700129508972,
-            "maxvalue": 0.07000000029802322,
-            "unit": "mg/kg",
-            "probepk": null,
-            "releasetype": null
-        }, {
-            "name": "Blei",
-            "pollutantkey": "Pb",
-            "pollutantgroupkey": "MET",
-            "mindate": 1262300400000,
-            "maxdate": 788914800000,
-            "minvalue": 1.6455700397491455,
-            "maxvalue": 5.199999809265137,
-            "unit": "mg/kg",
-            "probepk": null,
-            "releasetype": null
-        }, {
-            "name": "Cadmium",
-            "pollutantkey": "Cd",
-            "pollutantgroupkey": "MET",
-            "mindate": 1262300400000,
-            "maxdate": 1104534000000,
-            "minvalue": 0.05957400053739548,
-            "maxvalue": 0.11999999731779099,
-            "unit": "mg/kg",
-            "probepk": null,
-            "releasetype": null
-        }, {
-            "name": "Chrom",
-            "pollutantkey": "Cr",
-            "pollutantgroupkey": "MET",
-            "mindate": 946681200000,
-            "maxdate": 788914800000,
-            "minvalue": 0.3499999940395355,
-            "maxvalue": 0.5,
-            "unit": "mg/kg",
-            "probepk": null,
-            "releasetype": null
-        }, {
-            "name": "Cobalt",
-            "pollutantkey": "Co",
-            "pollutantgroupkey": "MET",
-            "mindate": 1262300400000,
-            "maxdate": 1104534000000,
-            "minvalue": 0.12080500274896622,
-            "maxvalue": 0.1599999964237213,
-            "unit": "mg/kg",
-            "probepk": null,
-            "releasetype": null
-        }, {
-            "name": "Eisen",
-            "pollutantkey": "Fe",
-            "pollutantgroupkey": "MET",
-            "mindate": 1104534000000,
-            "maxdate": 946681200000,
-            "minvalue": 190.0,
-            "maxvalue": 231.0,
-            "unit": "mg/kg",
-            "probepk": null,
-            "releasetype": null
-        }, {
-            "name": "Gesamtstickstoff (Elementaranalyse)",
-            "pollutantkey": "N",
-            "pollutantgroupkey": "DNM",
-            "mindate": 1104534000000,
-            "maxdate": 1262300400000,
-            "minvalue": 9300.0,
-            "maxvalue": 11000.0,
-            "unit": "mg/kg",
-            "probepk": null,
-            "releasetype": null
-        }, {
-            "name": "Kupfer",
-            "pollutantkey": "Cu",
-            "pollutantgroupkey": "MET",
-            "mindate": 1104534000000,
-            "maxdate": 788914800000,
-            "minvalue": 3.799999952316284,
-            "maxvalue": 5.300000190734863,
-            "unit": "mg/kg",
-            "probepk": null,
-            "releasetype": null
-        }, {
-            "name": "Molybdän",
-            "pollutantkey": "Mo",
-            "pollutantgroupkey": "MET",
-            "mindate": 946681200000,
-            "maxdate": 1104534000000,
-            "minvalue": 0.12999999523162842,
-            "maxvalue": 0.17000000178813934,
-            "unit": "mg/kg",
-            "probepk": null,
-            "releasetype": null
-        }, {
-            "name": "Nickel",
-            "pollutantkey": "Ni",
-            "pollutantgroupkey": "MET",
-            "mindate": 1262300400000,
-            "maxdate": 946681200000,
-            "minvalue": 0.5871559977531433,
-            "maxvalue": 1.1100000143051147,
-            "unit": "mg/kg",
-            "probepk": null,
-            "releasetype": null
-        }, {
-            "name": "Quecksilber",
-            "pollutantkey": "Hg",
-            "pollutantgroupkey": "MET",
-            "mindate": 1262300400000,
-            "maxdate": 946681200000,
-            "minvalue": 0.031373001635074615,
-            "maxvalue": 0.2199999988079071,
-            "unit": "mg/kg",
-            "probepk": null,
-            "releasetype": null
-        }, {
-            "name": "Schwefel",
-            "pollutantkey": "S",
-            "pollutantgroupkey": "DNM",
-            "mindate": 1104534000000,
-            "maxdate": 788914800000,
-            "minvalue": 750.0,
-            "maxvalue": 940.0,
-            "unit": "mg/kg",
-            "probepk": null,
-            "releasetype": null
-        }, {
-            "name": "Vanadium",
-            "pollutantkey": "V",
-            "pollutantgroupkey": "MET",
-            "mindate": 1262300400000,
-            "maxdate": 788914800000,
-            "minvalue": 0.6508880257606506,
-            "maxvalue": 0.800000011920929,
-            "unit": "mg/kg",
-            "probepk": null,
-            "releasetype": null
-        }, {
-            "name": "Zinn",
-            "pollutantkey": "Sn",
-            "pollutantgroupkey": "MET",
-            "mindate": 946681200000,
-            "maxdate": 788914800000,
-            "minvalue": 18.100000381469727,
-            "maxvalue": 27.0,
-            "unit": "mg/kg",
-            "probepk": null,
-            "releasetype": null
+            "releasetype": "LUFT"
         }],
-    "probenparameter": [{
-            "parameterpk": "As",
-            "parametergruppepk": null,
-            "parametername": "Arsen",
-            "parametergruppename": null,
-            "parametereinheit": null
+    "releaseparameters": [{
+            "parameterpk": "tscurwaxyd36cx",
+            "parametergruppepk": "LUFT",
+            "parametername": "Kohlenmonoxid (CO)",
+            "parametergruppename": "Freisetzung in die Luft",
+            "parametereinheit": "kg/Jahr"
         }, {
-            "parameterpk": "Cd",
-            "parametergruppepk": null,
-            "parametername": "Cadmium",
-            "parametergruppename": null,
-            "parametereinheit": null
-        }, {
-            "parameterpk": "Co",
-            "parametergruppepk": null,
-            "parametername": "Cobalt",
-            "parametergruppename": null,
-            "parametereinheit": null
-        }, {
-            "parameterpk": "Cr",
-            "parametergruppepk": null,
-            "parametername": "Chrom",
-            "parametergruppename": null,
-            "parametereinheit": null
-        }, {
-            "parameterpk": "Cu",
-            "parametergruppepk": null,
-            "parametername": "Kupfer",
-            "parametergruppename": null,
-            "parametereinheit": null
-        }, {
-            "parameterpk": "Fe",
-            "parametergruppepk": null,
-            "parametername": "Eisen",
-            "parametergruppename": null,
-            "parametereinheit": null
-        }, {
-            "parameterpk": "Mo",
-            "parametergruppepk": null,
-            "parametername": "Molybdän",
-            "parametergruppename": null,
-            "parametereinheit": null
-        }, {
-            "parameterpk": "Ni",
-            "parametergruppepk": null,
-            "parametername": "Nickel",
-            "parametergruppename": null,
-            "parametereinheit": null
-        }, {
-            "parameterpk": "Pb",
-            "parametergruppepk": null,
-            "parametername": "Blei",
-            "parametergruppename": null,
-            "parametereinheit": null
-        }, {
-            "parameterpk": "S",
-            "parametergruppepk": null,
-            "parametername": "Schwefel",
-            "parametergruppename": null,
-            "parametereinheit": null
-        }, {
-            "parameterpk": "V",
-            "parametergruppepk": null,
-            "parametername": "Vanadium",
-            "parametergruppename": null,
-            "parametereinheit": null
-        }, {
-            "parameterpk": "Sb",
-            "parametergruppepk": null,
-            "parametername": "Antimon",
-            "parametergruppename": null,
-            "parametereinheit": null
-        }, {
-            "parameterpk": "Zn",
-            "parametergruppepk": null,
-            "parametername": "Zinn",
-            "parametergruppename": null,
-            "parametereinheit": null
-        }, {
-            "parameterpk": "Hg",
-            "parametergruppepk": null,
-            "parametername": "Quecksilber",
-            "parametergruppename": null,
-            "parametereinheit": null
-        }, {
-            "parameterpk": "N",
-            "parametergruppepk": null,
-            "parametername": "Gesamtstickstoff (Elementaranalyse)",
-            "parametergruppename": null,
-            "parametereinheit": null
-        }, {
-            "parameterpk": "Al",
-            "parametergruppepk": null,
-            "parametername": "Aluminium",
-            "parametergruppename": null,
-            "parametereinheit": null
+            "parameterpk": "2wdixwiua7cjxm",
+            "parametergruppepk": "LUFT",
+            "parametername": "Stickoxide (NO/NO2)",
+            "parametergruppename": "Freisetzung in die Luft",
+            "parametereinheit": "kg/Jahr"
         }]
 }

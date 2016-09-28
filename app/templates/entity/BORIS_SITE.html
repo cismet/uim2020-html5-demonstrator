@@ -13,11 +13,11 @@
             <div ng-repeat="(group, parameters) in entity.$data.probenparameter | groupBy:'parametergruppename'">
                 <span style="display:inline-block; min-width: 400px;"><strong>{{group}}</strong></span>
                 <ul>
-
                     <li ng-repeat="parameter in parameters">
                         <span style="display:inline-block; min-width: 400px;">{{ parameter.parametername}} </span>
                     </li>
-                </ul></div>
+                </ul>
+            </div>
         </div>
     </uib-tab>
     <uib-tab index="2" heading="Aggregierte Messwerte">

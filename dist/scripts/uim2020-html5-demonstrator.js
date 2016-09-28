@@ -3332,6 +3332,7 @@ angular.module(
                 configurationService.authentication.domain = configurationService.cidsRestApi.domain;
                 configurationService.authentication.username = 'uba';
                 configurationService.authentication.password = '';
+                configurationService.authentication.role = 'UDM2020';
                 configurationService.authentication.cookie = 'de.cismet.uim2020-html5-demonstrator.identity';
 
 
@@ -3681,7 +3682,7 @@ angular.module(
 
                 configurationService.featureRenderer.layergroupNames = {};
                 configurationService.featureRenderer.layergroupNames.MOSS = 'Moose';
-                configurationService.featureRenderer.layergroupNames.EPRTR_INSTALLATION = 'ePRTR ePRTR Einrichtungen';
+                configurationService.featureRenderer.layergroupNames.EPRTR_INSTALLATION = 'ePRTR Einrichtungen';
                 configurationService.featureRenderer.layergroupNames.WAOW_STATION = 'Wassermesstellen';
                 configurationService.featureRenderer.layergroupNames.WAGW_STATION = 'Grundwassermesstellen';
                 configurationService.featureRenderer.layergroupNames.BORIS_SITE = 'Bodenmesstellen';
@@ -3853,11 +3854,14 @@ angular.module(
 
                 cidsRestApiConfig = configurationService.cidsRestApi;
 
+                // FIXME: authenticationService.getAuthorizationToken() not update after new user login
                 entityResource = $resource(
                         cidsRestApiConfig.host + '/' + cidsRestApiConfig.domain + '.:className/:objectId',
                         {
                             omitNullValues: true,
-                            deduplicate: true
+                            deduplicate: true,
+                            role: 'default' // FIXME: retrieve role f5rom identity
+                            
                         },
                         {
                             get: {
