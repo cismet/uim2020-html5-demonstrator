@@ -1,0 +1,48 @@
+<uib-tabset active="active">
+    <uib-tab index="0" heading="Standortparameter">
+        <div class="cs-entityinfo">
+            <p ng-if="entity.$data.labno">
+                <span style="display:inline-block; min-width: 100px;"><strong>Labornummer:</strong></span>
+                <span class="pull-right" style="display:inline-block; min-width: 700px;">{{entity.$data.labno}}</span>
+            </p>
+            <p ng-if="entity.$data.sampleid">
+                <span style="display:inline-block; min-width: 100px;"><strong>Probennummer:</strong></span>
+                <span class="pull-right" style="display:inline-block; min-width: 700px;">{{entity.$data.sampleid}}</span>
+            </p>
+            <div ng-if="entity.$data.type === 'Abietinella abietina'">
+                <img width="400px" src="images/abietinella_abietina.jpg" title="Abietinella abietina" alt="Abietinella abietina"/>
+            </div>
+            <div ng-if="entity.$data.type === 'Hylocomium splendens'">
+                <img width="400px" src="images/hylocomium_splendens.jpg" title="Hylocomium splendens" alt="Hylocomium splendens"/>
+            </div>
+            <div ng-if="entity.$data.type === 'Hypnum cupressiforme'">
+                <img width="400px" src="images/hypnum_cupressiforme.jpg" title="Hypnum cupressiforme" alt="Hypnum cupressiforme"/>
+            </div>
+            <div ng-if="entity.$data.type === 'Pleurozium schreberi'">
+                <img width="400px" src="images/pleurozium_schreberi.jpg" title="Pleurozium schreberi" alt="Pleurozium schreberi"/>
+            </div>
+            <div ng-if="entity.$data.type === 'Scleropodium purum'">
+                <img width="400px" src="images/scleropodium_purum.jpg" title="Scleropodium purum" alt="Scleropodium purum"/>
+            </div>
+        </div>
+    </uib-tab>
+    <uib-tab index="1" heading="Probenparameter">
+        <div class="cs-entityinfo">
+            <ul>
+                <li ng-repeat="parameter in entity.$data.probenparameter">
+                    <span style="display:inline-block; min-width: 400px;">{{ parameter.parametername}} </span>
+                </li>
+            </ul>
+        </div>
+    </uib-tab>
+    <uib-tab index="2" heading="Aggregierte Messwerte">
+        <div class="cs-entityinfo">
+            <aggregation-table aggregation-values="entity.$data.aggregationvalues">Aggregierte Messwerte</aggregation-table>
+        </div>
+    </uib-tab>
+    <uib-tab index="3" heading="Datenvisualisierung">
+        <div class="cs-entityinfo">
+            <h1>Datenvisualisierung Platzhalter</h1>
+        </div>
+    </uib-tab>
+</uib-tabset>

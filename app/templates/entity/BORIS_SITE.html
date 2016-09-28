@@ -1,0 +1,37 @@
+<uib-tabset active="active">
+    <uib-tab index="0" heading="Standortparameter">
+        <div class="cs-entityinfo">
+            <p ng-repeat="standortparameter in entity.$data.standortparameter| filter:{pk:'!' + 'S100'} track by standortparameter.pk"
+               ng-if="standortparameter.wert && standortparameter.wert !== 'null'">
+                <span style="display:inline-block; min-width: 400px;"><strong>{{standortparameter.name}}</strong></span>
+                <span class="pull-right" style="display:inline-block; min-width: 300px;">{{standortparameter.wert}}</span>
+            </p>
+        </div>
+    </uib-tab>
+    <uib-tab index="1" heading="Probenparameter">
+        <div class="cs-entityinfo">
+            <div ng-repeat="(group, parameters) in entity.$data.probenparameter | groupBy:'parametergruppename'">
+                <span style="display:inline-block; min-width: 400px;"><strong>{{group}}</strong></span>
+                <ul>
+                    <li ng-repeat="parameter in parameters">
+                        <span style="display:inline-block; min-width: 400px;">{{ parameter.parametername}} </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </uib-tab>
+    <uib-tab index="2" heading="Aggregierte Messwerte">
+        <div class="cs-entityinfo">
+            <aggregation-table 
+                aggregation-values="entity.$data.aggregationvalues"
+                parse-date="true">
+                Aggregierte Messwerte
+            </aggregation-table>
+        </div>
+    </uib-tab>
+    <uib-tab index="3" heading="Datenvisualisierung">
+        <div class="cs-entityinfo">
+            <h1>Datenvisualisierung Platzhalter</h1>
+        </div>
+    </uib-tab>
+</uib-tabset>

@@ -1,24 +1,23 @@
-<!--<leaflet id="search-map" 
-         defaults="mapData.defaults" 
-         center="mapData.center"
-         height="600px" width="820px">   
-</leaflet>-->
-
-
 <div class="flex-container-vertical">
     <div class="cs-result-list">
         <ul class="list-group">
             <li class="list-group-item"
-                ng-repeat="node in mapController.nodes track by node.objectKey | orderBy:['className','name']">
+                ng-repeat="node in mapController.nodes track by node.objectKey | orderBy:['$classTitle','name']">
+                
+                <!-- ICON -------------------------------------------------- -->
                 <span class="btn-icon">
-                    <img src="{{node.$icon}}" alt="{{node.className}}">
+                    <img src="{{node.$icon}}" alt="{{node.$classTitle}}">
                 </span>
+                
+                <!-- GOTO Object in Map ------------------------------------ -->
                 <span class="btn-link"
                       ng-disabled="!node.$feature"
+                      ng-style="mapController.isNodeSelected(node) && {'font-weight':'bold'}"
                       ng-click="mapController.gotoNode(node)">
                     {{node.name | textLengthFilter:35}} 
                 </span>
                 
+                <!-- ADD to Analysis --------------------------------------- -->
                 <a class="btn btn-sm btn-icon pull-right"
                    title="Zur Merkliste hinzufügen"
                    style="padding:5px"
@@ -27,8 +26,7 @@
                     <span class="fa fa-plus-circle fa-2x"></span>
                 </a>
                 
-                <!-- ng-style="!node.description && {'clear':'right'}" -->
-                
+                <!-- REMOVE FROM Analysis ---------------------------------- -->
                 <a class="btn btn-sm btn-icon pull-right"
                    style="padding:5px"
                    title="Von der Merkliste entfernen"
@@ -38,6 +36,7 @@
                     <span class="fa fa-minus-circle fa-2x"></span>
                 </a>
 
+                <!-- SHOW Object Details Modal ----------------------------- -->
                 <a class="btn btn-sm btn-icon pull-right"
                    ng-if="node.LEGACY_OBJECT_ID"
                    data-ui-sref="modal.entity({class: node.classKey.split('.').slice(1, 2).pop(), id:node.LEGACY_OBJECT_ID})"
@@ -45,30 +44,13 @@
                    style="padding-right:0; padding-left:0">
                     <span class="fa fa-info-circle fa-2x"></span>
                 </a>
+                
+                <!-- DESCRIPTION ------------------------------------------- -->
                 <p ng-if="node.description">
                     <small><small>{{node.description | textLengthFilter:60:false:'...':true}}</small></small>
                 </p>
                 <div ng-if="!node.description" style="clear:right"><!-- clearfix hack --></div>
             </li>
-
-            <!--
-            <li class="list-group-item" ng-repeat="node in resultSet.$collection">  
-                <span class="btn-link" 
-                      ng-style="{'font-weight': $parent.selectedObject === $index ? 'bold' : 'plain'}"
-                      ng-click="$parent.selectedObject = $index">
-                    {{node.name | txtLen:30:false:'...':true}}
-                </span>
-                <a class="btn-invisible btn-icon pull-right"
-                   href="#/resource/{{node.object.id}}"
-                   title="Show detailed resource information"><i class="glyphicon glyphicon-info-sign"></i>
-                </a>
-                <p>
-                    <small><small>
-                            {{node.object.description | txtLen:80:false:'...':true}}
-                        </small></small>
-                </p>
-            </li>
-            -->
         </ul>
     </div>
 
@@ -87,19 +69,4 @@
             >
         </leaflet>
     </div>
-
-    <!-- ng-size directive: incredibly hack to set leaflet size -->
-    <!--<div id="map-search-container" class="flex-container-horizontal" ng-size>
-        <leaflet
-            id="map-search" 
-            defaults="defaults" 
-            layers="layers" 
-            lf-center="center" 
-            center="center" 
-            controls="controls"
-            width="100%"
-            height="800px"
-            >
-        </leaflet>
-    </div>-->
 </div>

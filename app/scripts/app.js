@@ -17,7 +17,7 @@ var app = angular.module(
             'de.cismet.uim2020-html5-demonstrator.services',
             'de.cismet.uim2020-html5-demonstrator.filters',
             'ngResource', 'ngAnimate', 'ngSanitize', 'ngCookies',
-            'ui.bootstrap', 'ui.bootstrap.modal',
+            'ui.bootstrap', 'ui.bootstrap.modal', 'angular.filter',
             'ui.router', 'ui.router.modal',
             'ct.ui.router.extras.sticky', 'ct.ui.router.extras.dsr', 'ct.ui.router.extras.previous',
             'leaflet-directive',
@@ -43,12 +43,91 @@ app.config(
                 $logProvider.debugEnabled(false);
 
                 var resolveEntity;
-                resolveEntity = function ($stateParams) {
-                    console.log("resolve entity " + $stateParams.id + "@" + $stateParams.class);
-                    return {
-                        class: $stateParams.class,
-                        id: $stateParams.id
-                    };
+
+                /**
+                 * Resolve the entity to be shown in the entity modal (object info)
+                 * @param {type} $stateParams
+                 * @returns {app_L40.resolveEntity.appAnonym$2}
+                 */
+                /**
+                 * 
+                 * @param {type} $q
+                 * @param {type} $stateParams
+                 * @param {type} entityService
+                 * @param {type} sharedDatamodel
+                 * @returns {nm$_deferred.exports.promise|nm$_deferred.module.exports.promise|$q@call;defer.promise}
+                 */
+                resolveEntity = function ($q, $stateParams, configurationService, entityService, sharedDatamodel) {
+                    //console.log("resolve entity " + $stateParams.id + "@" + $stateParams.class);
+
+                    var entityResource, deferred, className, objectId, dataObject;
+
+                    deferred = $q.defer();
+                    className = $stateParams.class;
+                    objectId = $stateParams.id;
+
+                    /*entityResource = {
+                     class: $stateParams.class,
+                     id: $stateParams.id
+                     };*/
+
+                    entityResource = entityService.entityResource.get({
+                        className: className,
+                        objectId: objectId
+                    }).$promise.then(
+                            function (resolvedEntity) {
+                                sharedDatamodel.status.message = 'Object "' + resolvedEntity.name + "' aus dem UIM2020-DI Indexdatenbestand geladen.";
+                                sharedDatamodel.status.type = 'success';
+
+                                // ----------------------------------------------------------
+                                // Extend the resolved object by local properties
+                                // ----------------------------------------------------------
+                                
+                                resolvedEntity.$className = className;
+                                
+                                if (configurationService.featureRenderer.icons[className]) {
+                                    resolvedEntity.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
+                                }
+
+                                // FIXME: extract class name from CS_CLASS description (server-side)
+                                if (configurationService.featureRenderer.layergroupNames[className]) {
+                                    resolvedEntity.$classTitle = configurationService.featureRenderer.layergroupNames[className];
+                                } else {
+                                    resolvedEntity.$classTitle = className;
+                                }
+
+                                if (resolvedEntity.src_content) {
+                                    try {
+                                        dataObject = angular.fromJson(resolvedEntity.src_content);
+                                        resolvedEntity.$data = dataObject;
+                                        delete resolvedEntity.src_content;
+                                    } catch (err) {
+                                        var message = 'Das Objekt "' + objectId + '@' + className +
+                                                '" konnte nicht geladen werden: ' + err.message;
+                                        sharedDatamodel.status.message = message;
+                                        sharedDatamodel.status.type = 'warning';
+                                        sharedDatamodel.resolvedEntity = null;
+                                        deferred.reject(message);
+                                    }
+                                }
+
+                                // ----------------------------------------------------------
+
+                                sharedDatamodel.resolvedEntity = resolvedEntity;
+                                deferred.resolve(resolvedEntity);
+                            },
+                            function () {
+                                var message = 'Das Objekt "' + objectId + '@' + className +
+                                        '" konnte nicht im UIM2020-DI Indexdatenbestand gefunden werden!';
+                                //console.warn(message);
+                                sharedDatamodel.status.message = message;
+                                sharedDatamodel.status.type = 'warning';
+                                sharedDatamodel.resolvedEntity = null;
+                                deferred.reject(message);
+                            }
+                    );
+
+                    return deferred.promise;
                 };
 
                 // <editor-fold defaultstate="collapsed" desc=" showEntityModal() " >
@@ -167,7 +246,7 @@ app.config(
                         default: {
                             state: "main.search"
                         }
-                    },
+                    }
                     // disabled since resolve is called after stateChangeStart event! :-(
                     /*resolve: {
                      identity: [
@@ -351,16 +430,26 @@ app.config(
                     templateUrl: 'views/entity/modal.html',
                     controller: 'entityController',
                     controllerAs: 'entityController',
+                    size:'lg', // unbelievable gefrickel: pass options to $uibModel.open() function  ..... 
                     //onEnter: showEntityModal,
                     modal: true,
                     resolve: {
                         entity: [
-                            '$stateParams',
+                            '$q', '$stateParams', 'configurationService', 'entityService', 'sharedDatamodel',
                             resolveEntity
                         ],
                         entityModalInvoker: function ($previousState) {
-                            $previousState.memo('entityModalInvoker');
-                            return $previousState.get('entityModalInvoker');
+                            if ($previousState.get() && $previousState.get().state) {
+                                var previousState = $previousState.get().state;
+
+                                // don't memo the modal state!
+                                if (previousState.name.indexOf('modal') !== 0) {
+                                    //console.log('entityModalInvoker: saving previous state ' + previousState.name);
+                                    $previousState.memo('entityModalInvoker');
+                                    return $previousState.get('entityModalInvoker');
+                                }
+                                //console.log('entityModalInvoker: ignoring previous state ' + previousState.name);
+                            }
                         }
                     }
                 });
