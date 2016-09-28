@@ -154,6 +154,20 @@ form-signin-page {
     text-align: left;
 }
 
+.cs-parameterlist {
+    margin-top:10px; 
+    max-height:600px; 
+    overflow-y: scroll
+}
+
+.cs-entityinfo {
+    margin-top:10px; 
+    max-height:600px; 
+    min-height:600px; 
+    height:600px; 
+    overflow-y: scroll
+}
+
 .angular-leaflet-map {
     -ms-flex: 4 1 auto;
         flex: 4 1 auto;

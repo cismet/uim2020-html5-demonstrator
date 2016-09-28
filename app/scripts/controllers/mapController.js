@@ -56,7 +56,7 @@ angular.module(
                         layers: {}
                     });
                     overlays.push(angular.copy(config.nodeOverlays));
-                    overlaysNodeLayersIndex = 1; // after gazetterr layer ....
+                    overlaysNodeLayersIndex = 1; // after gazetteer layer ....
 
                     // drawControl only available in search mode
                     drawControl = new L.Control.Draw({

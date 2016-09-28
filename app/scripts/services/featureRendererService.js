@@ -20,26 +20,9 @@ angular.module(
 
                 var config, getFeatureRenderer, createNodeFeature,
                         createGazetteerLocationLayer, createNodeFeatureGroups,
-                        createOverlayLayer, getIconForNode, getHighlightIconForNode,
-                        nodeFeaturePopup;
+                        createOverlayLayer, getIconForNode, getHighlightIconForNode;
 
                 config = configurationService.featureRenderer;
-
-                nodeFeaturePopup = L.popup.angular({
-                    template: '<div>{{popupController.node.name}}' +
-                            '<h4><a data-ui-sref="modal.entity({class: popupController.node.classKey.split(\'.\').slice(1, 2).pop(), id:popupController.node.LEGACY_OBJECT_ID})" ng-click="popupController.feature.closePopup()">{{popupController.node.name}}</a></h4>' +
-                            '<div><p ng-if="popupController.node.description">{{popupController.node.description}}</p></div>' +
-                            '</div>',
-                    controllerAs: 'popupController',
-                    controller: ['$options',
-                        function ($options) {
-                            var popupController;
-                            popupController = this;
-
-                            popupController.node = $options.$node;
-                            popupController.feature = $options.$feature;
-                        }]
-                });
 
                 // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ===========================">
                 /**
@@ -52,7 +35,7 @@ angular.module(
                  */
                 createNodeFeature = function (node, theme, selectNodeCallback) {
                     if (node.hasOwnProperty('cachedGeometry')) {
-                        var wktString, wktObject, feature, icon;
+                        var wktString, wktObject, feature, icon, objectConfig, nodeFeaturePopup;
 
                         if (node.cachedGeometry) {
                             icon = config.icons[theme];
@@ -61,17 +44,24 @@ angular.module(
                             wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
 
                             // the Leaflet Marker Configuration
-                            var objectConfig = {
+                            objectConfig = {
                                 icon: icon,
                                 title: node.name
                             };
 
-                            feature = wktObject.toObject(objectConfig);
-                            //feature.bindPopup(node.name);
-                            feature.bindPopup(nodeFeaturePopup, {
-                                $feature: feature,
-                                $node: node
+                            nodeFeaturePopup = L.popup.angular({
+                                template: '<div>{{popupController.node.name}}' +
+                                        '<h4><a data-ui-sref="modal.entity({class: $content.node.classKey.split(\'.\').slice(1, 2).pop(), id:$content.node.LEGACY_OBJECT_ID})" ' + 
+                                        'ng-click="$content.node.$feature.closePopup()">{{$content.node.name}}</a></h4>' +
+                                        '<div><p ng-if="$content.node.description">{{$content.node.description}}</p></div>' +
+                                        '</div>'
                             });
+                            
+                            nodeFeaturePopup.setContent({
+                                node : node
+                            });
+                            
+                            feature = wktObject.toObject(objectConfig);
 
                             feature.$name = node.name;
                             feature.$key = node.objectKey;
@@ -81,6 +71,8 @@ angular.module(
                             feature.on('click', function (e) {
                                 selectNodeCallback(this.$node);
                             });
+                            
+                            feature.bindPopup(nodeFeaturePopup);
 
                             node.$feature = feature;
                             node.$icon = icon.options.iconUrl;

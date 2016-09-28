@@ -1,6 +1,38 @@
 angular.module('').run(['$templateCache', function($templateCache) {
   'use strict';
 
+  $templateCache.put('templates/aggregation-table-directive.html',
+    "<table ng-table=\"aggregationTableController.tableData\" \n" +
+    "       class=\"table table-condensed table-bordered table-striped\"\n" +
+    "       show-filter=\"false\" >\n" +
+    "    <colgroup>\n" +
+    "        <col width=\"20%\" />\n" +
+    "        <col width=\"20%\" />\n" +
+    "        <col width=\"20%\" />\n" +
+    "        <col width=\"20%\" />\n" +
+    "        <col width=\"20%\" />\n" +
+    "    </colgroup>\n" +
+    "    <tr ng-repeat=\"value in $data track by value.pollutantkey\">\n" +
+    "        <td title=\"'Parameter'\" data-sortable=\"'name'\">\n" +
+    "            {{value.name}}\n" +
+    "        </td>\n" +
+    "        <td title=\"'Maximalwert'\">\n" +
+    "            {{value.maxvalue}}\n" +
+    "        </td>\n" +
+    "        <td title=\"'gemessen am'\">\n" +
+    "            {{aggregationTableController.parseDate(value.maxdate) | date:'dd.MM.yyyy'}}\n" +
+    "        </td>   \n" +
+    "        <td title=\"'Minimalwert'\">\n" +
+    "            {{value.minvalue}}\n" +
+    "        </td>\n" +
+    "        <td title=\"'gemessen am'\">\n" +
+    "            {{aggregationTableController.parseDate(value.mindate) | date:'dd.MM.yyyy'}}\n" +
+    "        </td>    \n" +
+    "    </tr>\n" +
+    "</table>\n"
+  );
+
+
   $templateCache.put('templates/external-datasource-modal.html',
     "<div class=\"modal-header\">\r" +
     "\n" +

@@ -25,7 +25,7 @@ angular.module(
                 //mainController.name = 'this.main';
                 //$scope.mode = 'search';
                 mainController.mode = $state.current.name.split(".").slice(1, 2).pop();
-                
+
                 /**
                  * 
                  * @param {type} node
@@ -33,17 +33,17 @@ angular.module(
                  */
                 mainController.removeAnalysisNode = function (node) {
                     var index = sharedDatamodel.analysisNodes.indexOf(node);
-                    if(index !== -1) {
+                    if (index !== -1) {
                         sharedDatamodel.analysisNodes.splice(sharedDatamodel.analysisNodes.indexOf(node), 1);
                         // manually update map
-                        if(sharedControllers.analysisMapController) {
+                        if (sharedControllers.analysisMapController) {
                             sharedControllers.analysisMapController.removeNode(node);
                         }
                     } else {
                         console.warn("mainController::removeAnalysisNode: node '" + node.name + "' no in list of analysis nodes!");
                     }
                 };
-                
+
                 /**
                  * 
                  * @param {type} node
@@ -51,21 +51,24 @@ angular.module(
                  */
                 mainController.addAnalysisNode = function (node) {
                     var index = sharedDatamodel.analysisNodes.indexOf(node);
-                    if(index !== -1) {
+                    if (index !== -1) {
                         console.warn("mainController::addAnalysisNode: node '" + node.name + "' already in list of analysis nodes!");
                     } else {
                         // we cannot add the same feature to two different maps ... :-(
-                        var analysisNode = angular.copy(node);
+                        // var analysisNode = angular.copy(node);
+
+                        // make *shallow* copy
+                        var analysisNode = angular.extend({}, node);
                         analysisNode.$feature = null;
-                        
+
                         // manually update map
                         sharedDatamodel.analysisNodes.push(analysisNode);
-                        if(sharedControllers.analysisMapController) {
+                        if (sharedControllers.analysisMapController) {
                             sharedControllers.analysisMapController.addNode(analysisNode);
                         }
                     }
                 };
-                
+
                 /**
                  * set mode (search analysis, ...) and previous state name
                  */
