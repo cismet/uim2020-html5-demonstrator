@@ -8,7 +8,8 @@ angular.module(
             restrict: 'E',
             templateUrl: 'templates/aggregation-table-directive.html',
             scope: {
-                aggregationValues: '='
+                aggregationValues: '=',
+                parseDate: '='
             },
             controller: 'aggregationTableController',
             controllerAs: 'aggregationTableController'

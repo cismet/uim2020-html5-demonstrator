@@ -13,7 +13,11 @@ angular.module(
                 aggregationTableController = this;
                 
                 aggregationTableController.parseDate = function(dateString) {
-                    return Date.parse(dateString);
+                    if($scope.parseDate) {
+                        return Date.parse(dateString);
+                    } else {
+                        return dateString;
+                    }
                 };
 
                 /*aggregationTableController.tableColumns = [{
@@ -56,9 +60,6 @@ angular.module(
                              },*/
                             counts: []
                         });
-                        
-                        
-
             }
         ]
         );
