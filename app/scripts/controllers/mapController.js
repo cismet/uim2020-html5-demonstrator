@@ -21,7 +21,7 @@ angular.module(
                 var leafletMap, mapId, mapController, config, layerControl, searchGeometryLayerGroup, drawControl,
                         defaults, center, basemaps, overlays, layerControlOptions,
                         drawOptions, maxBounds, setSearchGeometry, gazetteerLocationLayer, layerControlMappings,
-                        overlaysNodeLayersIndex, fitBoundsOptions, selectedNode;
+                        overlaysNodeLayersIndex, fitBoundsOptions, selectedNode, selectNode;
 
                 mapController = this;
                 mapController.mode = $scope.mainController.mode;
@@ -124,6 +124,33 @@ angular.module(
                         overlays,
                         layerControlOptions);
 
+// <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ===========================">
+                /**
+                 * 
+                 * @param {type} node
+                 * @returns {execPath|require.main.filename|String}
+                 */
+                selectNode = function (node) {
+                    var icon;
+
+                    // reset selection
+                    if (selectedNode !== null && selectedNode.$feature) {
+                        icon = featureRendererService.getIconForNode(selectedNode);
+                        selectedNode.$feature.setIcon(icon);
+                    }
+
+                    if (node.$feature) {
+                        selectedNode = node;
+                        icon = featureRendererService.getHighlightIconForNode(selectedNode);
+                        selectedNode.$feature.setIcon(icon);
+
+                    } else {
+                        selectedNode = null;
+                    }
+
+                    return selectedNode;
+                };
+
                 setSearchGeometry = function (searchGeometryLayer, layerType) {
                     if (mapController.mode === 'search') {
                         searchGeometryLayerGroup.clearLayers();
@@ -153,7 +180,7 @@ angular.module(
                         console.warn("mapController:: cannot add search geomatry to analysis map!");
                     }
                 };
-
+                // <editor-fold/>
 
                 // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
 
@@ -264,24 +291,18 @@ angular.module(
                         console.warn("mapController:: cannot add overlay to search map!");
                     }
                 };
+                
+                mapController.isNodeSelected = function (node) {
+                    return node === selectedNode;
+                };
 
                 mapController.gotoNode = function (node) {
-                    var icon;
-
-                    // reset selection
-                    if (selectedNode !== null && selectedNode.$feature) {
-                        icon = featureRendererService.getIconForNode(selectedNode);
-                        selectedNode.$feature.setIcon(icon);
-                    }
-
-                    if (node.$feature) {
-                        selectedNode = node;
-                        icon = featureRendererService.getHighlightIconForNode(selectedNode);
-                        selectedNode.$feature.setIcon(icon);
+                    var theSelectedNode;
+                    
+                    theSelectedNode = selectNode(node);
+                    if(theSelectedNode) {
                         leafletMap.setView(selectedNode.$feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
                         //node.$feature.togglePopup();
-                    } else {
-                        selectedNode = null;
                     }
                 };
 
@@ -355,7 +376,7 @@ angular.module(
                     }
 
                     if (nodes !== null && nodes.length > 0) {
-                        featureGroups = featureRendererService.createNodeFeatureGroups(nodes);
+                        featureGroups = featureRendererService.createNodeFeatureGroups(nodes, selectNode);
                         for (theme in featureGroups) {
                             layerControlId = layerControlMappings[theme];
                             if (layerControlId && layerControl._layers[layerControlId] && layerControl._layers[layerControlId].layer) {
