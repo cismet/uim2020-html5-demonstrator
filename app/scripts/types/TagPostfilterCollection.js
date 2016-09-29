@@ -49,6 +49,10 @@ angular.module(
                 TagPostfilterCollection.prototype.removeTag = function (key) {
                     return delete this.tags[key];
                 };
+                
+                TagPostfilterCollection.prototype.isEmpty = function () {
+                    return this.tags.length === 0;
+                };
 
                 TagPostfilterCollection.prototype.addAll = function (tags, clear, sort) {
                     if (clear === true) {

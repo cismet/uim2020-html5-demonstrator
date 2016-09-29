@@ -104,7 +104,27 @@
     <!--<div class="flex-container-horizontal" style="margin:100px">
         <center><h1>POST-FILTER Platzhalter</h1></center>
     </div>-->
-
+    
+    <!-- Allgemeine Schadstoffe -->
+    <div class="cs-filter-panel" ng-if="!listController.pollutantPostfilters.isEmpty()">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="btn-icon">
+                    <img src="icons/caution_radiation" alt="Schadstoffe"/>
+                </span>
+                Schadstoffe
+            </div>
+            <div class="panel-body" style="min-width:200px;height:220px">
+                <span class="label label-primary"
+                      title="{{tag.name}}"
+                      ng-repeat="tag in listController.pollutantPostfilters.tags track by tag.key"
+                      ng-click="tag.$selected = !tag.$selected"
+                      ng-style="tag.$selected && {'font-weight':'bold'}">
+                    {{tag.key}}   
+                </span>
+            </div>
+        </div>
+    </div>
 
     <div class="cs-filter-panel">
         <div class="panel panel-default">

@@ -5,9 +5,9 @@ angular.module(
         'listController',
         [
             '$scope', 'configurationService',
-            'sharedDatamodel', 'NgTableParams',
+            'sharedDatamodel', 'TagPostfilterCollection', 'NgTableParams',
             function ($scope, configurationService,
-                    sharedDatamodel, NgTableParams) {
+                    sharedDatamodel, TagPostfilterCollection, NgTableParams) {
                 'use strict';
 
                 var listController, ngTableParams;
@@ -17,7 +17,7 @@ angular.module(
 
                 listController.resultNodes = sharedDatamodel.resultNodes;
                 listController.analysisNodes = sharedDatamodel.analysisNodes;
-                
+
                 if (listController.mode === 'search') {
                     listController.nodes = listController.resultNodes;
                 } else if (listController.mode === 'analysis') {
@@ -42,11 +42,11 @@ angular.module(
                         field: "name",
                         title: "Name",
                         sortable: "name",
-                        show: true,
+                        show: true
                     }, {
                         field: "description",
                         title: "Beschreibung",
-                        show: true,
+                        show: true
                     }];
 
 
@@ -68,6 +68,30 @@ angular.module(
                             counts: []
                         });
 
+
+                listController.pollutantPostfilters = new TagPostfilterCollection('ALL', 'POLLUTANT', 'Schadstoffe');
+
+                listController.clearPostfilters = function () {
+                    listController.pollutantPostfilters.clear();
+                };
+
+                listController.setNodes = function (nodes) {
+                    var i, node, tags, feature, featureGroup, featureGroups;
+                    
+                    listController.clearPostfilters();
+                    if (nodes !== null && nodes.length > 0) {
+                        for (i = 0; i < nodes.length; ++i) {
+                            node = nodes[i];
+                            if(node.$data && node.$data.tags) {
+                                tags = node.$data.tags;
+                                listController.pollutantPostfilters.addAll(tags);
+                            } 
+                        }
+                    }
+                };
+
+
+
                 $scope.$on('searchSuccess()', function (e) {
                     listController.tableData.reload();
                 });
@@ -82,6 +106,18 @@ angular.module(
 
                 // leak this to parent scope
                 $scope.$parent.listController = listController;
+
+                /**
+                 * Init Postfilters on search success
+                 */
+                $scope.$on('searchSuccess()', function (event) {
+                    if (sharedDatamodel.resultNodes.length > 0) {
+                        listController.setNodes(sharedDatamodel.resultNodes);
+                    } else {
+                        listController.clearPostfilters();
+                    }
+                });
+
                 console.log('new listController instance created from ' + $scope.name);
             }
         ]
