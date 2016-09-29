@@ -46,10 +46,10 @@
                 </a>
                 
                 <!-- DESCRIPTION ------------------------------------------- -->
-                <p ng-if="node.description">
-                    <small><small>{{node.description | textLengthFilter:60:false:'...':true}}</small></small>
+                <p>
+                    <small><small>{{node.$data | descriptionFilter | textLengthFilter:60:false:'...':true}}</small></small>
                 </p>
-                <div ng-if="!node.description" style="clear:right"><!-- clearfix hack --></div>
+                <!--<div ng-if="!node.description" style="clear:right"></div>-->
             </li>
         </ul>
     </div>

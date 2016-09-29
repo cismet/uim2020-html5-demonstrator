@@ -18,7 +18,12 @@ angular.module(
             'use strict';
 
             return function (data) {
+                if(!data) {
+                    return null;
+                }
+                
                 var description = 'keine Beschreibung verfügbar';
+                
                 // BORIS
                 if (data.literatur || data.institut) {
                     if (data.literatur) {
@@ -39,19 +44,23 @@ angular.module(
                     // WAxW
                 } else if (data.zustaendigestelle || data.bundesland) {
                     if (data.zustaendigestelle) {
-                        description = data.zustaendigestelle;
-                        if (data.bundesland && data.bundesland !== data.zustaendigestelle) {
+                        description = 'Zuständige Stelle: ' + data.zustaendigestelle;
+                        /*if (data.bundesland && data.bundesland !== data.zustaendigestelle) {
                             description += (' (' + data.bundesland + ")");
-                        }
+                        }*/
                     } else {
-                        description = data.bundesland;
+                        description = 'Bundesland Stelle: ' + data.bundesland;
                     }
                     // MOSS
                 } else if (data.labno || data.sampleid) {
                     if (data.labNo) {
                         description = 'Labornummer: ' + data.labNo;
                     } else {
-                        description = data.sampleid;
+                        description = '';
+                    }
+                    
+                    if(data.sampleid) {
+                        description += 'Probennummer: ' + data.sampleid;
                     }
                 }
                 return description;

@@ -50,10 +50,11 @@ angular.module(
                             };
 
                             nodeFeaturePopup = L.popup.angular({
-                                template: '<div>{{popupController.node.name}}' +
-                                        '<h4><a data-ui-sref="modal.entity({class: $content.node.classKey.split(\'.\').slice(1, 2).pop(), id:$content.node.LEGACY_OBJECT_ID})" ' + 
-                                        'ng-click="$content.node.$feature.closePopup()">{{$content.node.name}}</a></h4>' +
-                                        '<div><p ng-if="$content.node.description">{{$content.node.description}}</p></div>' +
+                                template: '<div>' +
+                                        '<h5><span class="btn-icon"><img src="{{$content.node.$icon}}" alt="{{$content.node.$classTitle}}"/></span>&nbsp;' +
+                                        '<strong><a data-ui-sref="modal.entity({class: $content.node.classKey.split(\'.\').slice(1, 2).pop(), id:$content.node.LEGACY_OBJECT_ID})" ' + 
+                                        'ng-click="$content.node.$feature.closePopup()">{{$content.node.name}}</a></strong></h5>' +
+                                        '<div><p>{{$content.node.$data | descriptionFilter}}</p></div>' +
                                         '</div>'
                             });
                             
