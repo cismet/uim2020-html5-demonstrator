@@ -4,7 +4,7 @@
                 data-ui-sref-active="active"
                 class="btn btn-md navbar-btn" 
                 data-ui-sref="main.analysis.map"
-                title="Karte">
+                title="Zur Kartenansicht wechseln">
             <span class="fa fa-map-o"></span>
         </button>
         <!--
@@ -13,11 +13,23 @@
                 data-ui-sref-active="active"
                 class="btn btn-md navbar-btn" 
                 data-ui-sref="analysis.search.list"
-                title="Liste">
+                title="Zur Listenansicht wechseln">
             <span class="fa fa-list"></span>
         </button>
         -->
     </div>
+    
+    <!-- Auf Objekte zentrieren -->
+    <form class="navbar-form navbar-left cs-toolbar-form">
+        <button type="button" 
+                id="external-datasources" 
+                class="btn btn-default btn-primary navbar-btn"
+                ng-click="analysisController.gotoNodes()"
+                ng-disabled="!analysisController.hasNodes()"
+                title="Auf Objekte in der Karte zentrieren">
+            <span class="fa fa-arrows-alt"></span>
+        </button>
+    </form>
 
     <form class="navbar-form navbar-left cs-toolbar-form">
         <button type="button" 
@@ -45,9 +57,11 @@
         </button>
     </form> 
 
+    <!-- Data Export -->
     <form class="navbar-form navbar-left cs-toolbar-form">
         <button type="button" 
-                class="btn btn-default btn-success navbar-btn">
+                class="btn btn-default btn-success navbar-btn"
+                ng-disabled="true">
             <span class="fa fa-floppy-o"></span>
         </button>
     </form>
