@@ -114,8 +114,7 @@ angular.module(
                     maxBounds: maxBounds,
                     controls: {
                         scale: true
-                    },
-                    tileLayer: '' // disabled: loads OSM tiles in background even if not visible!
+                    }
                 });
 
                 // Map Controls

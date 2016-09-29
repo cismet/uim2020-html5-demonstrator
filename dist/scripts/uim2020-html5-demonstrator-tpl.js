@@ -2,34 +2,62 @@ angular.module('').run(['$templateCache', function($templateCache) {
   'use strict';
 
   $templateCache.put('templates/aggregation-table-directive.html',
-    "<table ng-table=\"aggregationTableController.tableData\" \n" +
-    "       class=\"table table-condensed table-bordered table-striped\"\n" +
-    "       show-filter=\"false\" >\n" +
-    "    <colgroup>\n" +
-    "        <col width=\"20%\" />\n" +
-    "        <col width=\"20%\" />\n" +
-    "        <col width=\"20%\" />\n" +
-    "        <col width=\"20%\" />\n" +
-    "        <col width=\"20%\" />\n" +
-    "    </colgroup>\n" +
-    "    <tr ng-repeat=\"value in $data track by value.pollutantkey\">\n" +
-    "        <td title=\"'Parameter'\" data-sortable=\"'name'\">\n" +
-    "            {{value.name}}\n" +
-    "        </td>\n" +
-    "        <td title=\"'Maximalwert'\">\n" +
-    "            {{value.maxvalue}}\n" +
-    "        </td>\n" +
-    "        <td title=\"'gemessen am'\">\n" +
-    "            {{aggregationTableController.parseDate(value.maxdate) | date:'dd.MM.yyyy'}}\n" +
-    "        </td>   \n" +
-    "        <td title=\"'Minimalwert'\">\n" +
-    "            {{value.minvalue}}\n" +
-    "        </td>\n" +
-    "        <td title=\"'gemessen am'\">\n" +
-    "            {{aggregationTableController.parseDate(value.mindate) | date:'dd.MM.yyyy'}}\n" +
-    "        </td>    \n" +
-    "    </tr>\n" +
-    "</table>\n"
+    "<table ng-table=\"aggregationTableController.tableData\" \r" +
+    "\n" +
+    "       class=\"table table-condensed table-bordered table-striped\"\r" +
+    "\n" +
+    "       show-filter=\"false\" >\r" +
+    "\n" +
+    "    <colgroup>\r" +
+    "\n" +
+    "        <col width=\"20%\" />\r" +
+    "\n" +
+    "        <col width=\"20%\" />\r" +
+    "\n" +
+    "        <col width=\"20%\" />\r" +
+    "\n" +
+    "        <col width=\"20%\" />\r" +
+    "\n" +
+    "        <col width=\"20%\" />\r" +
+    "\n" +
+    "    </colgroup>\r" +
+    "\n" +
+    "    <tr ng-repeat=\"value in $data track by value.pollutantkey\">\r" +
+    "\n" +
+    "        <td title=\"'Parameter'\" data-sortable=\"'name'\">\r" +
+    "\n" +
+    "            {{value.name}}\r" +
+    "\n" +
+    "        </td>\r" +
+    "\n" +
+    "        <td title=\"'Maximalwert'\">\r" +
+    "\n" +
+    "            {{value.maxvalue}}\r" +
+    "\n" +
+    "        </td>\r" +
+    "\n" +
+    "        <td title=\"'gemessen am'\">\r" +
+    "\n" +
+    "            {{aggregationTableController.parseDate(value.maxdate) | date:'dd.MM.yyyy'}}\r" +
+    "\n" +
+    "        </td>   \r" +
+    "\n" +
+    "        <td title=\"'Minimalwert'\">\r" +
+    "\n" +
+    "            {{value.minvalue}}\r" +
+    "\n" +
+    "        </td>\r" +
+    "\n" +
+    "        <td title=\"'gemessen am'\">\r" +
+    "\n" +
+    "            {{aggregationTableController.parseDate(value.mindate) | date:'dd.MM.yyyy'}}\r" +
+    "\n" +
+    "        </td>    \r" +
+    "\n" +
+    "    </tr>\r" +
+    "\n" +
+    "</table>\r" +
+    "\n"
   );
 
 

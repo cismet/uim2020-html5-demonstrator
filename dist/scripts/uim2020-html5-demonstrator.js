@@ -1901,8 +1901,7 @@ angular.module(
                     maxBounds: maxBounds,
                     controls: {
                         scale: true
-                    },
-                    tileLayer: '' // disabled: loads OSM tiles in background even if not visible!
+                    }
                 });
 
                 // Map Controls
@@ -3314,7 +3313,7 @@ angular.module(
                 var configurationService, austriaBasemapLayer, esriTopographicBasemapLayer, osmBasemapLayer,
                         openTopoBasemapLayer, borisFeatureGroup, eprtrFeatureGroup,
                         mossFeatureGroup, wagwFeatureGroup, waowFeatureGroup, basemapLayers,
-                        overlayLayers, overlays;
+                        overlayLayers, overlays, basemapLayerOpacity;
 
                 configurationService = this;
 
@@ -3352,29 +3351,11 @@ angular.module(
                 configurationService.map.home = {};
                 configurationService.map.home.lat = 47.61;
                 configurationService.map.home.lng = 13.782778;
-                configurationService.map.home.zoom = 7;
+                configurationService.map.home.zoom = 8;
                 configurationService.map.maxBounds = new L.latLngBounds(
                         L.latLng(46.372299, 9.53079),
                         L.latLng(49.02071, 17.160749));
 
-                configurationService.map.defaults = {
-                    minZoom: 7,
-                    //maxZoom: 18,
-                    maxBounds: configurationService.map.maxBounds,
-                    /*path: {
-                     weight: 10,
-                     color: '#800000',
-                     opacity: 1
-                     },*/
-                    controls: {
-                        layers: {
-                            visible: false,
-                            position: 'bottomright',
-                            collapsed: true
-                        }
-                    }
-                    //tileLayer: '' // if disabled, Leflet will *always* request OSM BG Layer (useful for  Verwaltungsgrundkarte)
-                };
 
                 /* jshint ignore:start */
                 configurationService.map.layerControlOptions = {
@@ -3407,16 +3388,23 @@ angular.module(
 
                 configurationService.map.defaultBasemapLayer = 'Verwaltungsgrundkarte';
 
+                basemapLayerOpacity = 0.6;
+
                 austriaBasemapLayer = new L.tileLayer("http://{s}.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png", {
                     subdomains: ['maps', 'maps1', 'maps2', 'maps3', 'maps4'],
-                    attribution: '&copy; <a href="http://basemap.at">Basemap.at</a>, <a href="http://www.isticktoit.net">isticktoit.net</a>'
+                    attribution: '&copy; <a href="http://basemap.at">Basemap.at</a>, <a href="http://www.isticktoit.net">isticktoit.net</a>',
+                    opacity: basemapLayerOpacity/*,
+                     reuseTiles: true,
+                     updateWhenIdle: true*/
                 });
                 austriaBasemapLayer.$name = configurationService.map.layerMappings['basemap_at'];
                 austriaBasemapLayer.$key = 'basemap_at';
                 austriaBasemapLayer.$groupName = 'Grundkarten';
                 austriaBasemapLayer.$groupKey = 'basemaps';
 
-                esriTopographicBasemapLayer = L.esri.basemapLayer('Topographic');
+                esriTopographicBasemapLayer = L.esri.basemapLayer('Topographic', {
+                    opacity: basemapLayerOpacity
+                });
                 esriTopographicBasemapLayer.$name = configurationService.map.layerMappings['arcgisonline_com'];
                 esriTopographicBasemapLayer.$key = 'arcgisonline_com';
                 esriTopographicBasemapLayer.$groupName = configurationService.map.layerGroupMappings['basemaps'];
@@ -3425,7 +3413,8 @@ angular.module(
                 //'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png'
                 openTopoBasemapLayer = new L.TileLayer(
                         'http://opentopomap.org/{z}/{x}/{y}.png', {
-                            attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors, SRTM | Rendering: © <a href="http://opentopomap.org" target="_blank">OpenTopoMap</a> (CC-BY-SA)'
+                            attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors, SRTM | Rendering: © <a href="http://opentopomap.org" target="_blank">OpenTopoMap</a> (CC-BY-SA)',
+                            opacity: basemapLayerOpacity
                         });
                 openTopoBasemapLayer.$name = configurationService.map.layerMappings['opentopomap_org'];
                 openTopoBasemapLayer.$key = 'opentopomap_org';
@@ -3433,8 +3422,9 @@ angular.module(
                 openTopoBasemapLayer.$groupKey = 'basemaps';
 
                 osmBasemapLayer = new L.TileLayer(
-                        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors'
+                        'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors',
+                            opacity: basemapLayerOpacity
                         });
                 osmBasemapLayer.$name = configurationService.map.layerMappings['openstreetmap_org'];
                 osmBasemapLayer.$key = 'openstreetmap_org';
@@ -3446,6 +3436,33 @@ angular.module(
                 basemapLayers[configurationService.map.layerMappings['arcgisonline_com']] = esriTopographicBasemapLayer;
                 basemapLayers[configurationService.map.layerMappings['opentopomap_org']] = openTopoBasemapLayer;
                 basemapLayers[configurationService.map.layerMappings['openstreetmap_org']] = osmBasemapLayer;
+
+                configurationService.map.defaults = {
+                    minZoom: configurationService.map.home.zoom,
+                    //maxZoom: 18,
+                    maxBounds: configurationService.map.maxBounds,
+                    /*path: {
+                     weight: 10,
+                     color: '#800000',
+                     opacity: 1
+                     },*/
+                    controls: {
+                        layers: {
+                            visible: false,
+                            position: 'bottomright',
+                            collapsed: true
+                        }
+                    },
+                    tileLayer: '' // if disabled, ngLeaflet will *always* request OSM BG Layer (useful for  Verwaltungsgrundkarte)
+                            /*tileLayer: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                             tileLayerOptions: {
+                             attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors',
+                             opacity: basemapLayerOpacity,
+                             reuseTiles: false,
+                             updateWhenIdle: false,
+                             unloadInvisibleTiles: true
+                             }*/
+                };
 
                 /**
                  * styledLayerControl baseMaps!
@@ -4428,192 +4445,193 @@ angular.module(
 
 /*global angular*/
 angular.module(
-    'de.cismet.uim2020-html5-demonstrator.services'
-    ).factory('searchService',
-    ['$resource', '$q', '$interval', 'configurationService', 'authenticationService',
-        function ($resource, $q, $interval, configurationService, authenticationService) {
-            'use strict';
+        'de.cismet.uim2020-html5-demonstrator.services'
+        ).factory('searchService',
+        ['$resource', '$q', '$interval', 'configurationService', 'authenticationService',
+            function ($resource, $q, $interval, configurationService, authenticationService) {
+                'use strict';
 
-            var cidsRestApiConfig, defaultSearchFunction;
-            cidsRestApiConfig = configurationService.cidsRestApi;
+                var cidsRestApiConfig, defaultSearchFunction;
+                cidsRestApiConfig = configurationService.cidsRestApi;
 
-            /**
-             * Default Search Function exposed by the Service.
-             * 
-             * @param {type} geometry
-             * @param {type} themes
-             * @param {type} pollutants
-             * @param {type} limit
-             * @param {type} offset
-             * @param {type} progressCallback
-             * @returns {undefined}
-             */
-            defaultSearchFunction = function (
-                geometry,
-                themes,
-                pollutants,
-                limit,
-                offset,
-                progressCallback) {
-                var deferred, noop, queryObject, defaultSearchResult, defaultRestApiSearch,
-                    defaultRestApiSearchResult, timer, fakeProgress;
+                /**
+                 * Default Search Function exposed by the Service.
+                 * 
+                 * @param {type} geometry
+                 * @param {type} themes
+                 * @param {type} pollutants
+                 * @param {type} limit
+                 * @param {type} offset
+                 * @param {type} progressCallback
+                 * @returns {undefined}
+                 */
+                defaultSearchFunction = function (
+                        geometry,
+                        themes,
+                        pollutants,
+                        limit,
+                        offset,
+                        progressCallback) {
+                    var deferred, noop, queryObject, defaultSearchResult, defaultRestApiSearch,
+                            defaultRestApiSearchResult, timer, fakeProgress;
 
-                //console.log('searchService::defaultSearchFunction()');
+                    //console.log('searchService::defaultSearchFunction()');
 
-                // FIXME: get rid of this noop stuff -> makes code unreadable
-                noop = angular.noop;
-                // current value, max value, type, max = -1 indicates indeterminate
-                (progressCallback || noop)(0, -1, 'success');
-                fakeProgress = 1;
-                timer = $interval(function () {
-                    (progressCallback || noop)(fakeProgress, -1, 'success');
-                    fakeProgress++;
-                }, 100, 100);
+                    // FIXME: get rid of this noop stuff -> makes code unreadable
+                    noop = angular.noop;
+                    // current value, max value, type, max = -1 indicates indeterminate
+                    (progressCallback || noop)(0, -1, 'success');
+                    fakeProgress = 1;
+                    timer = $interval(function () {
+                        (progressCallback || noop)(fakeProgress, -1, 'success');
+                        fakeProgress++;
+                    }, 100, 100);
 
-                deferred = $q.defer();
+                    deferred = $q.defer();
 
-                queryObject = {
-                    'list': [
-                        {
-                            'key': 'geometry', 'value': geometry
-                        },
-                        {
-                            'key': 'themes', 'value': themes
-                        },
-                        {
-                            'key': 'pollutants', 'value': pollutants
-                        }
-                    ]
-                };
+                    queryObject = {
+                        'list': [
+                            {
+                                'key': 'geometry', 'value': geometry
+                            },
+                            {
+                                'key': 'themes', 'value': themes
+                            },
+                            {
+                                'key': 'pollutants', 'value': pollutants
+                            }
+                        ]
+                    };
 
-                if (offset && limit && limit > 0 && offset > 0 && (offset % limit !== 0)) {
-                    offset = 0;
-                }
-
-                // result of this search operation set a new promise 
-                defaultSearchResult = {
-                    $promise: deferred.promise,
-                    $resolved: false,
-                    $offset: offset,
-                    $limit: limit,
-                    $length: 0
-                };
-
-                // remote legagy search core search
-                // FIXME: limit and offset not implemented in legacy search!
-                // currently, limit and offset are appended to the POST query parameter!
-                defaultRestApiSearch = $resource(cidsRestApiConfig.host +
-                    '/searches/' + cidsRestApiConfig.domain + '.' + cidsRestApiConfig.defaultRestApiSearch + '/results',
-                    {
-                        limit: 100,
-                        offset: 0,
-                        omitNullValues: true,
-                        deduplicate: true
-                    }, {
-                    search: {
-                        method: 'POST',
-                        params: {
-                            limit: '@limit',
-                            offset: '@offset'
-                        },
-                        isArray: false,
-                        headers: {
-                            'Authorization': authenticationService.getAuthorizationToken()
-                        }
+                    if (offset && limit && limit > 0 && offset > 0 && (offset % limit !== 0)) {
+                        offset = 0;
                     }
-                });
 
-                // result of the remote search operation (promise)
-                // starting the search!
-                // FIXME:   limit an offset GET parameters currently not evaluated 
-                //          by the leagcy service. There we have to add them also
-                //          to the queryObject.
-                defaultRestApiSearchResult = defaultRestApiSearch.search({
-                    limit: limit,
-                    offset: offset
-                },
-                    queryObject
-                    );
+                    // result of this search operation set a new promise 
+                    defaultSearchResult = {
+                        $promise: deferred.promise,
+                        $resolved: false,
+                        $offset: offset,
+                        $limit: limit,
+                        $length: 0
+                    };
 
-                defaultRestApiSearchResult.$promise.then(
-                    function success(searchResult) {
-                        //console.log('searchService::defaultSearchFunction()->success()');
-                        var key, i, length, curentNode, dataObject, className, classTitle;
-                        // doing the same as ngResource: copying the results in the already returned obj (shallow)
-                        for (key in searchResult) {
-                            if (searchResult.hasOwnProperty(key) &&
-                                !(key.charAt(0) === '$' && key.charAt(1) === '$')) {
-
-                                defaultSearchResult[key] = searchResult[key];
-                                if (key === '$collection' && angular.isArray(defaultSearchResult.$collection)) {
-                                    length = defaultSearchResult.$collection.length;
-                                    for (i = 0; i < length; i++) {
-                                        curentNode = defaultSearchResult.$collection[i];
-
-                                        className = curentNode.classKey.split(".").slice(1, 2).pop();
-
-                                        // ----------------------------------------------------------
-                                        // Extend the resolved object by local properties
-                                        // ----------------------------------------------------------
-                                        if (configurationService.featureRenderer.icons[className]) {
-                                            curentNode.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
-                                        }
-
-                                        // FIXME: extract class name from CS_CLASS description (server-side)
-                                        if (configurationService.featureRenderer.layergroupNames[className]) {
-                                            curentNode.$classTitle = configurationService.featureRenderer.layergroupNames[className];
-                                        } else {
-                                            curentNode.$classTitle = className;
-                                        }
-                                        
-                                        if (curentNode.lightweightJson) {
-
-                                            try {
-                                                dataObject = angular.fromJson(curentNode.lightweightJson);
-                                                curentNode.$data = dataObject;
-                                                delete curentNode.lightweightJson;
-                                                // FIXME: extract class name from CS_CLASS description (server-side)
-                                                curentNode.$classTitle = dataObject.classTitle ?
-                                                    dataObject.classTitle : classTitle;
-                                            } catch (err) {
-                                                console.error(err.message);
-                                            }
-                                        }
-                                        // ----------------------------------------------------------
-                                    }
-                                }
+                    // remote legagy search core search
+                    // FIXME: limit and offset not implemented in legacy search!
+                    // currently, limit and offset are appended to the POST query parameter!
+                    defaultRestApiSearch = $resource(cidsRestApiConfig.host +
+                            '/searches/' + cidsRestApiConfig.domain + '.' + cidsRestApiConfig.defaultRestApiSearch + '/results',
+                            {
+                                limit: 100,
+                                offset: 0,
+                                omitNullValues: true,
+                                deduplicate: true
+                            }, {
+                        search: {
+                            method: 'POST',
+                            params: {
+                                limit: '@limit',
+                                offset: '@offset'
+                            },
+                            isArray: false,
+                            headers: {
+                                'Authorization': authenticationService.getAuthorizationToken()
                             }
                         }
+                    });
 
-                        defaultSearchResult.$length = searchResult.$collection ? searchResult.$collection.length : 0;
-                        if (!defaultSearchResult.$total || defaultSearchResult.$total === 0) {
-                            defaultSearchResult.$total = defaultSearchResult.length;
-                        }
+                    // result of the remote search operation (promise)
+                    // starting the search!
+                    // FIXME:   limit an offset GET parameters currently not evaluated 
+                    //          by the leagcy service. There we have to add them also
+                    //          to the queryObject.
+                    defaultRestApiSearchResult = defaultRestApiSearch.search({
+                        limit: limit,
+                        offset: offset
+                    },
+                            queryObject
+                            );
 
-                        deferred.resolve(defaultSearchResult);
+                    defaultRestApiSearchResult.$promise.then(
+                            function success(searchResult) {
+                                //console.log('searchService::defaultSearchFunction()->success()');
+                                var key, i, length, curentNode, dataObject, className, classTitle;
+                                // doing the same as ngResource: copying the results in the already returned obj (shallow)
+                                for (key in searchResult) {
+                                    if (searchResult.hasOwnProperty(key) &&
+                                            !(key.charAt(0) === '$' && key.charAt(1) === '$')) {
 
+                                        defaultSearchResult[key] = searchResult[key];
+                                        if (key === '$collection' && angular.isArray(defaultSearchResult.$collection)) {
+                                            length = defaultSearchResult.$collection.length;
+                                            for (i = 0; i < length; i++) {
+                                                curentNode = defaultSearchResult.$collection[i];
+
+                                                className = curentNode.classKey.split(".").slice(1, 2).pop();
+
+                                                // ----------------------------------------------------------
+                                                // Extend the resolved object by local properties
+                                                // ----------------------------------------------------------
+                                                if (configurationService.featureRenderer.icons[className]) {
+                                                    curentNode.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
+                                                }
+
+                                                // FIXME: extract class name from CS_CLASS description (server-side)
+                                                if (configurationService.featureRenderer.layergroupNames[className]) {
+                                                    curentNode.$classTitle = configurationService.featureRenderer.layergroupNames[className];
+                                                } else {
+                                                    curentNode.$classTitle = className;
+                                                }
+
+                                                if (curentNode.lightweightJson) {
+
+                                                    try {
+                                                        dataObject = angular.fromJson(curentNode.lightweightJson);
+                                                        curentNode.$data = dataObject;
+                                                        delete curentNode.lightweightJson;
+                                                        // FIXME: extract class name from CS_CLASS description (server-side)
+                                                        curentNode.$classTitle = dataObject.classTitle ?
+                                                                dataObject.classTitle : classTitle;
+                                                    } catch (err) {
+                                                        console.error(err.message);
+                                                    }
+                                                }
+                                                // ----------------------------------------------------------
+                                            }
+                                        }
+                                    }
+                                }
+
+                                defaultSearchResult.$length = searchResult.$collection ? searchResult.$collection.length : 0;
+                                if (!defaultSearchResult.$total || defaultSearchResult.$total === 0) {
+                                    defaultSearchResult.$total = defaultSearchResult.length;
+                                }
+
+                                deferred.resolve(defaultSearchResult);
+
+                                $interval.cancel(timer);
+
+                                // set current AND max to node count -> signalise search completed
+                                (progressCallback || noop)(defaultSearchResult.$length, defaultSearchResult.$length, 'success');
+                            }, function error(searchError) {
+                        var message = 'cannot search for resources: ' + searchError.statusText + '(' + searchError.status + ')';
+                        console.error(message);
+                        defaultSearchResult.$error = message;
+                        defaultSearchResult.$response = searchError;
+                        defaultSearchResult.$resolved = true;
+                        deferred.reject(defaultSearchResult);
                         $interval.cancel(timer);
+                        (progressCallback || noop)(1, 1, 'error');
+                    });
 
-                        // set current AND max to node count -> signalise search completed
-                        (progressCallback || noop)(defaultSearchResult.$length, defaultSearchResult.$length, 'success');
-                    }, function error(searchError) {
-                    console.log('searchService::defaultSearchFunction()->error()');
-                    defaultSearchResult.$error = 'cannot search for resources';
-                    defaultSearchResult.$response = searchError;
-                    defaultSearchResult.$resolved = true;
-                    deferred.reject(defaultSearchResult);
-                    $interval.cancel(timer);
-                    (progressCallback || noop)(1, 1, 'error');
-                });
+                    return defaultSearchResult;
+                };
 
-                return defaultSearchResult;
-            };
-
-            return {
-                defaultSearch: defaultSearchFunction
-            };
-        }]
-    );
+                return {
+                    defaultSearch: defaultSearchFunction
+                };
+            }]
+        );
 
 /* 
  * ***************************************************
