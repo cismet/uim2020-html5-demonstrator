@@ -82,9 +82,9 @@ app.config(
                                 // ----------------------------------------------------------
                                 // Extend the resolved object by local properties
                                 // ----------------------------------------------------------
-                                
+
                                 resolvedEntity.$className = className;
-                                
+
                                 if (configurationService.featureRenderer.icons[className]) {
                                     resolvedEntity.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
                                 }
@@ -430,7 +430,7 @@ app.config(
                     templateUrl: 'views/entity/modal.html',
                     controller: 'entityController',
                     controllerAs: 'entityController',
-                    size:'lg', // unbelievable gefrickel: pass options to $uibModel.open() function  ..... 
+                    size: 'lg', // unbelievable gefrickel: pass options to $uibModel.open() function  ..... 
                     //onEnter: showEntityModal,
                     modal: true,
                     resolve: {
@@ -491,12 +491,13 @@ app.config(
  */
 app.run(
         ['$rootScope',
+            '$anchorScroll',
             '$state',
             '$stateParams',
             '$previousState',
             'configurationService',
             'authenticationService',
-            function ($rootScope, $state, $stateParams, $previousState,
+            function ($rootScope, $anchorScroll, $state, $stateParams, $previousState,
                     configurationService, authenticationService) {
                 'use strict';
                 // It's very handy to add references to $state and $stateParams to the $rootScope
@@ -505,9 +506,11 @@ app.run(
                 // to active whenever 'contacts.list' or one of its decendents is active.
                 $rootScope.$state = $state;
                 $rootScope.$stateParams = $stateParams;
-                //$rootScope.$previousState = $previousState;
 
+                //$rootScope.$previousState = $previousState;
                 //$rootScope.$on("$stateChangeError", console.log.bind(console));
+
+                $anchorScroll.yOffset = 50; // always scroll by 50 extra pixels
 
                 // synchonous call. Gets identity from cookie
                 authenticationService.resolveIdentity(false).then(function () {

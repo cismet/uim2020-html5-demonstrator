@@ -5,16 +5,13 @@ angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'mapController',
-        [
-            '$scope',
-            '$state',
-            '$stateParams',
+        ['$scope',
             'leafletData',
             'configurationService',
             'sharedDatamodel',
             'sharedControllers',
             'featureRendererService',
-            function ($scope, $state, $stateParams, leafletData, configurationService,
+            function ($scope, leafletData, configurationService,
                     sharedDatamodel, sharedControllers, featureRendererService) {
                 'use strict';
 
@@ -290,16 +287,16 @@ angular.module(
                         console.warn("mapController:: cannot add overlay to search map!");
                     }
                 };
-                
+
                 mapController.isNodeSelected = function (node) {
                     return node === selectedNode;
                 };
 
                 mapController.gotoNode = function (node) {
                     var theSelectedNode;
-                    
+
                     theSelectedNode = selectNode(node);
-                    if(theSelectedNode) {
+                    if (theSelectedNode) {
                         leafletMap.setView(selectedNode.$feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
                         //node.$feature.togglePopup();
                     }

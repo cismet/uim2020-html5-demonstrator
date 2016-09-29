@@ -2,7 +2,8 @@
     <div class="cs-result-list">
         <ul class="list-group">
             <li class="list-group-item"
-                ng-repeat="node in mapController.nodes track by node.objectKey | orderBy:['$classTitle','name']">
+                ng-repeat="node in mapController.nodes track by node.objectKey | orderBy:['$classTitle','name']"
+                id="anchor{{node.objectKey}}">
                 
                 <!-- ICON -------------------------------------------------- -->
                 <span class="btn-icon">

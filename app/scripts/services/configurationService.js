@@ -364,8 +364,8 @@ angular.module(
                     iconAnchor: [8, 8],
                     popupAnchor: [0, 0],
                     shadowUrl: "icons/icon_shadow.png",
-                    shadowSize: [24, 24],
-                    shadowAnchor: [12, 12]
+                    shadowSize: [28, 28],
+                    shadowAnchor: [14, 14]
                 });
                 configurationService.featureRenderer.highlightIcons.WAGW_STATION = L.icon({
                     iconUrl: 'icons/wagw_16.png',
