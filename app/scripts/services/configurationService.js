@@ -20,7 +20,7 @@ angular.module(
                 var configurationService, austriaBasemapLayer, esriTopographicBasemapLayer, osmBasemapLayer,
                         openTopoBasemapLayer, borisFeatureGroup, eprtrFeatureGroup,
                         mossFeatureGroup, wagwFeatureGroup, waowFeatureGroup, basemapLayers,
-                        overlayLayers, overlays;
+                        overlayLayers, overlays, basemapLayerOpacity;
 
                 configurationService = this;
 
@@ -58,29 +58,11 @@ angular.module(
                 configurationService.map.home = {};
                 configurationService.map.home.lat = 47.61;
                 configurationService.map.home.lng = 13.782778;
-                configurationService.map.home.zoom = 7;
+                configurationService.map.home.zoom = 8;
                 configurationService.map.maxBounds = new L.latLngBounds(
                         L.latLng(46.372299, 9.53079),
                         L.latLng(49.02071, 17.160749));
 
-                configurationService.map.defaults = {
-                    minZoom: 7,
-                    //maxZoom: 18,
-                    maxBounds: configurationService.map.maxBounds,
-                    /*path: {
-                     weight: 10,
-                     color: '#800000',
-                     opacity: 1
-                     },*/
-                    controls: {
-                        layers: {
-                            visible: false,
-                            position: 'bottomright',
-                            collapsed: true
-                        }
-                    }
-                    //tileLayer: '' // if disabled, Leflet will *always* request OSM BG Layer (useful for  Verwaltungsgrundkarte)
-                };
 
                 /* jshint ignore:start */
                 configurationService.map.layerControlOptions = {
@@ -113,16 +95,23 @@ angular.module(
 
                 configurationService.map.defaultBasemapLayer = 'Verwaltungsgrundkarte';
 
+                basemapLayerOpacity = 0.6;
+
                 austriaBasemapLayer = new L.tileLayer("http://{s}.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png", {
                     subdomains: ['maps', 'maps1', 'maps2', 'maps3', 'maps4'],
-                    attribution: '&copy; <a href="http://basemap.at">Basemap.at</a>, <a href="http://www.isticktoit.net">isticktoit.net</a>'
+                    attribution: '&copy; <a href="http://basemap.at">Basemap.at</a>, <a href="http://www.isticktoit.net">isticktoit.net</a>',
+                    opacity: basemapLayerOpacity/*,
+                     reuseTiles: true,
+                     updateWhenIdle: true*/
                 });
                 austriaBasemapLayer.$name = configurationService.map.layerMappings['basemap_at'];
                 austriaBasemapLayer.$key = 'basemap_at';
                 austriaBasemapLayer.$groupName = 'Grundkarten';
                 austriaBasemapLayer.$groupKey = 'basemaps';
 
-                esriTopographicBasemapLayer = L.esri.basemapLayer('Topographic');
+                esriTopographicBasemapLayer = L.esri.basemapLayer('Topographic', {
+                    opacity: basemapLayerOpacity
+                });
                 esriTopographicBasemapLayer.$name = configurationService.map.layerMappings['arcgisonline_com'];
                 esriTopographicBasemapLayer.$key = 'arcgisonline_com';
                 esriTopographicBasemapLayer.$groupName = configurationService.map.layerGroupMappings['basemaps'];
@@ -131,7 +120,8 @@ angular.module(
                 //'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png'
                 openTopoBasemapLayer = new L.TileLayer(
                         'http://opentopomap.org/{z}/{x}/{y}.png', {
-                            attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors, SRTM | Rendering: © <a href="http://opentopomap.org" target="_blank">OpenTopoMap</a> (CC-BY-SA)'
+                            attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors, SRTM | Rendering: © <a href="http://opentopomap.org" target="_blank">OpenTopoMap</a> (CC-BY-SA)',
+                            opacity: basemapLayerOpacity
                         });
                 openTopoBasemapLayer.$name = configurationService.map.layerMappings['opentopomap_org'];
                 openTopoBasemapLayer.$key = 'opentopomap_org';
@@ -139,8 +129,9 @@ angular.module(
                 openTopoBasemapLayer.$groupKey = 'basemaps';
 
                 osmBasemapLayer = new L.TileLayer(
-                        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors'
+                        'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors',
+                            opacity: basemapLayerOpacity
                         });
                 osmBasemapLayer.$name = configurationService.map.layerMappings['openstreetmap_org'];
                 osmBasemapLayer.$key = 'openstreetmap_org';
@@ -152,6 +143,33 @@ angular.module(
                 basemapLayers[configurationService.map.layerMappings['arcgisonline_com']] = esriTopographicBasemapLayer;
                 basemapLayers[configurationService.map.layerMappings['opentopomap_org']] = openTopoBasemapLayer;
                 basemapLayers[configurationService.map.layerMappings['openstreetmap_org']] = osmBasemapLayer;
+
+                configurationService.map.defaults = {
+                    minZoom: configurationService.map.home.zoom,
+                    //maxZoom: 18,
+                    maxBounds: configurationService.map.maxBounds,
+                    /*path: {
+                     weight: 10,
+                     color: '#800000',
+                     opacity: 1
+                     },*/
+                    controls: {
+                        layers: {
+                            visible: false,
+                            position: 'bottomright',
+                            collapsed: true
+                        }
+                    },
+                    tileLayer: '' // if disabled, ngLeaflet will *always* request OSM BG Layer (useful for  Verwaltungsgrundkarte)
+                            /*tileLayer: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                             tileLayerOptions: {
+                             attribution: 'Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors',
+                             opacity: basemapLayerOpacity,
+                             reuseTiles: false,
+                             updateWhenIdle: false,
+                             unloadInvisibleTiles: true
+                             }*/
+                };
 
                 /**
                  * styledLayerControl baseMaps!

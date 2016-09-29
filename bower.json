@@ -31,7 +31,7 @@
     "leaflet-slc": "https://github.com/davicustodio/Leaflet.StyledLayerControl.git",
     "leaflet-shapefile": "https://github.com/calvinmetcalf/leaflet.shapefile.git#gh-pages",
     "leaflet-wmts": "https://github.com/mylen/leaflet.TileLayer.WMTS.git",
-    "leaflet-draw": "plugn-leaflet-draw#^0.2.6",
+    "leaflet-draw": "leaflet-draw#^0.3.2",
     "esri-leaflet": "^1.0.4",
     "wicket": "Wicket#^1.3.2",
     "ng-table": "^1.0.0",
