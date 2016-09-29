@@ -5,22 +5,35 @@
                     data-ui-sref-active="active"
                     class="btn btn-md navbar-btn" 
                     data-ui-sref="main.search.map"
-                    title="Karte">
+                    title="Zur Kartenansicht wechseln">
                 <span class="fa fa-map-o"></span>
             </button>
             <button type="button"
                     data-ui-sref-active="active"
                     class="btn btn-md navbar-btn" 
                     data-ui-sref="main.search.list"
-                    title="Liste">
+                    title="Zur Listenansicht wechseln">
                 <span class="fa fa-list"></span>
             </button>
         </div>
 
+        <!-- Auf Objekte zentrieren -->
+        <form class="navbar-form navbar-left cs-toolbar-form">
+            <button type="button" 
+                    id="external-datasources" 
+                    class="btn btn-default btn-primary navbar-btn"
+                    ng-click="searchController.gotoNodes()"
+                    ng-disabled="!searchController.hasNodes()"
+                    ng-visible=""
+                    title="Auf Objekte in der Karte zentrieren">
+                <span class="fa fa-arrows-alt"></span>
+            </button>
+        </form>
+
         <!-- Einschränkungen -->
         <form class="navbar-form navbar-left cs-toolbar-form">
             <label>Einschränkungen</label>
-            
+
             <!-- Search Locations -->
             <div class="btn-group">
                 <div ng-dropdown-multiselect=""
@@ -42,7 +55,7 @@
                      translation-texts="searchController.searchThemesTranslationTexts">  
                 </div>
             </div>    
-            
+
             <!-- Search Pollutants -->
             <div class="btn-group">
                 <div ng-dropdown-multiselect=""
@@ -56,6 +69,7 @@
             </div>   
 
             <button type="submit" 
+                    title="Suche mit ausgewählten Einschränkungen durchführen"
                     class="btn btn-success navbar-btn cs-toolbar-form-action"
                     ng-disabled="(searchController.selectedSearchThemes.length === 0 || searchController.selectedSearchPollutants.length === 0)"
                     ng-click="searchController.search()">
@@ -66,7 +80,7 @@
         <!-- Gazzetteer  -->
         <form class="navbar-form navbar-left cs-toolbar-form  navbar-right">
             <label>Gehe zu</label>
-            
+
             <div class="btn-group">
                 <div ng-dropdown-multiselect=""
                      id="gazetteer-locations"
@@ -79,6 +93,7 @@
             </div>
 
             <button type="submit" 
+                    title="Gehe zu ausgewähltem Ort"
                     class="btn btn-success navbar-btn cs-toolbar-form-action"
                     ng-disabled="!searchController.selectedGazetteerLocation.$self"
                     ng-click="searchController.gotoLocation()">

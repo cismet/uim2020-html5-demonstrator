@@ -33,6 +33,14 @@ angular.module(
                     sharedDatamodel.analysisNodes.length = 0;
                     sharedControllers.analysisMapController.clearNodes();
                 };
+                
+                analysisController.gotoNodes = function () {
+                    sharedControllers.analysisMapController.gotoNodes();
+                };
+                
+                analysisController.hasNodes = function() {
+                    return sharedDatamodel.analysisNodes.length > 0;
+                };
 
                 $scope.$on('$stateChangeSuccess', function (toState) {
                     if ($state.includes("main.analysis") && !$state.is("main.analysis")) {

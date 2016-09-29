@@ -149,14 +149,13 @@ angular.module(
                                                 }
 
                                                 if (curentNode.lightweightJson) {
-
                                                     try {
                                                         dataObject = angular.fromJson(curentNode.lightweightJson);
                                                         curentNode.$data = dataObject;
                                                         delete curentNode.lightweightJson;
                                                         // FIXME: extract class name from CS_CLASS description (server-side)
-                                                        curentNode.$classTitle = dataObject.classTitle ?
-                                                                dataObject.classTitle : classTitle;
+                                                        /*curentNode.$classTitle = dataObject.classTitle ?
+                                                                dataObject.classTitle : classTitle;*/
                                                     } catch (err) {
                                                         console.error(err.message);
                                                     }

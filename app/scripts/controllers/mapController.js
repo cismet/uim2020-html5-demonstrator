@@ -5,16 +5,13 @@ angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'mapController',
-        [
-            '$scope',
-            '$state',
-            '$stateParams',
+        ['$scope',
             'leafletData',
             'configurationService',
             'sharedDatamodel',
             'sharedControllers',
             'featureRendererService',
-            function ($scope, $state, $stateParams, leafletData, configurationService,
+            function ($scope, leafletData, configurationService,
                     sharedDatamodel, sharedControllers, featureRendererService) {
                 'use strict';
 
@@ -123,8 +120,9 @@ angular.module(
                         overlays,
                         layerControlOptions);
 
-// <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ===========================">
+                // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ===========================">
                 /**
+                 * Select a node in the map and changes the feature icon
                  * 
                  * @param {type} node
                  * @returns {execPath|require.main.filename|String}
@@ -150,6 +148,13 @@ angular.module(
                     return selectedNode;
                 };
 
+                /**
+                 * Sets the search geometry
+                 * 
+                 * @param {type} searchGeometryLayer
+                 * @param {type} layerType
+                 * @returns {undefined}
+                 */
                 setSearchGeometry = function (searchGeometryLayer, layerType) {
                     if (mapController.mode === 'search') {
                         searchGeometryLayerGroup.clearLayers();
@@ -179,13 +184,14 @@ angular.module(
                         console.warn("mapController:: cannot add search geomatry to analysis map!");
                     }
                 };
-                // <editor-fold/>
+                //<editor-fold/>
 
                 // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
 
                 /**
                  * Returns the current search location wkt. If no search bbox or polygon
                  * is drawn, retuns the map bounds as wkt;
+                 * 
                  * @returns {undefined}
                  */
                 mapController.getSearchWktString = function () {
@@ -201,6 +207,12 @@ angular.module(
                     return wkt.write();
                 };
 
+                /**
+                 * Removes a layer temporarily from the map
+                 * 
+                 * @param {type} layerKey
+                 * @returns {undefined}
+                 */
                 mapController.unSelectOverlayByKey = function (layerKey) {
                     if (layerKey &&
                             layerControlMappings[layerKey] &&
@@ -212,10 +224,22 @@ angular.module(
                     }
                 };
 
+                /**
+                 * Removes a layer temporarily from the map
+                 * 
+                 * @param {type} layerKey
+                 * @returns {undefined}
+                 */
                 mapController.unSelectOverlay = function (layer) {
                     layerControl.unSelectLayer(layer);
                 };
 
+                /**
+                 * Adds a temporary layer to the map
+                 * 
+                 * @param {type} layerKey
+                 * @returns {undefined}
+                 */
                 mapController.selectOverlayByKey = function (layerKey) {
                     if (layerKey &&
                             layerControlMappings[layerKey] &&
@@ -227,6 +251,12 @@ angular.module(
                     }
                 };
 
+                /**
+                 * Adds a temporary layer to the map
+                 * 
+                 * @param {type} layerKey
+                 * @returns {undefined}
+                 */
                 mapController.selectOverlay = function (layer) {
                     layerControl.selectLayer(layer);
 
@@ -290,21 +320,39 @@ angular.module(
                         console.warn("mapController:: cannot add overlay to search map!");
                     }
                 };
-                
+
+                /**
+                 * Helper function called from template to highlight selected node
+                 * 
+                 * @param {type} node
+                 * @returns {Boolean}
+                 */
                 mapController.isNodeSelected = function (node) {
                     return node === selectedNode;
                 };
 
+                /**
+                 * Zomm to node on map and select node
+                 * 
+                 * @param {type} node
+                 * @returns {undefined}
+                 */
                 mapController.gotoNode = function (node) {
                     var theSelectedNode;
-                    
+
                     theSelectedNode = selectNode(node);
-                    if(theSelectedNode) {
+                    if (theSelectedNode) {
                         leafletMap.setView(selectedNode.$feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
                         //node.$feature.togglePopup();
                     }
                 };
 
+                /**
+                 * Add single node to anmalysis map
+                 * 
+                 * @param {type} node
+                 * @returns {undefined}
+                 */
                 mapController.addNode = function (node) {
                     if (mapController.mode === 'analysis') {
                         mapController.setNodes([node]);
@@ -314,6 +362,12 @@ angular.module(
                     }
                 };
 
+                /**
+                 * Remove single node from analysis map
+                 * 
+                 * @param {type} node
+                 * @returns {undefined}
+                 */
                 mapController.removeNode = function (node) {
                     var feature, featureGroupLayer, layerControlId;
                     if (mapController.mode === 'analysis') {
@@ -337,6 +391,11 @@ angular.module(
                     }
                 };
 
+                /**
+                 * Remove all nodes from map
+                 * 
+                 * @returns {undefined}
+                 */
                 mapController.clearNodes = function () {
                     var nodeLayerControlIds, featureGroupLayer;
 
@@ -357,6 +416,47 @@ angular.module(
                     });
                 };
 
+                /**
+                 * Fit map bounds to all loaded nodes
+                 * 
+                 * @returns {undefined}
+                 */
+                mapController.gotoNodes = function () {
+                    var bounds, nodeLayerControlIds, featureGroupLayer;
+
+                    nodeLayerControlIds = [
+                        layerControlMappings.BORIS_SITE,
+                        layerControlMappings.EPRTR_INSTALLATION,
+                        layerControlMappings.MOSS,
+                        layerControlMappings.WAGW_STATION,
+                        layerControlMappings.WAOW_STATION];
+
+                    nodeLayerControlIds.forEach(function (layerControlId) {
+                        if (layerControl._layers[layerControlId] &&
+                                layerControl._layers[layerControlId].layer) {
+
+                            featureGroupLayer = layerControl._layers[layerControlId].layer;
+
+                            // center only on visible layers!
+                            if (leafletMap.hasLayer(featureGroupLayer)) {
+                                bounds = !bounds ? featureGroupLayer.getBounds() : bounds.extend(featureGroupLayer.getBounds());
+                            }
+                        }
+                    });
+
+                    if (bounds) {
+                        leafletMap.fitBounds(bounds, fitBoundsOptions);
+                    }
+                };
+
+                /**
+                 * Set new result or analysis nodes
+                 * 
+                 * @param {type} nodes
+                 * @param {type} fitBounds
+                 * @param {type} clearLayers
+                 * @returns {undefined}
+                 */
                 mapController.setNodes = function (nodes, fitBounds, clearLayers) {
                     var featureGroups, featureGroup, featureGroupLayer, theme,
                             layerControlId, bounds;
@@ -616,12 +716,12 @@ angular.module(
                         }
                     });
 
-                    // analysis nodes added before controller instance created ....
+                    // analysis nodes added before controller instance created ? ....
                     if (mapController.mode === 'analysis' &&
                             sharedDatamodel.analysisNodes &&
                             sharedDatamodel.analysisNodes.length > 0) {
-
-                        mapController.setNodes(sharedDatamodel.analysisNodes);
+                        // set nodes and fit bounds
+                        mapController.setNodes(sharedDatamodel.analysisNodes, true);
                     } else if (mapController.mode === 'search' &&
                             sharedDatamodel.resultNodes &&
                             sharedDatamodel.resultNodes.length > 0) {

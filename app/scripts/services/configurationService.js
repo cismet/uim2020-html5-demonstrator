@@ -66,10 +66,9 @@ angular.module(
 
                 /* jshint ignore:start */
                 configurationService.map.layerControlOptions = {
-                    container_width: '300px',
-                    container_height: '600px',
-                    container_maxHeight: '600px',
-                    //group_maxHeight: '300px',
+                    container_width: '250px',
+                    container_maxHeight: '900px',
+                    group_maxHeight: '400px',
                     exclusive: false
                 };
                 /* jshint ignore:end */
@@ -295,7 +294,7 @@ angular.module(
 
                 configurationService.map.fitBoundsOptions = {
                     animate: true,
-                    pan: {animate: true, duration: 0.6},
+                    pan: {animate: true, duration: 0.75},
                     zoom: {animate: true},
                     maxZoom: null
                 };
@@ -364,8 +363,8 @@ angular.module(
                     iconAnchor: [8, 8],
                     popupAnchor: [0, 0],
                     shadowUrl: "icons/icon_shadow.png",
-                    shadowSize: [24, 24],
-                    shadowAnchor: [12, 12]
+                    shadowSize: [28, 28],
+                    shadowAnchor: [14, 14]
                 });
                 configurationService.featureRenderer.highlightIcons.WAGW_STATION = L.icon({
                     iconUrl: 'icons/wagw_16.png',
