@@ -78,23 +78,21 @@ angular.module(
                 listController.setNodes = function (nodes) {
                     var i, node, tags, feature, featureGroup, featureGroups;
                     
+                    listController.tableData.reload();
+                    
+                    // clear all
                     listController.clearPostfilters();
                     if (nodes !== null && nodes.length > 0) {
                         for (i = 0; i < nodes.length; ++i) {
                             node = nodes[i];
                             if(node.$data && node.$data.tags) {
                                 tags = node.$data.tags;
-                                listController.pollutantPostfilters.addAll(tags);
+                                // don't clear sort
+                                listController.pollutantPostfilters.addAll(tags, false, true);
                             } 
                         }
                     }
                 };
-
-
-
-                $scope.$on('searchSuccess()', function (e) {
-                    listController.tableData.reload();
-                });
 
                 /*listController.setNodes = function (nodes) {
                  

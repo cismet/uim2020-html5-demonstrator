@@ -20,9 +20,16 @@ angular.module(
                     this.taggroupkey = taggroupkey;
                     this.title = title;
                     this.tags = [];
+                    this.tagsKeys = [];
+                    
+                    /**
+                     * Tags not available for filtering
+                     */
+                    this.forbiddenTags = ['METPlus','KWSplus','PESTplus','THGundLSSplus','DNMplus','SYSSplus'];
                 }
 
                 TagPostfilterCollection.prototype.clear = function () {
+                    this.tagsKeys.length = 0;
                     this.tags.length = 0;
                 };
 
@@ -33,12 +40,17 @@ angular.module(
                  * @returns {Boolean}
                  */
                 TagPostfilterCollection.prototype.addTag = function (tag) {
-                    // only add tags not yer in list 
-                    if (tag.key && !this.tags[tag.key] &&
-                            tag.taggroupkey && tag.taggroupkey === this.taggroupkey)
+                    // only add tags not yet in list 
+                    if (tag && tag.key && tag.taggroupkey && 
+                            this.taggroupkey === tag.taggroupkey &&
+                            this.forbiddenTags.indexOf(tag.key) === -1 && 
+                            this.tagsKeys.indexOf(tag.key) === -1)
                     {
+                        // keep tag keys seperately because indexOg does not work anymore after extendingthe tag object
+                        // don't use js associate arrays: length is always null!!?? :-(
+                        this.tagsKeys.push(tag.key);
                         // push a shallow copy and extend by $selected property
-                        this.list.tags(angular.extend({
+                        this.tags.push(angular.extend({
                             '$selected': false}, tag));
                         return true;
                     }
@@ -53,15 +65,20 @@ angular.module(
                 TagPostfilterCollection.prototype.isEmpty = function () {
                     return this.tags.length === 0;
                 };
-
+                
+                TagPostfilterCollection.prototype.length = function () {
+                    return  Object.keys(this.tags).length;
+                };
+                
                 TagPostfilterCollection.prototype.addAll = function (tags, clear, sort) {
+                    var i;
                     if (clear === true) {
                         this.clear();
                     }
-
-                    tags.forEach(function (tag) {
-                        this.addTag(tag);
-                    });
+                    
+                    for(i = 0; i < tags.length; i++) {
+                        this.addTag(tags[i]);
+                    }
 
                     if (sort === true) {
                         this.tags.sort(function (a, b) {

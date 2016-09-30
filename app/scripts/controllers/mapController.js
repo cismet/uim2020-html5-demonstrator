@@ -495,25 +495,11 @@ angular.module(
                                 console.warn("mapController::setNodes unsupported theme (feature group) '" + theme + "'");
                             }
 
-                            if (bounds) {
-                                leafletMap.fitBounds(bounds, fitBoundsOptions);
-                            }
-
-
-                            //console.log(mapId + '::setResultNodes for ' + theme);
-                            //featureGroup = featureGroups[theme];
-
-
-                            // FIXME: clear layers before adding
-                            // FIXME: setVisible to true adds duplicate layers ?!!!!!
-                            /*layerControl.addOverlay(
-                             featureLayer,
-                             featureLayer.$name, {
-                             groupName: "Themen"
-                             });*/
                         }
 
-                        //mapController.nodes = nodes;
+                        if (bounds) {
+                            leafletMap.fitBounds(bounds, fitBoundsOptions);
+                        }
                     }
 
                 };
