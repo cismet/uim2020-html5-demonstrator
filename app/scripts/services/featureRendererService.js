@@ -21,7 +21,8 @@ angular.module(
 
                 var config, getFeatureRenderer, createNodeFeature,
                         createGazetteerLocationLayer, createNodeFeatureGroups,
-                        createOverlayLayer, getIconForNode, getHighlightIconForNode;
+                        createOverlayLayer, getIconForNode, getHighlightIconForNode,
+                        applyZoomLevelRestriction;
 
                 config = configurationService.featureRenderer;
 
@@ -69,6 +70,7 @@ angular.module(
                             feature.$key = node.objectKey;
                             feature.$groupKey = theme;
                             feature.$node = node;
+                            feature.$hidden = false;
 
                             feature.on('click', function (e) {
                                 selectNodeCallback(this.$node);
@@ -239,6 +241,31 @@ angular.module(
                     return icon;
                 };
 
+                /**
+                 * Show or hide features depending on zoom level
+                 * 
+                 * @param {type} featureGroupLayer
+                 * @param {type} currentZoomLevel
+                 * @param {type} maxZoomLevel
+                 * @returns {undefined}
+                 */
+                applyZoomLevelRestriction = function (featureGroupLayer, currentZoomLevel) {
+                    var maxZoomLevel = featureGroupLayer.$maxZoom;
+                    if (currentZoomLevel > maxZoomLevel) {
+                        //console.log(' hiding ' + featureGroupLayer.getLayers().length + ' features at zoom level ' + zoomLevel);
+                        featureGroupLayer.eachLayer(function (feature) {
+                            feature.setOpacity(0);
+                            feature.$hidden = true;
+                        });
+                    } else {
+                        //console.log(' showing ' + featureGroupLayer.getLayers().length + ' features at zoom level ' + zoomLevel);
+                        featureGroupLayer.eachLayer(function (feature) {
+                            feature.setOpacity(1);
+                            feature.$hidden = false;
+                        });
+                    }
+                };
+
                 // </editor-fold>
 
                 // <editor-fold defaultstate="collapsed" desc="=== DISABLED =============================">
@@ -398,6 +425,7 @@ angular.module(
                     createOverlayLayer: createOverlayLayer,
                     getIconForNode: getIconForNode,
                     getHighlightIconForNode: getHighlightIconForNode,
+                    applyZoomLevelRestriction: applyZoomLevelRestriction,
                     defaultStyle: config.defaultStyle,
                     highlightStyle: config.highlightStyle
                 };

@@ -239,17 +239,18 @@ angular.module(
                     if (searchController.mode !== 'map') {
                         $state.go('^.map'); // will go to the sibling map state.
                     }
-                    
+
                     sharedControllers.searchMapController.gotoNodes();
                 };
-                
-                searchController.hasNodes = function() {
+
+                searchController.hasNodes = function () {
                     return sharedDatamodel.resultNodes.length > 0;
                 };
 
                 /**
                  * Main Search Function
                  * 
+                 * @param {type} mockNodes
                  * @returns {undefined}
                  */
                 searchController.search = function (mockNodes) {
