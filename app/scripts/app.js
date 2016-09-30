@@ -15,6 +15,7 @@ var app = angular.module(
             'de.cismet.uim2020-html5-demonstrator.controllers',
             'de.cismet.uim2020-html5-demonstrator.directives',
             'de.cismet.uim2020-html5-demonstrator.services',
+            'de.cismet.uim2020-html5-demonstrator.types',
             'de.cismet.uim2020-html5-demonstrator.filters',
             'ngResource', 'ngAnimate', 'ngSanitize', 'ngCookies',
             'ui.bootstrap', 'ui.bootstrap.modal', 'angular.filter',

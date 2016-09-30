@@ -137,6 +137,8 @@ angular.module(
                                                 // ----------------------------------------------------------
                                                 // Extend the resolved object by local properties
                                                 // ----------------------------------------------------------
+                                                curentNode.$className = className;
+                                                
                                                 if (configurationService.featureRenderer.icons[className]) {
                                                     curentNode.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
                                                 }

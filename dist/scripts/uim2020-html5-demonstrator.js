@@ -15,6 +15,7 @@ var app = angular.module(
             'de.cismet.uim2020-html5-demonstrator.controllers',
             'de.cismet.uim2020-html5-demonstrator.directives',
             'de.cismet.uim2020-html5-demonstrator.services',
+            'de.cismet.uim2020-html5-demonstrator.types',
             'de.cismet.uim2020-html5-demonstrator.filters',
             'ngResource', 'ngAnimate', 'ngSanitize', 'ngCookies',
             'ui.bootstrap', 'ui.bootstrap.modal', 'angular.filter',
@@ -1618,9 +1619,9 @@ angular.module(
         'listController',
         [
             '$scope', 'configurationService',
-            'sharedDatamodel', 'NgTableParams',
+            'sharedDatamodel', 'TagPostfilterCollection', 'NgTableParams',
             function ($scope, configurationService,
-                    sharedDatamodel, NgTableParams) {
+                    sharedDatamodel, TagPostfilterCollection, NgTableParams) {
                 'use strict';
 
                 var listController, ngTableParams;
@@ -1630,7 +1631,7 @@ angular.module(
 
                 listController.resultNodes = sharedDatamodel.resultNodes;
                 listController.analysisNodes = sharedDatamodel.analysisNodes;
-                
+
                 if (listController.mode === 'search') {
                     listController.nodes = listController.resultNodes;
                 } else if (listController.mode === 'analysis') {
@@ -1655,11 +1656,11 @@ angular.module(
                         field: "name",
                         title: "Name",
                         sortable: "name",
-                        show: true,
+                        show: true
                     }, {
                         field: "description",
                         title: "Beschreibung",
-                        show: true,
+                        show: true
                     }];
 
 
@@ -1681,9 +1682,31 @@ angular.module(
                             counts: []
                         });
 
-                $scope.$on('searchSuccess()', function (e) {
+
+                listController.pollutantPostfilters = new TagPostfilterCollection('ALL', 'POLLUTANT', 'Schadstoffe');
+
+                listController.clearPostfilters = function () {
+                    listController.pollutantPostfilters.clear();
+                };
+
+                listController.setNodes = function (nodes) {
+                    var i, node, tags, feature, featureGroup, featureGroups;
+                    
                     listController.tableData.reload();
-                });
+                    
+                    // clear all
+                    listController.clearPostfilters();
+                    if (nodes !== null && nodes.length > 0) {
+                        for (i = 0; i < nodes.length; ++i) {
+                            node = nodes[i];
+                            if(node.$data && node.$data.tags) {
+                                tags = node.$data.tags;
+                                // don't clear sort
+                                listController.pollutantPostfilters.addAll(tags, false, true);
+                            } 
+                        }
+                    }
+                };
 
                 /*listController.setNodes = function (nodes) {
                  
@@ -1695,6 +1718,18 @@ angular.module(
 
                 // leak this to parent scope
                 $scope.$parent.listController = listController;
+
+                /**
+                 * Init Postfilters on search success
+                 */
+                $scope.$on('searchSuccess()', function (event) {
+                    if (sharedDatamodel.resultNodes.length > 0) {
+                        listController.setNodes(sharedDatamodel.resultNodes);
+                    } else {
+                        listController.clearPostfilters();
+                    }
+                });
+
                 console.log('new listController instance created from ' + $scope.name);
             }
         ]
@@ -2293,25 +2328,11 @@ angular.module(
                                 console.warn("mapController::setNodes unsupported theme (feature group) '" + theme + "'");
                             }
 
-                            if (bounds) {
-                                leafletMap.fitBounds(bounds, fitBoundsOptions);
-                            }
-
-
-                            //console.log(mapId + '::setResultNodes for ' + theme);
-                            //featureGroup = featureGroups[theme];
-
-
-                            // FIXME: clear layers before adding
-                            // FIXME: setVisible to true adds duplicate layers ?!!!!!
-                            /*layerControl.addOverlay(
-                             featureLayer,
-                             featureLayer.$name, {
-                             groupName: "Themen"
-                             });*/
                         }
 
-                        //mapController.nodes = nodes;
+                        if (bounds) {
+                            leafletMap.fitBounds(bounds, fitBoundsOptions);
+                        }
                     }
 
                 };
@@ -4712,6 +4733,8 @@ angular.module(
                                                 // ----------------------------------------------------------
                                                 // Extend the resolved object by local properties
                                                 // ----------------------------------------------------------
+                                                curentNode.$className = className;
+                                                
                                                 if (configurationService.featureRenderer.icons[className]) {
                                                     curentNode.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
                                                 }
@@ -4868,9 +4891,16 @@ angular.module(
                     this.taggroupkey = taggroupkey;
                     this.title = title;
                     this.tags = [];
+                    this.tagsKeys = [];
+                    
+                    /**
+                     * Tags not available for filtering
+                     */
+                    this.forbiddenTags = ['METPlus','KWSplus','PESTplus','THGundLSSplus','DNMplus','SYSSplus'];
                 }
 
                 TagPostfilterCollection.prototype.clear = function () {
+                    this.tagsKeys.length = 0;
                     this.tags.length = 0;
                 };
 
@@ -4881,12 +4911,17 @@ angular.module(
                  * @returns {Boolean}
                  */
                 TagPostfilterCollection.prototype.addTag = function (tag) {
-                    // only add tags not yer in list 
-                    if (tag.key && !this.tags[tag.key] &&
-                            tag.taggroupkey && tag.taggroupkey === this.taggroupkey)
+                    // only add tags not yet in list 
+                    if (tag && tag.key && tag.taggroupkey && 
+                            this.taggroupkey === tag.taggroupkey &&
+                            this.forbiddenTags.indexOf(tag.key) === -1 && 
+                            this.tagsKeys.indexOf(tag.key) === -1)
                     {
+                        // keep tag keys seperately because indexOg does not work anymore after extendingthe tag object
+                        // don't use js associate arrays: length is always null!!?? :-(
+                        this.tagsKeys.push(tag.key);
                         // push a shallow copy and extend by $selected property
-                        this.list.tags(angular.extend({
+                        this.tags.push(angular.extend({
                             '$selected': false}, tag));
                         return true;
                     }
@@ -4897,15 +4932,24 @@ angular.module(
                 TagPostfilterCollection.prototype.removeTag = function (key) {
                     return delete this.tags[key];
                 };
-
+                
+                TagPostfilterCollection.prototype.isEmpty = function () {
+                    return this.tags.length === 0;
+                };
+                
+                TagPostfilterCollection.prototype.length = function () {
+                    return  Object.keys(this.tags).length;
+                };
+                
                 TagPostfilterCollection.prototype.addAll = function (tags, clear, sort) {
+                    var i;
                     if (clear === true) {
                         this.clear();
                     }
-
-                    tags.forEach(function (tag) {
-                        this.addTag(tag);
-                    });
+                    
+                    for(i = 0; i < tags.length; i++) {
+                        this.addTag(tags[i]);
+                    }
 
                     if (sort === true) {
                         this.tags.sort(function (a, b) {
