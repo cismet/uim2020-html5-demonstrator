@@ -20,13 +20,13 @@ angular.module(
                 var configurationService, austriaBasemapLayer, esriTopographicBasemapLayer, osmBasemapLayer,
                         openTopoBasemapLayer, borisFeatureGroup, eprtrFeatureGroup,
                         mossFeatureGroup, wagwFeatureGroup, waowFeatureGroup, basemapLayers,
-                        overlayLayers, overlays, basemapLayerOpacity, defaultClusterGroupOptions, 
-                        borisClusterGroupOptions, eprtrClusterGroupOptions, mossClusterGroupOptions, 
+                        overlayLayers, overlays, basemapLayerOpacity, defaultClusterGroupOptions,
+                        borisClusterGroupOptions, eprtrClusterGroupOptions, mossClusterGroupOptions,
                         wagwClusterGroupOptions, waowClusterGroupOptions;
 
                 configurationService = this;
                 configurationService.developmentMode = true;
-                
+
                 // <editor-fold defaultstate="collapsed" desc="=== cidsRestApi ===========================">
                 configurationService.cidsRestApi = {};
                 //configurationService.cidsRestApi.host = 'http://localhost:8890';
@@ -322,7 +322,7 @@ angular.module(
                         });
                     }
                 };
-                
+
                 borisClusterGroupOptions = angular.copy(defaultClusterGroupOptions);
                 borisClusterGroupOptions.$theme = configurationService.map.layerMappings['BORIS_SITE'];
                 borisClusterGroupOptions.$icon = configurationService.featureRenderer.icons.BORIS_SITE.options.iconUrl;
@@ -341,7 +341,7 @@ angular.module(
                     removable: false,
                     visible: false
                 };
-                
+
                 eprtrClusterGroupOptions = angular.copy(defaultClusterGroupOptions);
                 eprtrClusterGroupOptions.$theme = configurationService.map.layerMappings['EPRTR_INSTALLATION'];
                 eprtrClusterGroupOptions.$icon = configurationService.featureRenderer.icons.EPRTR_INSTALLATION.options.iconUrl;
@@ -355,7 +355,7 @@ angular.module(
                     removable: false,
                     visible: false
                 };
-                
+
                 mossClusterGroupOptions = angular.copy(defaultClusterGroupOptions);
                 mossClusterGroupOptions.$theme = configurationService.map.layerMappings['MOSS'];
                 mossClusterGroupOptions.$icon = configurationService.featureRenderer.icons.MOSS.options.iconUrl;
@@ -369,7 +369,7 @@ angular.module(
                     removable: false,
                     visible: false
                 };
-                
+
                 // configuration for hinding features blow zoom level 12
                 wagwClusterGroupOptions = angular.copy(defaultClusterGroupOptions);
                 wagwClusterGroupOptions.$theme = configurationService.map.layerMappings['WAGW_STATION'];
@@ -378,7 +378,7 @@ angular.module(
                 wagwClusterGroupOptions.maxClusterRadius = 250;
                 wagwClusterGroupOptions.disableClusteringAtZoom = 12;
                 wagwClusterGroupOptions.removeOutsideVisibleBounds = false;
-                
+
                 wagwFeatureGroup = new L.markerClusterGroup(wagwClusterGroupOptions); // new L.FeatureGroup();
                 wagwFeatureGroup.$name = configurationService.map.layerMappings['WAGW_STATION'];
                 wagwFeatureGroup.$key = 'WAGW_STATION';
@@ -389,7 +389,7 @@ angular.module(
                     removable: false,
                     visible: false
                 };
-                
+
                 waowClusterGroupOptions = angular.copy(defaultClusterGroupOptions);
                 waowClusterGroupOptions.$theme = configurationService.map.layerMappings['WAOW_STATION'];
                 waowClusterGroupOptions.$icon = configurationService.featureRenderer.icons.WAOW_STATION.options.iconUrl;
@@ -443,14 +443,22 @@ angular.module(
 
 
                 configurationService.map.drawOptions = {
-                    polyline: false,
+                    polyline: {
+                        shapeOptions: {
+                            color: '#006d2c',
+                            clickable: true
+                        },
+                        metric: true,
+                        allowIntersection: false
+                    },
                     polygon: {
                         shapeOptions: {
                             color: '#006d2c',
                             clickable: true
                         },
                         showArea: true,
-                        metric: true
+                        metric: true,
+                        allowIntersection: false
                     },
                     rectangle: {
                         shapeOptions: {
@@ -459,11 +467,24 @@ angular.module(
                         },
                         metric: true
                     },
-                    // no circles for starters as not compatible with WKT
-                    circle: false,
+                    // no circles as not compatible with WKT!
+                    circle: true,
                     marker: false
                 };
 
+                // Set the leaflet draw i18n translation texts
+                L.drawLocal.draw.toolbar.buttons.polyline = 'Innerhalb eines Linienzugs suchen';
+                L.drawLocal.draw.toolbar.buttons.polygon = 'Innerhalb eines Polygons suchen';
+                L.drawLocal.draw.toolbar.buttons.rectangle = 'Innerhalb eines Rechtecks suchen';
+                L.drawLocal.draw.handlers.polygon.tooltip.start = 'Klicken um ein Polygon zu zeichnen';
+                L.drawLocal.draw.handlers.polygon.tooltip.cont = 'Klicken um das Polygon zu erweitern';
+                L.drawLocal.draw.handlers.polygon.tooltip.end = 'Mit Doppelklick das Polygon schließen';
+                L.drawLocal.draw.handlers.polyline.tooltip.start = 'Klicken um einen Linienzug zu zeichnen';
+                L.drawLocal.draw.handlers.polyline.tooltip.cont = 'Klicken um den Linienzug zu erweitern';
+                L.drawLocal.draw.handlers.polyline.tooltip.end = 'Mit Doppelklick das Zeichnen des Linienzugs zu beenden';
+                L.drawLocal.draw.handlers.polyline.error = '<strong>Achtung: </strong><br/>Die Kanten des Linienzugs dürfen sich nicht überschneiden!';
+                L.drawLocal.draw.handlers.rectangle.tooltip.start = 'Klicken um ein Rechteck zu zeichnen';
+                L.drawLocal.draw.handlers.simpleshape.tooltip.end = 'Klicken um das Zecihnen zu beenden';
 
                 configurationService.map.fitBoundsOptions = {
                     animate: true,
