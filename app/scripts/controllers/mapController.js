@@ -63,11 +63,15 @@ angular.module(
                     // drawControl only available in search mode
                     drawControl = new L.Control.Draw({
                         draw: drawOptions,
-                        /*edit: {
-                         featureGroup: searchGeometryLayerGroup
-                         }*/
-                        edit: false,
-                        remove: false
+                        edit: {
+                            featureGroup: searchGeometryLayerGroup,
+                            remove: false, // disable removal
+                            buffer: {
+                                replace_polylines: false, // why false? because true does not work !!??!!
+                                separate_buffer: false,
+                                buffer_style: drawOptions.polygon.shapeOptions
+                            }
+                        }
                     });
                 } else if (mapController.mode === 'analysis') {
                     mapController.nodes = sharedDatamodel.analysisNodes;
@@ -187,6 +191,7 @@ angular.module(
                  * @returns {undefined}
                  */
                 setSearchGeometry = function (searchGeometryLayer, layerType) {
+                    console.log('setSearchGeometry: ' + layerType);
                     if (mapController.mode === 'search') {
                         searchGeometryLayerGroup.clearLayers();
                         if (searchGeometryLayer !== null) {
@@ -205,14 +210,12 @@ angular.module(
                                     });
                                 });
                             }
-                            searchGeometryLayer.once('click', function (event) {
-                                setSearchGeometry(null);
-                            });
-
-                            // TODO: set sharedDatamodel.selectedSearchGeometry!
+                        } else {
+                            // ignore
+                            // console.warn("mapController:: cannot add empty search geometry layer!");
                         }
                     } else {
-                        console.warn("mapController:: cannot add search geomatry to analysis map!");
+                        console.warn("mapController:: cannot add search geometry to analysis map!");
                     }
                 };
                 //<editor-fold/>
@@ -726,15 +729,41 @@ angular.module(
                         map.addControl(drawControl);
 
                         map.on('draw:created', function (event) {
+
+                            // ugly workaround for leafleft.buffer plugin which does not set the layer type
+                            if (!event.layerType) {
+                                event.layerType = 'polygon';
+                            }
+                            console.log('draw:created: ' + event.layerType);
                             setSearchGeometry(event.layer, event.layerType);
                             // this is madness!
                             sharedDatamodel.selectedSearchLocation.id = 1;
+                            console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
                         });
 
-                        map.on('draw:deleted', function (event) {
-                            setSearchGeometry(null);
-                            sharedDatamodel.selectedSearchLocation.id = 0;
-                        });
+                        /*map.on('draw:edited', function (event) {
+                            console.log('draw:edited: ' + event.layers.getLayers().length);
+                            console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                        });*/
+
+                        /*map.on('draw:deleted', function (event) {
+                            console.log('draw:deleted: ' + event.layers.getLayers().length);
+                            if (event.layers.getLayers().length > 0) {
+                                // ugly workaround for leafleft.buffer plugin which does not remove expanded polyline layers
+                                event.layers.eachLayer(function (deletedLayer) {
+                                    searchGeometryLayerGroup.removeLayer(deletedLayer);
+                                });
+                            }
+
+                            console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                            if (searchGeometryLayerGroup.getLayers().length === 0) {
+                                sharedDatamodel.selectedSearchLocation.id = 0;
+                            }
+                        });*/
+
+                        /*map.on('draw:buffered', function (event) {
+                            console.log('draw:buffered: ' + event.layers.getLayers().length);
+                        });*/
                     }
 
                     map.addControl(layerControl);

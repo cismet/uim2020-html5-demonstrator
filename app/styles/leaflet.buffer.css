@@ -1,0 +1,5 @@
+.leaflet-draw-toolbar a {
+	background-image: url('../images/spritesheet.png');
+	background-repeat: no-repeat;
+        background-size: 330px 30px;
+}

@@ -471,11 +471,19 @@ angular.module(
                     circle: true,
                     marker: false
                 };
-
-                // Set the leaflet draw i18n translation texts
+                
+                // Set the leaflet draw i18n translation texts -----------------
+                L.drawLocal.draw.toolbar.actions.title = 'Zeichnen abbrechen';
+                L.drawLocal.draw.toolbar.actions.text = 'Abbrechen';
+                L.drawLocal.draw.toolbar.finish.title = 'Zeichnen beenden';
+                L.drawLocal.draw.toolbar.finish.text = 'Beenden';
+                L.drawLocal.draw.toolbar.undo.title = 'Letzten Punkt löschen';
+                L.drawLocal.draw.toolbar.undo.text = 'Letzten Punkt löschen';
                 L.drawLocal.draw.toolbar.buttons.polyline = 'Innerhalb eines Linienzugs suchen';
                 L.drawLocal.draw.toolbar.buttons.polygon = 'Innerhalb eines Polygons suchen';
                 L.drawLocal.draw.toolbar.buttons.rectangle = 'Innerhalb eines Rechtecks suchen';
+                L.drawLocal.edit.toolbar.buttons.buffer = 'Ausgewählte Geometrie um Puffer erweitern';
+                L.drawLocal.edit.toolbar.buttons.bufferDisabled = 'Keine Geometrie zum Erweitern vorhanden';
                 L.drawLocal.draw.handlers.polygon.tooltip.start = 'Klicken um ein Polygon zu zeichnen';
                 L.drawLocal.draw.handlers.polygon.tooltip.cont = 'Klicken um das Polygon zu erweitern';
                 L.drawLocal.draw.handlers.polygon.tooltip.end = 'Mit Doppelklick das Polygon schließen';
@@ -484,7 +492,19 @@ angular.module(
                 L.drawLocal.draw.handlers.polyline.tooltip.end = 'Mit Doppelklick das Zeichnen des Linienzugs zu beenden';
                 L.drawLocal.draw.handlers.polyline.error = '<strong>Achtung: </strong><br/>Die Kanten des Linienzugs dürfen sich nicht überschneiden!';
                 L.drawLocal.draw.handlers.rectangle.tooltip.start = 'Klicken um ein Rechteck zu zeichnen';
-                L.drawLocal.draw.handlers.simpleshape.tooltip.end = 'Klicken um das Zecihnen zu beenden';
+                L.drawLocal.draw.handlers.simpleshape.tooltip.end = 'Klicken um das Zeichnen zu beenden';
+                L.drawLocal.edit.toolbar.actions.save.title = 'Änderungen speichern';
+                L.drawLocal.edit.toolbar.actions.save.text = 'Speichern';
+                L.drawLocal.edit.toolbar.actions.cancel.title = 'Abbrechnen und alle Änderungen verwerfen';
+                L.drawLocal.edit.toolbar.actions.cancel.text = 'Abbrechnen';
+                L.drawLocal.edit.toolbar.buttons.edit = 'Geometrie bearbeiten';
+                L.drawLocal.edit.toolbar.buttons.editDisabled = 'Keine Geometrie zum Bearbeiten vorhanden';
+                L.drawLocal.edit.toolbar.buttons.remove = 'Geometrie entfernen';
+                L.drawLocal.edit.toolbar.buttons.removeDisabled = 'Keine Geometrie zum Entfernen vorhanden';
+                L.drawLocal.edit.handlers.edit.tooltip.text = 'Kontrollpunkte verschieben um die Geometrie zu verändern';
+                L.drawLocal.edit.handlers.edit.tooltip.subtext = 'Auf Abgrechen klicken, um Änderungen rückgängig zu machen';
+                L.drawLocal.edit.handlers.remove.tooltip.text = 'Auf eine Geometrie klicken, um diese zu entfernen';
+                L.drawLocal.edit.handlers.buffer.tooltip.text = 'Klicken und Ziehen um die Geometrie zu vergrößern oder zu verkleinern';
 
                 configurationService.map.fitBoundsOptions = {
                     animate: true,

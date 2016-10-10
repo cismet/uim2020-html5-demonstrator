@@ -15,6 +15,7 @@
     "angular-loader": "^1.5.8",
     "angular-sanitize": "^1.5.8",
     "angular-animate": "^1.5.8",
+    "angular-cookies": "^1.5.8",
     "ui-router-extras": "latest",
     "angular-strap": "^2.3.9",
     "angular-wizard": "^0.6.1",
@@ -31,7 +32,7 @@
     "leaflet-slc": "https://github.com/davicustodio/Leaflet.StyledLayerControl.git",
     "leaflet-shapefile": "https://github.com/calvinmetcalf/leaflet.shapefile.git#gh-pages",
     "leaflet-wmts": "https://github.com/mylen/leaflet.TileLayer.WMTS.git",
-    "leaflet-draw": "leaflet-draw#^0.3.2",
+    "leaflet.draw": "leaflet-draw#^0.3.2",
     "esri-leaflet": "^1.0.4",
     "wicket": "Wicket#^1.3.2",
     "ng-table": "^1.0.0",
@@ -39,18 +40,20 @@
     "angular-ui-router-uib-modal": "^0.0.9",
     "angular-ui-router": "^0.3.1",
     "ng-file-upload": "^12.2.8",
-    "angular-cookies": "1.5.8",
-    "angular-filter": "0.5.11",
-    "leaflet-popup-angular": "https://github.com/cismet/leaflet-popup-angular.git#0.1.3",
-    "leaflet.markercluster": "0.5.0"
+    "angular-filter": "^0.5.11",
+    "leaflet-popup-angular": "https://github.com/cismet/leaflet-popup-angular.git#^0.1.3",
+    "leaflet.markercluster": "^0.5.0",
+    "leaflet.buffer": "^0.1.5",
+    "jsts": "^0.14.0"
   },
   "devDependencies": {
-    "angular-mocks": "1.5.8",
-    "angular-scenario": "1.5.8"
+    "angular-mocks": "^1.5.8",
+    "angular-scenario": "^1.5.8"
   },
   "resolutions": {
     "angular": "^1.5.8",
     "leaflet": "^0.7.7",
-    "angular-ui-router": "^0.3.1"
+    "angular-ui-router": "^0.3.1",
+    "leaflet.draw": "^0.3.2"
   }
 }

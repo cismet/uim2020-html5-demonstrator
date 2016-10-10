@@ -19,23 +19,25 @@
         <link rel="apple-touch-icon" href="images/apple-touch-icon.png"/>
         <link rel="icon" type="image/vnd.microsoft.icon" href="favicon.ico"/>
 
-        <!-- build:css() -->
-        <link rel="stylesheet" href="styles/main.css">
-        <link rel="stylesheet" href="styles/form-signin.css">
-        <!-- endbuild -->
-
         <!-- Application related CSS -->
         <link href="bower_components/bootstrap/dist/css/bootstrap.css" rel="stylesheet" type="text/css"/>
         <link href="bower_components/bootstrap/dist/css/bootstrap-theme.css" rel="stylesheet" type="text/css"/>
         <link href="bower_components/angular-bootstrap/ui-bootstrap-csp.css" rel="stylesheet" type="text/css"/>
         <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
         <link href="bower_components/leaflet/dist/leaflet.css" rel="stylesheet" type="text/css"/>
-        <link href="bower_components/leaflet-draw/dist/leaflet.draw.css" rel="stylesheet" type="text/css"/>
+        <link href="bower_components/leaflet.draw/dist/leaflet.draw.css" rel="stylesheet" type="text/css"/>
         <link href="bower_components/angular-wizard/dist/angular-wizard.css" rel="stylesheet" type="text/css"/>
         <link href="bower_components/ng-table/dist/ng-table.css" rel="stylesheet" type="text/css"/>
         <link href="bower_components/leaflet-slc/css/styledLayerControl.css" rel="stylesheet" type="text/css"/>
         <link href="bower_components/leaflet.markercluster/dist/MarkerCluster.Default.css" rel="stylesheet" type="text/css"/>
         <link href="bower_components/leaflet.markercluster/dist/MarkerCluster.css" rel="stylesheet" type="text/css"/>
+        <link href="bower_components/leaflet.buffer/dist/leaflet.buffer.css" rel="stylesheet" type="text/css"/>
+        
+        <!-- build:css() -->
+        <link href="styles/main.css" rel="stylesheet" type="text/css"/>
+        <link href="styles/form-signin.css" rel="stylesheet" type="text/css"/>
+        <link href="styles/leaflet.buffer.css" rel="stylesheet" type="text/css"/>
+        <!-- endbuild -->
     </head>
     <body ng-app="de.cismet.uim2020-html5-demonstrator" 
           ng-controller="appController as appController">
@@ -128,7 +130,10 @@
 
     <script src="bower_components/angular-bootstrap/ui-bootstrap.js" type="text/javascript"></script>
     <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js" type="text/javascript"></script>
-
+    
+    <script src="bower_components/jsts/lib/javascript.util.js" type="text/javascript"></script>
+    <script src="bower_components/jsts/lib/jsts.js" type="text/javascript"></script>
+    
     <!--
     <script src="bower_components/angular-strap/dist/angular-strap.js" type="text/javascript"></script>
     <script src="bower_components/angular-strap/dist/angular-strap.tpl.js" type="text/javascript"></script>
@@ -140,13 +145,14 @@
     <script src="bower_components/leaflet/dist/leaflet.js" type="text/javascript"></script>
     <script src="bower_components/wicket/wicket.js" type="text/javascript"></script>
     <script src="bower_components/wicket/wicket-leaflet.js" type="text/javascript"></script>
-    <script src="bower_components/leaflet-draw/dist/leaflet.draw.js" type="text/javascript"></script>
+    <script src="bower_components/leaflet.draw/dist/leaflet.draw.js" type="text/javascript"></script>
     <script src="bower_components/shp/dist/shp.js" type="text/javascript"></script>
     <script src="bower_components/leaflet-shapefile/leaflet.shpfile.js" type="text/javascript"></script>
     <script src="bower_components/esri-leaflet/dist/esri-leaflet.js" type="text/javascript"></script>
     <script src="bower_components/leaflet-slc/src/styledLayerControl.js" type="text/javascript"></script>
     <script src="bower_components/leaflet-popup-angular/src/L.Popup.Angular.js" type="text/javascript"></script>
     <script src="bower_components/leaflet.markercluster/dist/leaflet.markercluster.js" type="text/javascript"></script>
+    <script src="bower_components/leaflet.buffer/dist/leaflet.buffer.min.js" type="text/javascript"></script>
     <script src="bower_components/angular-leaflet-directive/dist/angular-leaflet-directive.js" type="text/javascript"></script>
     <script src="bower_components/angular-wizard/dist/angular-wizard.js" type="text/javascript"></script>
     <script src="bower_components/myforce-angularjs-dropdown-multiselect/src/angularjs-dropdown-multiselect.js" type="text/javascript"></script>

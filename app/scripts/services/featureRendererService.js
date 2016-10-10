@@ -100,8 +100,9 @@ angular.module(
                  * @param {type} gazetteerLocation
                  * @returns {featureRendererService_L18.createGazetteerLocationLayer.featureLayer}
                  */
-                createGazetteerLocationLayer = function (gazetteerLocation) {
-                    var wktString, wktObject, geometryCollection, featureLayer;
+                createGazetteerLocationLayer = function (gazetteerLocation, gazetteerLocationCallback) {
+                    var wktString, wktObject, geometryCollection, featureLayer,
+                            gazetteerLocationPopup;
                     if (gazetteerLocation.hasOwnProperty('area')) {
                         wktString = gazetteerLocation.area.geo_field;
                         geometryCollection = false;
@@ -124,6 +125,22 @@ angular.module(
                     featureLayer.setStyle(angular.copy(config.gazetteerStyle));
                     featureLayer.$name = gazetteerLocation.name;
                     featureLayer.$key = 'gazetteerLocation';
+                    
+                    /*gazetteerLocationPopup = L.popup.angular({
+                                template: '<div>' +
+                                        '<h5"><strong><a ng-click="$content.gazetteerLocationCallback()>' +
+                                        'verwenden'+
+                                        '</a></strong></h5>' +
+                                        '</div>'
+                            });
+
+                    featureLayer.setContent({
+                        gazetteerLocationCallback: function(){
+                            gazetteerLocationCallback(featureLayer);
+                        }
+                    });
+                    
+                    featureLayer.bindPopup(featureLayer);*/
 
                     // not needed atm:
                     //gazetteerLocation.$layer = featureLayer;

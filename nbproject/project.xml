@@ -7,7 +7,7 @@
         </data>
         <libraries xmlns="http://www.netbeans.org/ns/cdnjs-libraries/1">
             <library name="angular-audio" version="1.7.2">
-                <file localPath="app/js/libs/angular-audio/angular.audio.min.js" path="angular.audio.min.js"/>
+                <file localPath="js/libs/angular-audio/angular.audio.min.js" path="angular.audio.min.js"/>
             </library>
         </libraries>
     </configuration>

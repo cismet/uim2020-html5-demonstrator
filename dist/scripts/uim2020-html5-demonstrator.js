@@ -1906,11 +1906,15 @@ angular.module(
                     // drawControl only available in search mode
                     drawControl = new L.Control.Draw({
                         draw: drawOptions,
-                        /*edit: {
-                         featureGroup: searchGeometryLayerGroup
-                         }*/
-                        edit: false,
-                        remove: false
+                        edit: {
+                            featureGroup: searchGeometryLayerGroup,
+                            remove: false, // disable removal
+                            buffer: {
+                                replace_polylines: false, // why false? because true does not work !!??!!
+                                separate_buffer: false,
+                                buffer_style: drawOptions.polygon.shapeOptions
+                            }
+                        }
                     });
                 } else if (mapController.mode === 'analysis') {
                     mapController.nodes = sharedDatamodel.analysisNodes;
@@ -2030,6 +2034,7 @@ angular.module(
                  * @returns {undefined}
                  */
                 setSearchGeometry = function (searchGeometryLayer, layerType) {
+                    console.log('setSearchGeometry: ' + layerType);
                     if (mapController.mode === 'search') {
                         searchGeometryLayerGroup.clearLayers();
                         if (searchGeometryLayer !== null) {
@@ -2048,14 +2053,12 @@ angular.module(
                                     });
                                 });
                             }
-                            searchGeometryLayer.once('click', function (event) {
-                                setSearchGeometry(null);
-                            });
-
-                            // TODO: set sharedDatamodel.selectedSearchGeometry!
+                        } else {
+                            // ignore
+                            // console.warn("mapController:: cannot add empty search geometry layer!");
                         }
                     } else {
-                        console.warn("mapController:: cannot add search geomatry to analysis map!");
+                        console.warn("mapController:: cannot add search geometry to analysis map!");
                     }
                 };
                 //<editor-fold/>
@@ -2569,15 +2572,41 @@ angular.module(
                         map.addControl(drawControl);
 
                         map.on('draw:created', function (event) {
+
+                            // ugly workaround for leafleft.buffer plugin which does not set the layer type
+                            if (!event.layerType) {
+                                event.layerType = 'polygon';
+                            }
+                            console.log('draw:created: ' + event.layerType);
                             setSearchGeometry(event.layer, event.layerType);
                             // this is madness!
                             sharedDatamodel.selectedSearchLocation.id = 1;
+                            console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
                         });
 
-                        map.on('draw:deleted', function (event) {
-                            setSearchGeometry(null);
-                            sharedDatamodel.selectedSearchLocation.id = 0;
-                        });
+                        /*map.on('draw:edited', function (event) {
+                            console.log('draw:edited: ' + event.layers.getLayers().length);
+                            console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                        });*/
+
+                        /*map.on('draw:deleted', function (event) {
+                            console.log('draw:deleted: ' + event.layers.getLayers().length);
+                            if (event.layers.getLayers().length > 0) {
+                                // ugly workaround for leafleft.buffer plugin which does not remove expanded polyline layers
+                                event.layers.eachLayer(function (deletedLayer) {
+                                    searchGeometryLayerGroup.removeLayer(deletedLayer);
+                                });
+                            }
+
+                            console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                            if (searchGeometryLayerGroup.getLayers().length === 0) {
+                                sharedDatamodel.selectedSearchLocation.id = 0;
+                            }
+                        });*/
+
+                        /*map.on('draw:buffered', function (event) {
+                            console.log('draw:buffered: ' + event.layers.getLayers().length);
+                        });*/
                     }
 
                     map.addControl(layerControl);
@@ -3592,13 +3621,13 @@ angular.module(
                 var configurationService, austriaBasemapLayer, esriTopographicBasemapLayer, osmBasemapLayer,
                         openTopoBasemapLayer, borisFeatureGroup, eprtrFeatureGroup,
                         mossFeatureGroup, wagwFeatureGroup, waowFeatureGroup, basemapLayers,
-                        overlayLayers, overlays, basemapLayerOpacity, defaultClusterGroupOptions, 
-                        borisClusterGroupOptions, eprtrClusterGroupOptions, mossClusterGroupOptions, 
+                        overlayLayers, overlays, basemapLayerOpacity, defaultClusterGroupOptions,
+                        borisClusterGroupOptions, eprtrClusterGroupOptions, mossClusterGroupOptions,
                         wagwClusterGroupOptions, waowClusterGroupOptions;
 
                 configurationService = this;
                 configurationService.developmentMode = true;
-                
+
                 // <editor-fold defaultstate="collapsed" desc="=== cidsRestApi ===========================">
                 configurationService.cidsRestApi = {};
                 //configurationService.cidsRestApi.host = 'http://localhost:8890';
@@ -3894,7 +3923,7 @@ angular.module(
                         });
                     }
                 };
-                
+
                 borisClusterGroupOptions = angular.copy(defaultClusterGroupOptions);
                 borisClusterGroupOptions.$theme = configurationService.map.layerMappings['BORIS_SITE'];
                 borisClusterGroupOptions.$icon = configurationService.featureRenderer.icons.BORIS_SITE.options.iconUrl;
@@ -3913,7 +3942,7 @@ angular.module(
                     removable: false,
                     visible: false
                 };
-                
+
                 eprtrClusterGroupOptions = angular.copy(defaultClusterGroupOptions);
                 eprtrClusterGroupOptions.$theme = configurationService.map.layerMappings['EPRTR_INSTALLATION'];
                 eprtrClusterGroupOptions.$icon = configurationService.featureRenderer.icons.EPRTR_INSTALLATION.options.iconUrl;
@@ -3927,7 +3956,7 @@ angular.module(
                     removable: false,
                     visible: false
                 };
-                
+
                 mossClusterGroupOptions = angular.copy(defaultClusterGroupOptions);
                 mossClusterGroupOptions.$theme = configurationService.map.layerMappings['MOSS'];
                 mossClusterGroupOptions.$icon = configurationService.featureRenderer.icons.MOSS.options.iconUrl;
@@ -3941,7 +3970,7 @@ angular.module(
                     removable: false,
                     visible: false
                 };
-                
+
                 // configuration for hinding features blow zoom level 12
                 wagwClusterGroupOptions = angular.copy(defaultClusterGroupOptions);
                 wagwClusterGroupOptions.$theme = configurationService.map.layerMappings['WAGW_STATION'];
@@ -3950,7 +3979,7 @@ angular.module(
                 wagwClusterGroupOptions.maxClusterRadius = 250;
                 wagwClusterGroupOptions.disableClusteringAtZoom = 12;
                 wagwClusterGroupOptions.removeOutsideVisibleBounds = false;
-                
+
                 wagwFeatureGroup = new L.markerClusterGroup(wagwClusterGroupOptions); // new L.FeatureGroup();
                 wagwFeatureGroup.$name = configurationService.map.layerMappings['WAGW_STATION'];
                 wagwFeatureGroup.$key = 'WAGW_STATION';
@@ -3961,7 +3990,7 @@ angular.module(
                     removable: false,
                     visible: false
                 };
-                
+
                 waowClusterGroupOptions = angular.copy(defaultClusterGroupOptions);
                 waowClusterGroupOptions.$theme = configurationService.map.layerMappings['WAOW_STATION'];
                 waowClusterGroupOptions.$icon = configurationService.featureRenderer.icons.WAOW_STATION.options.iconUrl;
@@ -4015,14 +4044,22 @@ angular.module(
 
 
                 configurationService.map.drawOptions = {
-                    polyline: false,
+                    polyline: {
+                        shapeOptions: {
+                            color: '#006d2c',
+                            clickable: true
+                        },
+                        metric: true,
+                        allowIntersection: false
+                    },
                     polygon: {
                         shapeOptions: {
                             color: '#006d2c',
                             clickable: true
                         },
                         showArea: true,
-                        metric: true
+                        metric: true,
+                        allowIntersection: false
                     },
                     rectangle: {
                         shapeOptions: {
@@ -4031,11 +4068,44 @@ angular.module(
                         },
                         metric: true
                     },
-                    // no circles for starters as not compatible with WKT
-                    circle: false,
+                    // no circles as not compatible with WKT!
+                    circle: true,
                     marker: false
                 };
-
+                
+                // Set the leaflet draw i18n translation texts -----------------
+                L.drawLocal.draw.toolbar.actions.title = 'Zeichnen abbrechen';
+                L.drawLocal.draw.toolbar.actions.text = 'Abbrechen';
+                L.drawLocal.draw.toolbar.finish.title = 'Zeichnen beenden';
+                L.drawLocal.draw.toolbar.finish.text = 'Beenden';
+                L.drawLocal.draw.toolbar.undo.title = 'Letzten Punkt löschen';
+                L.drawLocal.draw.toolbar.undo.text = 'Letzten Punkt löschen';
+                L.drawLocal.draw.toolbar.buttons.polyline = 'Innerhalb eines Linienzugs suchen';
+                L.drawLocal.draw.toolbar.buttons.polygon = 'Innerhalb eines Polygons suchen';
+                L.drawLocal.draw.toolbar.buttons.rectangle = 'Innerhalb eines Rechtecks suchen';
+                L.drawLocal.edit.toolbar.buttons.buffer = 'Ausgewählte Geometrie um Puffer erweitern';
+                L.drawLocal.edit.toolbar.buttons.bufferDisabled = 'Keine Geometrie zum Erweitern vorhanden';
+                L.drawLocal.draw.handlers.polygon.tooltip.start = 'Klicken um ein Polygon zu zeichnen';
+                L.drawLocal.draw.handlers.polygon.tooltip.cont = 'Klicken um das Polygon zu erweitern';
+                L.drawLocal.draw.handlers.polygon.tooltip.end = 'Mit Doppelklick das Polygon schließen';
+                L.drawLocal.draw.handlers.polyline.tooltip.start = 'Klicken um einen Linienzug zu zeichnen';
+                L.drawLocal.draw.handlers.polyline.tooltip.cont = 'Klicken um den Linienzug zu erweitern';
+                L.drawLocal.draw.handlers.polyline.tooltip.end = 'Mit Doppelklick das Zeichnen des Linienzugs zu beenden';
+                L.drawLocal.draw.handlers.polyline.error = '<strong>Achtung: </strong><br/>Die Kanten des Linienzugs dürfen sich nicht überschneiden!';
+                L.drawLocal.draw.handlers.rectangle.tooltip.start = 'Klicken um ein Rechteck zu zeichnen';
+                L.drawLocal.draw.handlers.simpleshape.tooltip.end = 'Klicken um das Zeichnen zu beenden';
+                L.drawLocal.edit.toolbar.actions.save.title = 'Änderungen speichern';
+                L.drawLocal.edit.toolbar.actions.save.text = 'Speichern';
+                L.drawLocal.edit.toolbar.actions.cancel.title = 'Abbrechnen und alle Änderungen verwerfen';
+                L.drawLocal.edit.toolbar.actions.cancel.text = 'Abbrechnen';
+                L.drawLocal.edit.toolbar.buttons.edit = 'Geometrie bearbeiten';
+                L.drawLocal.edit.toolbar.buttons.editDisabled = 'Keine Geometrie zum Bearbeiten vorhanden';
+                L.drawLocal.edit.toolbar.buttons.remove = 'Geometrie entfernen';
+                L.drawLocal.edit.toolbar.buttons.removeDisabled = 'Keine Geometrie zum Entfernen vorhanden';
+                L.drawLocal.edit.handlers.edit.tooltip.text = 'Kontrollpunkte verschieben um die Geometrie zu verändern';
+                L.drawLocal.edit.handlers.edit.tooltip.subtext = 'Auf Abgrechen klicken, um Änderungen rückgängig zu machen';
+                L.drawLocal.edit.handlers.remove.tooltip.text = 'Auf eine Geometrie klicken, um diese zu entfernen';
+                L.drawLocal.edit.handlers.buffer.tooltip.text = 'Klicken und Ziehen um die Geometrie zu vergrößern oder zu verkleinern';
 
                 configurationService.map.fitBoundsOptions = {
                     animate: true,
@@ -4339,8 +4409,9 @@ angular.module(
                  * @param {type} gazetteerLocation
                  * @returns {featureRendererService_L18.createGazetteerLocationLayer.featureLayer}
                  */
-                createGazetteerLocationLayer = function (gazetteerLocation) {
-                    var wktString, wktObject, geometryCollection, featureLayer;
+                createGazetteerLocationLayer = function (gazetteerLocation, gazetteerLocationCallback) {
+                    var wktString, wktObject, geometryCollection, featureLayer,
+                            gazetteerLocationPopup;
                     if (gazetteerLocation.hasOwnProperty('area')) {
                         wktString = gazetteerLocation.area.geo_field;
                         geometryCollection = false;
@@ -4363,6 +4434,22 @@ angular.module(
                     featureLayer.setStyle(angular.copy(config.gazetteerStyle));
                     featureLayer.$name = gazetteerLocation.name;
                     featureLayer.$key = 'gazetteerLocation';
+                    
+                    /*gazetteerLocationPopup = L.popup.angular({
+                                template: '<div>' +
+                                        '<h5"><strong><a ng-click="$content.gazetteerLocationCallback()>' +
+                                        'verwenden'+
+                                        '</a></strong></h5>' +
+                                        '</div>'
+                            });
+
+                    featureLayer.setContent({
+                        gazetteerLocationCallback: function(){
+                            gazetteerLocationCallback(featureLayer);
+                        }
+                    });
+                    
+                    featureLayer.bindPopup(featureLayer);*/
 
                     // not needed atm:
                     //gazetteerLocation.$layer = featureLayer;
@@ -4681,94 +4768,21 @@ angular.module(
  * ***************************************************
  */
 
-/* global Wkt */
+/* global angular, Wkt */
 
 angular.module('de.cismet.uim2020-html5-demonstrator.services')
-        .factory('geoTools', 
-        ['leafletData',
-    function (leafletData) {
-            'use strict';
-            var wicket, defaultStyle, noDrawOptions, defaultDrawOptions, 
-                    readSpatialCoverageFunction, writeSpatialCoverageFunction, 
-                    fireResizeFunction;
-            
-            wicket = new Wkt.Wkt();
-            defaultStyle = {color: '#0000FF', fillOpacity: 0.3, weight: 2, fill: true, fillColor: '#1589FF', riseOnHover: true, clickable: true};
-            
-            defaultDrawOptions = {
-                    polyline: false,
-                    polygon: {
-                        shapeOptions: defaultStyle,
-                        showArea: true,
-                        metric: true,
-                        allowIntersection: false,
-                        drawError: {
-                            color: '#e1e100', // Color the shape will turn when intersects
-                            message: '<strong>Oh snap!<strong> you can\'t draw that!</strong>' // Message that will show when intersect
-                        }       
-                    },
-                    rectangle: {
-                        shapeOptions: defaultStyle,
-                        metric: true
-                    },
-                    // no circles for starters as not compatible with WKT
-                    circle: false,
-                    marker: false
-                };
-                
-            noDrawOptions = { 
-                polyline: false,
-                polygon: false,
-                rectangle: false,
-                circle: false,
-                marker: false
-            };
-            
-            
-            
-            readSpatialCoverageFunction = function(dataset) {
-                if(dataset.spatialcoverage && dataset.spatialcoverage.geo_field) { // jshint ignore:line
-                    var wktString = dataset.spatialcoverage.geo_field; // jshint ignore:line
-                    
-                    // WKT from REST API contains EPSG definition. 
-                    // WKT from data upload tool does not!
-                    if(wktString.indexOf(';') !== -1) {
-                        wicket.read(wktString.substr(wktString.indexOf(';') + 1));
-                    } else {
-                        wicket.read(wktString);
-                    }
-                    var layer = wicket.toObject(defaultStyle);
-                    layer.setStyle(defaultStyle);
-                    return layer;
-                }
+        .factory('geoTools',
+                ['leafletData',
+                    function (leafletData) {
+                        'use strict';
+                        var wicket;
 
-                return undefined;
-            };
-            
-            writeSpatialCoverageFunction = function(dataset, wktString) {
-                if(wktString && dataset.spatialcoverage) { // jshint ignore:line
-                    var wktStringWithSRS = 'SRID=4326;'+wktString;
-                    dataset.spatialcoverage.geo_field = wktStringWithSRS; // jshint ignore:line
-                }
-            };
+                        wicket = new Wkt.Wkt();
 
-            fireResizeFunction = function (mapid) {
-                leafletData.getMap(mapid).then(function (map) {
-                    setTimeout(function(){ map.invalidateSize();}, 50);
-                });
-            };
-            
-        
-        return {
-            wicket:wicket,
-            defaultStyle:defaultStyle,
-            defaultDrawOptions:defaultDrawOptions,
-            noDrawOptions:noDrawOptions,
-            readSpatialCoverage:readSpatialCoverageFunction,
-            writeSpatialCoverage:writeSpatialCoverageFunction,
-            fireResize:fireResizeFunction
-        };    
-	}]);
+                        return {
+                            wicket: wicket
+                        };
+                    }]);
 
 
 
