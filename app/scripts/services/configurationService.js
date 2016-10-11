@@ -468,7 +468,7 @@ angular.module(
                         metric: true
                     },
                     // no circles as not compatible with WKT!
-                    circle: true,
+                    circle: false,
                     marker: false
                 };
                 

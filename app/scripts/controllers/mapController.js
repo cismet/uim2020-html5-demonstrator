@@ -200,7 +200,7 @@ angular.module(
                             searchGeometryLayer.$key = 'searchGeometry';
                             searchGeometryLayerGroup.addLayer(searchGeometryLayer);
 
-                            if (config.options.centerOnSearchGeometry) {
+                            if (config.options.centerOnSearchGeometry && searchGeometryLayerGroup.getBounds()) {
                                 leafletData.getMap(mapId).then(function (map) {
                                     map.fitBounds(searchGeometryLayerGroup.getBounds(), {
                                         animate: true,
@@ -739,31 +739,37 @@ angular.module(
                             // this is madness!
                             sharedDatamodel.selectedSearchLocation.id = 1;
                             console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+
+                            // directly switch to expand mode after drawing polyline
+                            if (event.layerType === 'polyline') {
+                                // FIXME: prevent search in line geometry if user skiops or cancels expand
+                                drawControl._toolbars.edit._modes.buffer.handler.enable();
+                            }
                         });
 
                         /*map.on('draw:edited', function (event) {
-                            console.log('draw:edited: ' + event.layers.getLayers().length);
-                            console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
-                        });*/
+                         console.log('draw:edited: ' + event.layers.getLayers().length);
+                         console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                         });*/
 
                         /*map.on('draw:deleted', function (event) {
-                            console.log('draw:deleted: ' + event.layers.getLayers().length);
-                            if (event.layers.getLayers().length > 0) {
-                                // ugly workaround for leafleft.buffer plugin which does not remove expanded polyline layers
-                                event.layers.eachLayer(function (deletedLayer) {
-                                    searchGeometryLayerGroup.removeLayer(deletedLayer);
-                                });
-                            }
-
-                            console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
-                            if (searchGeometryLayerGroup.getLayers().length === 0) {
-                                sharedDatamodel.selectedSearchLocation.id = 0;
-                            }
-                        });*/
+                         console.log('draw:deleted: ' + event.layers.getLayers().length);
+                         if (event.layers.getLayers().length > 0) {
+                         // ugly workaround for leafleft.buffer plugin which does not remove expanded polyline layers
+                         event.layers.eachLayer(function (deletedLayer) {
+                         searchGeometryLayerGroup.removeLayer(deletedLayer);
+                         });
+                         }
+                         
+                         console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                         if (searchGeometryLayerGroup.getLayers().length === 0) {
+                         sharedDatamodel.selectedSearchLocation.id = 0;
+                         }
+                         });*/
 
                         /*map.on('draw:buffered', function (event) {
-                            console.log('draw:buffered: ' + event.layers.getLayers().length);
-                        });*/
+                         console.log('draw:buffered: ' + event.layers.getLayers().length);
+                         });*/
                     }
 
                     map.addControl(layerControl);
