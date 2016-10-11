@@ -20,7 +20,7 @@ angular.module(
                         defaults, center, basemaps, overlays, layerControlOptions,
                         drawOptions, maxBounds, setSearchGeometry, gazetteerLocationLayer, layerControlMappings,
                         overlaysNodeLayersIndex, fitBoundsOptions, selectedNode, selectNode, featureLayersWithZoomRestriction,
-                        nodeOverlays;
+                        nodeOverlays, setSearchGeometryFromGazetteerLocationLayer;
 
                 mapController = this;
                 mapController.mode = $scope.mainController.mode;
@@ -148,6 +148,7 @@ angular.module(
                         layerControlOptions);
 
                 // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ===========================">
+
                 /**
                  * Select a node in the map and changes the feature icon
                  * 
@@ -183,6 +184,23 @@ angular.module(
                     return selectedNode;
                 };
 
+                setSearchGeometryFromGazetteerLocationLayer = function () {
+                    if (gazetteerLocationLayer !== null) {
+                        var searchGeometryLayer = gazetteerLocationLayer;
+                        gazetteerLocationLayer.closePopup();
+                        gazetteerLocationLayer.unbindPopup();
+                        layerControl.removeLayer(gazetteerLocationLayer);
+                        leafletMap.removeLayer(gazetteerLocationLayer);
+                        gazetteerLocationLayer = null;
+                        
+                        searchGeometryLayer.setStyle(drawOptions.polygon.shapeOptions);
+                        setSearchGeometry(searchGeometryLayer, 'polygon');                        
+                        
+                    } else {
+                        console.warn('setSearchGeometryFromGazetteerLocationLayer: no gazetteerLocationLayer available!');
+                    }
+                };
+
                 /**
                  * Sets the search geometry
                  * 
@@ -210,6 +228,8 @@ angular.module(
                                     });
                                 });
                             }
+                            
+                            sharedDatamodel.selectedSearchLocation.id = 1;
                         } else {
                             // ignore
                             // console.warn("mapController:: cannot add empty search geometry layer!");
@@ -584,8 +604,12 @@ angular.module(
                                 gazetteerLocationLayer = null;
                             }
 
+                            // pass setSearchGeometry function to be called in popup
                             gazetteerLocationLayer =
-                                    featureRendererService.createGazetteerLocationLayer(gazetteerLocation);
+                                    featureRendererService.createGazetteerLocationLayer(
+                                            gazetteerLocation,
+                                            setSearchGeometryFromGazetteerLocationLayer);
+
                             layerControlMappings.gazetteer =
                                     L.stamp(gazetteerLocationLayer);
 

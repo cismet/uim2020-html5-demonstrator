@@ -59,7 +59,7 @@ angular.module(
                     fill: true,
                     weight: 4,
                     riseOnHover: false,
-                    clickable: false
+                    clickable: true
                 };
                 configurationService.featureRenderer.defaultStyle = {
                     color: '#0000FF',
