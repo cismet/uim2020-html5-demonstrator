@@ -1787,7 +1787,17 @@ angular.module(
                  * @returns {undefined}
                  */
                 mainController.addAnalysisNode = function (node) {
-                    var index = sharedDatamodel.analysisNodes.indexOf(node);
+                    var i, index;
+
+                    // indexOf does not work since node$feature is different!
+                    index = -1; //sharedDatamodel.analysisNodes.indexOf(node);
+                    for (i = 0; i < sharedDatamodel.analysisNodes.length; i++) {
+                        if (sharedDatamodel.analysisNodes[i].objectKey === node.objectKey) {
+                            index = i;
+                            break;
+                        }
+                    }
+
                     if (index !== -1) {
                         console.warn("mainController::addAnalysisNode: node '" + node.name + "' already in list of analysis nodes!");
                     } else {
@@ -1839,19 +1849,21 @@ angular.module(
         ).controller(
         'mapController',
         ['$scope',
+            '$timeout',
             'leafletData',
             'configurationService',
             'sharedDatamodel',
             'sharedControllers',
             'featureRendererService',
-            function ($scope, leafletData, configurationService,
+            function ($scope, $timeout, leafletData, configurationService,
                     sharedDatamodel, sharedControllers, featureRendererService) {
                 'use strict';
 
                 var leafletMap, mapId, mapController, config, layerControl, searchGeometryLayerGroup, drawControl,
                         defaults, center, basemaps, overlays, layerControlOptions,
                         drawOptions, maxBounds, setSearchGeometry, gazetteerLocationLayer, layerControlMappings,
-                        overlaysNodeLayersIndex, fitBoundsOptions, selectedNode, selectNode;
+                        overlaysNodeLayersIndex, fitBoundsOptions, selectedNode, selectNode, featureLayersWithZoomRestriction,
+                        nodeOverlays;
 
                 mapController = this;
                 mapController.mode = $scope.mainController.mode;
@@ -1865,6 +1877,7 @@ angular.module(
                 searchGeometryLayerGroup.$key = 'searchGeometries';
                 gazetteerLocationLayer = null;
 
+                featureLayersWithZoomRestriction = [];
                 overlays = [];
                 defaults = angular.copy(config.defaults);
                 center = angular.copy(config.maxBounds);
@@ -1875,6 +1888,7 @@ angular.module(
                 fitBoundsOptions = angular.copy(config.fitBoundsOptions);
 
                 selectedNode = null;
+                nodeOverlays = angular.copy(config.nodeOverlays);
 
                 if (mapController.mode === 'search') {
                     mapController.nodes = sharedDatamodel.resultNodes;
@@ -1885,23 +1899,28 @@ angular.module(
                         expanded: false,
                         layers: {}
                     });
-                    overlays.push(angular.copy(config.nodeOverlays));
+
+                    overlays.push(nodeOverlays);
                     overlaysNodeLayersIndex = 1; // after gazetteer layer ....
 
                     // drawControl only available in search mode
                     drawControl = new L.Control.Draw({
                         draw: drawOptions,
-                        /*edit: {
-                         featureGroup: searchGeometryLayerGroup
-                         }*/
-                        edit: false,
-                        remove: false
+                        edit: {
+                            featureGroup: searchGeometryLayerGroup,
+                            remove: false, // disable removal
+                            buffer: {
+                                replace_polylines: false, // why false? because true does not work !!??!!
+                                separate_buffer: false,
+                                buffer_style: drawOptions.polygon.shapeOptions
+                            }
+                        }
                     });
                 } else if (mapController.mode === 'analysis') {
                     mapController.nodes = sharedDatamodel.analysisNodes;
                     sharedControllers.analysisMapController = mapController;
 
-                    overlays.push(angular.copy(config.nodeOverlays));
+                    overlays.push(nodeOverlays);
                     overlays.push({
                         groupName: configurationService.map.layerGroupMappings['external'],
                         expanded: false,
@@ -1910,6 +1929,24 @@ angular.module(
                     overlaysNodeLayersIndex = 0; // before external layers ....
                 }
 
+                // TODO: iterate properties
+                if (overlays[overlaysNodeLayersIndex].layers[config.layerMappings['BORIS_SITE']].$maxZoom) {
+                    featureLayersWithZoomRestriction.push(overlays[overlaysNodeLayersIndex].layers[config.layerMappings['BORIS_SITE']]);
+                }
+                if (overlays[overlaysNodeLayersIndex].layers[config.layerMappings['EPRTR_INSTALLATION']].$maxZoom) {
+                    featureLayersWithZoomRestriction.push(overlays[overlaysNodeLayersIndex].layers[config.layerMappings['EPRTR_INSTALLATION']]);
+                }
+                if (overlays[overlaysNodeLayersIndex].layers[config.layerMappings['MOSS']].$maxZoom) {
+                    featureLayersWithZoomRestriction.push(overlays[overlaysNodeLayersIndex].layers[config.layerMappings['MOSS']]);
+                }
+                if (overlays[overlaysNodeLayersIndex].layers[config.layerMappings['WAGW_STATION']].$maxZoom) {
+                    featureLayersWithZoomRestriction.push(overlays[overlaysNodeLayersIndex].layers[config.layerMappings['WAGW_STATION']]);
+                }
+                if (overlays[overlaysNodeLayersIndex].layers[config.layerMappings['WAOW_STATION']].$maxZoom) {
+                    featureLayersWithZoomRestriction.push(overlays[overlaysNodeLayersIndex].layers[config.layerMappings['WAOW_STATION']]);
+                }
+
+                // TODO: iterate overlays!
                 layerControlMappings = {};
                 // Basemap Mappings
                 layerControlMappings.basemap_at =
@@ -1964,15 +2001,23 @@ angular.module(
                     var icon;
 
                     // reset selection
-                    if (selectedNode !== null && selectedNode.$feature) {
+                    if (selectedNode !== node && selectedNode !== null && selectedNode.$feature) {
                         icon = featureRendererService.getIconForNode(selectedNode);
                         selectedNode.$feature.setIcon(icon);
                     }
 
                     if (node.$feature) {
                         selectedNode = node;
+
+                        // highlight only visible features!
+                        //if (!node.$feature.$hidden) {
                         icon = featureRendererService.getHighlightIconForNode(selectedNode);
                         selectedNode.$feature.setIcon(icon);
+                        //}
+
+                        if (node.$feature.$hidden) {
+                            selectedNode.$feature.setOpacity(0);
+                        }
 
                     } else {
                         selectedNode = null;
@@ -1989,6 +2034,7 @@ angular.module(
                  * @returns {undefined}
                  */
                 setSearchGeometry = function (searchGeometryLayer, layerType) {
+                    console.log('setSearchGeometry: ' + layerType);
                     if (mapController.mode === 'search') {
                         searchGeometryLayerGroup.clearLayers();
                         if (searchGeometryLayer !== null) {
@@ -1997,7 +2043,7 @@ angular.module(
                             searchGeometryLayer.$key = 'searchGeometry';
                             searchGeometryLayerGroup.addLayer(searchGeometryLayer);
 
-                            if (config.options.centerOnSearchGeometry) {
+                            if (config.options.centerOnSearchGeometry && searchGeometryLayerGroup.getBounds()) {
                                 leafletData.getMap(mapId).then(function (map) {
                                     map.fitBounds(searchGeometryLayerGroup.getBounds(), {
                                         animate: true,
@@ -2007,14 +2053,12 @@ angular.module(
                                     });
                                 });
                             }
-                            searchGeometryLayer.once('click', function (event) {
-                                setSearchGeometry(null);
-                            });
-
-                            // TODO: set sharedDatamodel.selectedSearchGeometry!
+                        } else {
+                            // ignore
+                            // console.warn("mapController:: cannot add empty search geometry layer!");
                         }
                     } else {
-                        console.warn("mapController:: cannot add search geomatry to analysis map!");
+                        console.warn("mapController:: cannot add search geometry to analysis map!");
                     }
                 };
                 //<editor-fold/>
@@ -2171,11 +2215,22 @@ angular.module(
                  * @returns {undefined}
                  */
                 mapController.gotoNode = function (node) {
-                    var theSelectedNode;
+                    var theSelectedNode, zoom;
 
+                    zoom = 14;
                     theSelectedNode = selectNode(node);
+
                     if (theSelectedNode) {
-                        leafletMap.setView(selectedNode.$feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
+
+                        // FIXME: probably immediate clustered layer in between!
+                        if (theSelectedNode.$feature.__parent &&
+                                theSelectedNode.$feature.__parent._group &&
+                                theSelectedNode.$feature.__parent._group.$maxZoom) {
+
+                            zoom = theSelectedNode.$feature.__parent._group.$maxZoom;
+                        }
+
+                        leafletMap.setView(selectedNode.$feature.getLatLng(), zoom);
                         //node.$feature.togglePopup();
                     }
                 };
@@ -2187,6 +2242,8 @@ angular.module(
                  * @returns {undefined}
                  */
                 mapController.addNode = function (node) {
+
+                    // FIXME: prevent adding duplicate nodes!
                     if (mapController.mode === 'analysis') {
                         mapController.setNodes([node]);
 
@@ -2255,8 +2312,11 @@ angular.module(
                  * @returns {undefined}
                  */
                 mapController.gotoNodes = function () {
-                    var bounds, nodeLayerControlIds, featureGroupLayer;
+                    var bounds, nodeLayerControlIds, featureGroupLayer, nodesFitBoundsOptions;
 
+                    nodesFitBoundsOptions = angular.extend({}, fitBoundsOptions);
+
+                    // FIXME: take from nodeOverlays
                     nodeLayerControlIds = [
                         layerControlMappings.BORIS_SITE,
                         layerControlMappings.EPRTR_INSTALLATION,
@@ -2271,14 +2331,24 @@ angular.module(
                             featureGroupLayer = layerControl._layers[layerControlId].layer;
 
                             // center only on visible layers!
-                            if (leafletMap.hasLayer(featureGroupLayer)) {
+                            // for some reason, a layer without any features has non-empty bounds ?!
+                            if (leafletMap.hasLayer(featureGroupLayer) &&
+                                    featureGroupLayer.getLayers() && featureGroupLayer.getLayers().length > 0) {
+
                                 bounds = !bounds ? featureGroupLayer.getBounds() : bounds.extend(featureGroupLayer.getBounds());
+                                if (featureGroupLayer.$maxZoom) {
+                                    nodesFitBoundsOptions.maxZoom = featureGroupLayer.$maxZoom;
+                                }
                             }
                         }
                     });
 
                     if (bounds) {
-                        leafletMap.fitBounds(bounds, fitBoundsOptions);
+                        leafletData.getMap(mapId).then(function (map) {
+                            map.fitBounds(bounds, nodesFitBoundsOptions);
+                            //console.log('fit bounds:' + JSON.stringify(bounds));
+                            //console.log('fit bounds:' + JSON.stringify(nodesFitBoundsOptions));
+                        });
                     }
                 };
 
@@ -2292,9 +2362,10 @@ angular.module(
                  */
                 mapController.setNodes = function (nodes, fitBounds, clearLayers) {
                     var featureGroups, featureGroup, featureGroupLayer, theme,
-                            layerControlId, bounds;
+                            layerControlId;
 
-                    if (!clearLayers) {
+                    // check for falsy, undefoined, whatever, ....
+                    if (clearLayers !== false && clearLayers !== true) {
                         clearLayers = mapController.mode === 'search' ? true : false;
                     }
 
@@ -2318,20 +2389,28 @@ angular.module(
                                 /*jshint loopfunc:true */
                                 featureGroup.forEach(function (feature) {
                                     feature.addTo(featureGroupLayer);
+                                    if (featureGroup.$maxZoom) {
+                                        var currentZoomLevel = leafletMap.getZoom();
+
+                                        if (currentZoomLevel > featureGroup.$maxZoom) {
+                                            feature.setOpacity(0);
+                                            feature.$hidden = true;
+                                        } else {
+                                            feature.setOpacity(1);
+                                            feature.$hidden = false;
+                                        }
+                                    }
                                 });
 
                                 layerControl.selectLayer(featureGroupLayer);
-                                if (fitBounds) {
-                                    bounds = !bounds ? featureGroupLayer.getBounds() : bounds.extend(featureGroupLayer.getBounds());
-                                }
                             } else {
                                 console.warn("mapController::setNodes unsupported theme (feature group) '" + theme + "'");
                             }
 
                         }
 
-                        if (bounds) {
-                            leafletMap.fitBounds(bounds, fitBoundsOptions);
+                        if (fitBounds) {
+                            mapController.gotoNodes();
                         }
                     }
 
@@ -2493,15 +2572,47 @@ angular.module(
                         map.addControl(drawControl);
 
                         map.on('draw:created', function (event) {
+
+                            // ugly workaround for leafleft.buffer plugin which does not set the layer type
+                            if (!event.layerType) {
+                                event.layerType = 'polygon';
+                            }
+                            console.log('draw:created: ' + event.layerType);
                             setSearchGeometry(event.layer, event.layerType);
                             // this is madness!
                             sharedDatamodel.selectedSearchLocation.id = 1;
+                            console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+
+                            // directly switch to expand mode after drawing polyline
+                            if (event.layerType === 'polyline') {
+                                // FIXME: prevent search in line geometry if user skiops or cancels expand
+                                drawControl._toolbars.edit._modes.buffer.handler.enable();
+                            }
                         });
 
-                        map.on('draw:deleted', function (event) {
-                            setSearchGeometry(null);
-                            sharedDatamodel.selectedSearchLocation.id = 0;
-                        });
+                        /*map.on('draw:edited', function (event) {
+                         console.log('draw:edited: ' + event.layers.getLayers().length);
+                         console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                         });*/
+
+                        /*map.on('draw:deleted', function (event) {
+                         console.log('draw:deleted: ' + event.layers.getLayers().length);
+                         if (event.layers.getLayers().length > 0) {
+                         // ugly workaround for leafleft.buffer plugin which does not remove expanded polyline layers
+                         event.layers.eachLayer(function (deletedLayer) {
+                         searchGeometryLayerGroup.removeLayer(deletedLayer);
+                         });
+                         }
+                         
+                         console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                         if (searchGeometryLayerGroup.getLayers().length === 0) {
+                         sharedDatamodel.selectedSearchLocation.id = 0;
+                         }
+                         });*/
+
+                        /*map.on('draw:buffered', function (event) {
+                         console.log('draw:buffered: ' + event.layers.getLayers().length);
+                         });*/
                     }
 
                     map.addControl(layerControl);
@@ -2513,10 +2624,33 @@ angular.module(
                     // select the default basemap
                     layerControl.selectLayer(basemaps[0].layers[config.defaultBasemapLayer]);
 
+                    /**
+                     * Show or hide features based on zoom level
+                     */
+                    map.on('zoomend', function () {
+                        var currentZoomLevel, zoom;
+
+                        // always close popups on close: it may leak the position of a hidden feature!
+                        map.closePopup();
+                        currentZoomLevel = map.getZoom();
+
+                        // check all layers with restrictions
+                        featureLayersWithZoomRestriction.forEach(function (featureGroupLayer) {
+                            if (map.hasLayer(featureGroupLayer) && featureGroupLayer.$maxZoom) {
+                                featureRendererService.applyZoomLevelRestriction(featureGroupLayer, currentZoomLevel);
+
+                                // if a node is selected when the layer is invisiable (max zoom level exceeded), show the selection
+                                // FIXME: find beter option to avoid unecessary class to selectedNode()
+                                /*if(selectedNode) {
+                                 selectNode(selectedNode);
+                                 }*/
+                            }
+                        });
+                    });
+
                     // FIXME: removes also layers from layercontrol that are just deselected!
                     map.on('layerremove', function (layerEvent) {
                         var removedLayer = layerEvent.layer;
-
 
                         if (removedLayer.StyledLayerControl &&
                                 removedLayer.StyledLayerControl.removable &&
@@ -2525,13 +2659,25 @@ angular.module(
                             layerControl.removeLayer(removedLayer);
                         }
 
-                        console.log('mapController:: layer removed: ' + removedLayer.$name +
-                                ' (' + L.stamp(removedLayer) + ')');
+                        /*console.log('mapController:: layer removed: ' + removedLayer.$name +
+                         ' (' + L.stamp(removedLayer) + ')');*/
 
                         if (removedLayer && removedLayer === gazetteerLocationLayer) {
-                            console.log('mapController::gazetteerLocationLayer removed');
+                            //console.log('mapController::gazetteerLocationLayer removed');
                             //gazetteerLocationLayer = null;
                             //layerControl.removeLayer(gazetteerLocationLayer);
+                        }
+                    });
+
+                    /**
+                     * Hide features on may zoom.
+                     * This function is necessary, since StyledLayerControl removes 
+                     * and adds visiable or hidden layers from map ...
+                     */
+                    map.on('layeradd', function (layerEvent) {
+                        var addedLayer = layerEvent.layer;
+                        if (addedLayer.$maxZoom) {
+                            featureRendererService.applyZoomLevelRestriction(addedLayer, map.getZoom());
                         }
                     });
 
@@ -2539,13 +2685,22 @@ angular.module(
                     if (mapController.mode === 'analysis' &&
                             sharedDatamodel.analysisNodes &&
                             sharedDatamodel.analysisNodes.length > 0) {
-                        // set nodes and fit bounds
-                        mapController.setNodes(sharedDatamodel.analysisNodes, true);
+
+                        // set nodes and fit bounds manually after delay (to allow map to be rendered)
+                        mapController.setNodes(sharedDatamodel.analysisNodes, false);
+                        $timeout(function () {
+                            mapController.gotoNodes();
+                        }, 500);
                     } else if (mapController.mode === 'search' &&
                             sharedDatamodel.resultNodes &&
                             sharedDatamodel.resultNodes.length > 0) {
                         console.warn(sharedDatamodel.resultNodes.length + ' result nodes available before search map controler instance created: possible sticky state synchrnoisation problem!');
-                        mapController.setNodes(sharedDatamodel.resultNodes, true, true);
+
+                        // set nodes and fit bounds manually after delay (to allow map to be rendered)
+                        mapController.setNodes(sharedDatamodel.resultNodes, false, true);
+                        $timeout(function () {
+                            mapController.gotoNodes();
+                        }, 500);
                     }
                 });
 
@@ -2553,7 +2708,6 @@ angular.module(
                 // FIXME: use sharedControllers Service instead
                 $scope.$parent.mapController = mapController;
 
-                console.log($scope.mainController.mode + ' map controller instance created');
             }]
         );
 
@@ -2798,17 +2952,18 @@ angular.module(
                     if (searchController.mode !== 'map') {
                         $state.go('^.map'); // will go to the sibling map state.
                     }
-                    
+
                     sharedControllers.searchMapController.gotoNodes();
                 };
-                
-                searchController.hasNodes = function() {
+
+                searchController.hasNodes = function () {
                     return sharedDatamodel.resultNodes.length > 0;
                 };
 
                 /**
                  * Main Search Function
                  * 
+                 * @param {type} mockNodes
                  * @returns {undefined}
                  */
                 searchController.search = function (mockNodes) {
@@ -2991,12 +3146,12 @@ angular.module(
             'use strict';
 
             return function (data) {
-                if(!data) {
-                    return null;
-                }
-                
                 var description = 'keine Beschreibung verfügbar';
-                
+
+                if (!data) {
+                    return description;
+                }
+
                 // BORIS
                 if (data.literatur || data.institut) {
                     if (data.literatur) {
@@ -3019,8 +3174,8 @@ angular.module(
                     if (data.zustaendigestelle) {
                         description = 'Zuständige Stelle: ' + data.zustaendigestelle;
                         /*if (data.bundesland && data.bundesland !== data.zustaendigestelle) {
-                            description += (' (' + data.bundesland + ")");
-                        }*/
+                         description += (' (' + data.bundesland + ")");
+                         }*/
                     } else {
                         description = 'Bundesland Stelle: ' + data.bundesland;
                     }
@@ -3031,11 +3186,12 @@ angular.module(
                     } else {
                         description = '';
                     }
-                    
-                    if(data.sampleid) {
+
+                    if (data.sampleid) {
                         description += 'Probennummer: ' + data.sampleid;
                     }
                 }
+
                 return description;
             };
         }
@@ -3471,12 +3627,14 @@ angular.module(
                 var configurationService, austriaBasemapLayer, esriTopographicBasemapLayer, osmBasemapLayer,
                         openTopoBasemapLayer, borisFeatureGroup, eprtrFeatureGroup,
                         mossFeatureGroup, wagwFeatureGroup, waowFeatureGroup, basemapLayers,
-                        overlayLayers, overlays, basemapLayerOpacity;
+                        overlayLayers, overlays, basemapLayerOpacity, defaultClusterGroupOptions,
+                        borisClusterGroupOptions, eprtrClusterGroupOptions, mossClusterGroupOptions,
+                        wagwClusterGroupOptions, waowClusterGroupOptions;
 
                 configurationService = this;
-
                 configurationService.developmentMode = true;
 
+                // <editor-fold defaultstate="collapsed" desc="=== cidsRestApi ===========================">
                 configurationService.cidsRestApi = {};
                 //configurationService.cidsRestApi.host = 'http://localhost:8890';
                 configurationService.cidsRestApi.host = 'http://DEMO-NOTEBOOK:8890';
@@ -3484,22 +3642,134 @@ angular.module(
                 configurationService.cidsRestApi.defaultRestApiSearch = 'de.cismet.cids.custom.udm2020di.serversearch.DefaultRestApiSearch';
                 //configurationService.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
                 //configurationService.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
-
+                // </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="=== authentication ===========================">
                 configurationService.authentication = {};
                 configurationService.authentication.domain = configurationService.cidsRestApi.domain;
                 configurationService.authentication.username = 'uba';
                 configurationService.authentication.password = '';
                 configurationService.authentication.role = 'UDM2020';
                 configurationService.authentication.cookie = 'de.cismet.uim2020-html5-demonstrator.identity';
-
-
-
+                // </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="=== searchService ===========================">
                 configurationService.searchService = {};
                 configurationService.searchService.defautLimit = 10;
                 configurationService.searchService.maxLimit = 50;
                 configurationService.searchService.host = configurationService.cidsRestApi.host;
+                // </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="=== featureRenderer ===========================">
+                configurationService.featureRenderer = {};
+                configurationService.featureRenderer.gazetteerStyle = {
+                    color: '#8856a7',
+                    fillColor: '#feb24c',
+                    fillOpacity: 0.3,
+                    fill: true,
+                    weight: 4,
+                    riseOnHover: false,
+                    clickable: false
+                };
+                configurationService.featureRenderer.defaultStyle = {
+                    color: '#0000FF',
+                    fill: false,
+                    weight: 2,
+                    riseOnHover: true,
+                    clickable: false
+                };
+                configurationService.featureRenderer.highlightStyle = {
+                    fillOpacity: 0.4,
+                    fill: true,
+                    fillColor: '#1589FF',
+                    riseOnHover: true,
+                    clickable: false
+                };
 
+                configurationService.featureRenderer.icons = {};
+                configurationService.featureRenderer.icons.BORIS_SITE = L.icon({
+                    iconUrl: 'icons/showel_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0]
+                });
+                configurationService.featureRenderer.icons.WAGW_STATION = L.icon({
+                    iconUrl: 'icons/wagw_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0]
+                });
+                configurationService.featureRenderer.icons.WAOW_STATION = L.icon({
+                    iconUrl: 'icons/waow_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0]
+                });
+                configurationService.featureRenderer.icons.EPRTR_INSTALLATION = L.icon({
+                    iconUrl: 'icons/factory_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0]
+                });
+                configurationService.featureRenderer.icons.MOSS = L.icon({
+                    iconUrl: 'icons/grass_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0]
+                });
 
+                configurationService.featureRenderer.highlightIcons = {};
+                configurationService.featureRenderer.highlightIcons.BORIS_SITE = L.icon({
+                    iconUrl: 'icons/showel_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0],
+                    shadowUrl: "icons/icon_shadow.png",
+                    shadowSize: [28, 28],
+                    shadowAnchor: [14, 14]
+                });
+                configurationService.featureRenderer.highlightIcons.WAGW_STATION = L.icon({
+                    iconUrl: 'icons/wagw_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0],
+                    shadowUrl: "icons/icon_shadow.png",
+                    shadowSize: [24, 24],
+                    shadowAnchor: [12, 12]
+                });
+                configurationService.featureRenderer.highlightIcons.WAOW_STATION = L.icon({
+                    iconUrl: 'icons/waow_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0],
+                    shadowUrl: "icons/icon_shadow.png",
+                    shadowSize: [24, 24],
+                    shadowAnchor: [12, 12]
+                });
+                configurationService.featureRenderer.highlightIcons.EPRTR_INSTALLATION = L.icon({
+                    iconUrl: 'icons/factory_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0],
+                    shadowUrl: "icons/icon_shadow.png",
+                    shadowSize: [24, 24],
+                    shadowAnchor: [12, 12]
+                });
+                configurationService.featureRenderer.highlightIcons.MOSS = L.icon({
+                    iconUrl: 'icons/grass_16.png',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8],
+                    popupAnchor: [0, 0],
+                    shadowUrl: "icons/icon_shadow.png",
+                    shadowSize: [24, 24],
+                    shadowAnchor: [12, 12]
+                });
+
+                configurationService.featureRenderer.layergroupNames = {};
+                configurationService.featureRenderer.layergroupNames.MOSS = 'Moose';
+                configurationService.featureRenderer.layergroupNames.EPRTR_INSTALLATION = 'ePRTR Einrichtungen';
+                configurationService.featureRenderer.layergroupNames.WAOW_STATION = 'Wassermesstellen';
+                configurationService.featureRenderer.layergroupNames.WAGW_STATION = 'Grundwassermesstellen';
+                configurationService.featureRenderer.layergroupNames.BORIS_SITE = 'Bodenmesstellen';
+                // </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="=== map ===========================">
                 configurationService.map = {};
 
                 configurationService.map.options = {};
@@ -3628,21 +3898,62 @@ angular.module(
                     {
                         groupName: configurationService.map.layerGroupMappings['basemaps'],
                         expanded: true,
-                        layers: basemapLayers
+                        layers: basemapLayers,
+                        removeOutsideVisibleBounds: true
                     }
                 ];
 
-                borisFeatureGroup = new L.FeatureGroup();
+                defaultClusterGroupOptions = {
+                    $icon: null,
+                    $theme: null,
+                    spiderfyOnMaxZoom: false,
+                    showCoverageOnHover: false,
+                    zoomToBoundsOnClick: true,
+                    removeOutsideVisibleBounds: true,
+                    iconCreateFunction: function (cluster) {
+                        var childCount = cluster.getChildCount();
+                        var markerClass = ' marker-cluster-';
+                        if (childCount < 10) {
+                            markerClass += 'small';
+                        } else if (childCount < 25) {
+                            markerClass += 'medium';
+                        } else {
+                            markerClass += 'large';
+                        }
+
+                        return new L.DivIcon({
+                            html: '<div title="' + childCount + ' ' + this.$theme + '"><span><img src="' + this.$icon + '" alt="' + this.$theme + '"' +
+                                    '" style="margin:0;padding:0;vertical-align: middle;max-height: 16px;max-width: 16px;"/></span></div>',
+                            className: 'marker-cluster' + markerClass,
+                            iconSize: new L.Point(40, 40)
+                        });
+                    }
+                };
+
+                borisClusterGroupOptions = angular.copy(defaultClusterGroupOptions);
+                borisClusterGroupOptions.$theme = configurationService.map.layerMappings['BORIS_SITE'];
+                borisClusterGroupOptions.$icon = configurationService.featureRenderer.icons.BORIS_SITE.options.iconUrl;
+                //borisClusterGroupOptions.zoomToBoundsOnClick = false;
+                //borisClusterGroupOptions.maxClusterRadius = 250;
+                //borisClusterGroupOptions.disableClusteringAtZoom = 12;
+                //borisClusterGroupOptions.removeOutsideVisibleBounds = false;
+
+                borisFeatureGroup = new L.markerClusterGroup(borisClusterGroupOptions); // new L.FeatureGroup();
                 borisFeatureGroup.$name = configurationService.map.layerMappings['BORIS_SITE'];
                 borisFeatureGroup.$key = 'BORIS_SITE';
                 borisFeatureGroup.$groupName = configurationService.map.layerGroupMappings['nodes'];
                 borisFeatureGroup.$groupKey = 'nodes';
+                //borisFeatureGroup.$maxZoom = 12;
                 borisFeatureGroup.StyledLayerControl = {
                     removable: false,
                     visible: false
                 };
 
-                eprtrFeatureGroup = new L.FeatureGroup();
+                eprtrClusterGroupOptions = angular.copy(defaultClusterGroupOptions);
+                eprtrClusterGroupOptions.$theme = configurationService.map.layerMappings['EPRTR_INSTALLATION'];
+                eprtrClusterGroupOptions.$icon = configurationService.featureRenderer.icons.EPRTR_INSTALLATION.options.iconUrl;
+
+                eprtrFeatureGroup = new L.markerClusterGroup(eprtrClusterGroupOptions); // new L.FeatureGroup();
                 eprtrFeatureGroup.$name = configurationService.map.layerMappings['EPRTR_INSTALLATION'];
                 eprtrFeatureGroup.$key = 'EPRTR_INSTALLATION';
                 eprtrFeatureGroup.$groupName = configurationService.map.layerGroupMappings['nodes'];
@@ -3652,7 +3963,11 @@ angular.module(
                     visible: false
                 };
 
-                mossFeatureGroup = new L.FeatureGroup();
+                mossClusterGroupOptions = angular.copy(defaultClusterGroupOptions);
+                mossClusterGroupOptions.$theme = configurationService.map.layerMappings['MOSS'];
+                mossClusterGroupOptions.$icon = configurationService.featureRenderer.icons.MOSS.options.iconUrl;
+
+                mossFeatureGroup = new L.markerClusterGroup(mossClusterGroupOptions); // new L.FeatureGroup();
                 mossFeatureGroup.$name = configurationService.map.layerMappings['MOSS'];
                 mossFeatureGroup.$key = 'MOSS';
                 mossFeatureGroup.$groupName = configurationService.map.layerGroupMappings['nodes'];
@@ -3662,17 +3977,31 @@ angular.module(
                     visible: false
                 };
 
-                wagwFeatureGroup = new L.FeatureGroup();
+                // configuration for hinding features blow zoom level 12
+                wagwClusterGroupOptions = angular.copy(defaultClusterGroupOptions);
+                wagwClusterGroupOptions.$theme = configurationService.map.layerMappings['WAGW_STATION'];
+                wagwClusterGroupOptions.$icon = configurationService.featureRenderer.icons.WAGW_STATION.options.iconUrl;
+                wagwClusterGroupOptions.zoomToBoundsOnClick = true;
+                wagwClusterGroupOptions.maxClusterRadius = 250;
+                wagwClusterGroupOptions.disableClusteringAtZoom = 12;
+                wagwClusterGroupOptions.removeOutsideVisibleBounds = false;
+
+                wagwFeatureGroup = new L.markerClusterGroup(wagwClusterGroupOptions); // new L.FeatureGroup();
                 wagwFeatureGroup.$name = configurationService.map.layerMappings['WAGW_STATION'];
                 wagwFeatureGroup.$key = 'WAGW_STATION';
                 wagwFeatureGroup.$groupName = configurationService.map.layerGroupMappings['nodes'];
                 wagwFeatureGroup.$groupKey = 'nodes';
+                wagwFeatureGroup.$maxZoom = 12;
                 wagwFeatureGroup.StyledLayerControl = {
                     removable: false,
                     visible: false
                 };
 
-                waowFeatureGroup = new L.FeatureGroup();
+                waowClusterGroupOptions = angular.copy(defaultClusterGroupOptions);
+                waowClusterGroupOptions.$theme = configurationService.map.layerMappings['WAOW_STATION'];
+                waowClusterGroupOptions.$icon = configurationService.featureRenderer.icons.WAOW_STATION.options.iconUrl;
+
+                waowFeatureGroup = new L.markerClusterGroup(waowClusterGroupOptions); //new L.FeatureGroup(); 
                 waowFeatureGroup.$name = configurationService.map.layerMappings['WAOW_STATION'];
                 waowFeatureGroup.$key = 'WAOW_STATION';
                 waowFeatureGroup.$groupName = configurationService.map.layerGroupMappings['nodes'];
@@ -3721,14 +4050,22 @@ angular.module(
 
 
                 configurationService.map.drawOptions = {
-                    polyline: false,
+                    polyline: {
+                        shapeOptions: {
+                            color: '#006d2c',
+                            clickable: true
+                        },
+                        metric: true,
+                        allowIntersection: false
+                    },
                     polygon: {
                         shapeOptions: {
                             color: '#006d2c',
                             clickable: true
                         },
                         showArea: true,
-                        metric: true
+                        metric: true,
+                        allowIntersection: false
                     },
                     rectangle: {
                         shapeOptions: {
@@ -3737,11 +4074,44 @@ angular.module(
                         },
                         metric: true
                     },
-                    // no circles for starters as not compatible with WKT
+                    // no circles as not compatible with WKT!
                     circle: false,
                     marker: false
                 };
-
+                
+                // Set the leaflet draw i18n translation texts -----------------
+                L.drawLocal.draw.toolbar.actions.title = 'Zeichnen abbrechen';
+                L.drawLocal.draw.toolbar.actions.text = 'Abbrechen';
+                L.drawLocal.draw.toolbar.finish.title = 'Zeichnen beenden';
+                L.drawLocal.draw.toolbar.finish.text = 'Beenden';
+                L.drawLocal.draw.toolbar.undo.title = 'Letzten Punkt löschen';
+                L.drawLocal.draw.toolbar.undo.text = 'Letzten Punkt löschen';
+                L.drawLocal.draw.toolbar.buttons.polyline = 'Innerhalb eines Linienzugs suchen';
+                L.drawLocal.draw.toolbar.buttons.polygon = 'Innerhalb eines Polygons suchen';
+                L.drawLocal.draw.toolbar.buttons.rectangle = 'Innerhalb eines Rechtecks suchen';
+                L.drawLocal.edit.toolbar.buttons.buffer = 'Ausgewählte Geometrie um Puffer erweitern';
+                L.drawLocal.edit.toolbar.buttons.bufferDisabled = 'Keine Geometrie zum Erweitern vorhanden';
+                L.drawLocal.draw.handlers.polygon.tooltip.start = 'Klicken um ein Polygon zu zeichnen';
+                L.drawLocal.draw.handlers.polygon.tooltip.cont = 'Klicken um das Polygon zu erweitern';
+                L.drawLocal.draw.handlers.polygon.tooltip.end = 'Mit Doppelklick das Polygon schließen';
+                L.drawLocal.draw.handlers.polyline.tooltip.start = 'Klicken um einen Linienzug zu zeichnen';
+                L.drawLocal.draw.handlers.polyline.tooltip.cont = 'Klicken um den Linienzug zu erweitern';
+                L.drawLocal.draw.handlers.polyline.tooltip.end = 'Mit Doppelklick das Zeichnen des Linienzugs zu beenden';
+                L.drawLocal.draw.handlers.polyline.error = '<strong>Achtung: </strong><br/>Die Kanten des Linienzugs dürfen sich nicht überschneiden!';
+                L.drawLocal.draw.handlers.rectangle.tooltip.start = 'Klicken um ein Rechteck zu zeichnen';
+                L.drawLocal.draw.handlers.simpleshape.tooltip.end = 'Klicken um das Zeichnen zu beenden';
+                L.drawLocal.edit.toolbar.actions.save.title = 'Änderungen speichern';
+                L.drawLocal.edit.toolbar.actions.save.text = 'Speichern';
+                L.drawLocal.edit.toolbar.actions.cancel.title = 'Abbrechnen und alle Änderungen verwerfen';
+                L.drawLocal.edit.toolbar.actions.cancel.text = 'Abbrechnen';
+                L.drawLocal.edit.toolbar.buttons.edit = 'Geometrie bearbeiten';
+                L.drawLocal.edit.toolbar.buttons.editDisabled = 'Keine Geometrie zum Bearbeiten vorhanden';
+                L.drawLocal.edit.toolbar.buttons.remove = 'Geometrie entfernen';
+                L.drawLocal.edit.toolbar.buttons.removeDisabled = 'Keine Geometrie zum Entfernen vorhanden';
+                L.drawLocal.edit.handlers.edit.tooltip.text = 'Kontrollpunkte verschieben um die Geometrie zu verändern';
+                L.drawLocal.edit.handlers.edit.tooltip.subtext = 'Auf Abgrechen klicken, um Änderungen rückgängig zu machen';
+                L.drawLocal.edit.handlers.remove.tooltip.text = 'Auf eine Geometrie klicken, um diese zu entfernen';
+                L.drawLocal.edit.handlers.buffer.tooltip.text = 'Klicken und Ziehen um die Geometrie zu vergrößern oder zu verkleinern';
 
                 configurationService.map.fitBoundsOptions = {
                     animate: true,
@@ -3749,119 +4119,8 @@ angular.module(
                     zoom: {animate: true},
                     maxZoom: null
                 };
-
-                configurationService.featureRenderer = {};
-                configurationService.featureRenderer.gazetteerStyle = {
-                    color: '#8856a7',
-                    fillColor: '#feb24c',
-                    fillOpacity: 0.3,
-                    fill: true,
-                    weight: 4,
-                    riseOnHover: false,
-                    clickable: false
-                };
-                configurationService.featureRenderer.defaultStyle = {
-                    color: '#0000FF',
-                    fill: false,
-                    weight: 2,
-                    riseOnHover: true,
-                    clickable: false
-                };
-                configurationService.featureRenderer.highlightStyle = {
-                    fillOpacity: 0.4,
-                    fill: true,
-                    fillColor: '#1589FF',
-                    riseOnHover: true,
-                    clickable: false
-                };
-
-                configurationService.featureRenderer.icons = {};
-                configurationService.featureRenderer.icons.BORIS_SITE = L.icon({
-                    iconUrl: 'icons/showel_16.png',
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8],
-                    popupAnchor: [0, 0]
-                });
-                configurationService.featureRenderer.icons.WAGW_STATION = L.icon({
-                    iconUrl: 'icons/wagw_16.png',
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8],
-                    popupAnchor: [0, 0]
-                });
-                configurationService.featureRenderer.icons.WAOW_STATION = L.icon({
-                    iconUrl: 'icons/waow_16.png',
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8],
-                    popupAnchor: [0, 0]
-                });
-                configurationService.featureRenderer.icons.EPRTR_INSTALLATION = L.icon({
-                    iconUrl: 'icons/factory_16.png',
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8],
-                    popupAnchor: [0, 0]
-                });
-                configurationService.featureRenderer.icons.MOSS = L.icon({
-                    iconUrl: 'icons/grass_16.png',
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8],
-                    popupAnchor: [0, 0]
-                });
-
-                configurationService.featureRenderer.highlightIcons = {};
-                configurationService.featureRenderer.highlightIcons.BORIS_SITE = L.icon({
-                    iconUrl: 'icons/showel_16.png',
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8],
-                    popupAnchor: [0, 0],
-                    shadowUrl: "icons/icon_shadow.png",
-                    shadowSize: [28, 28],
-                    shadowAnchor: [14, 14]
-                });
-                configurationService.featureRenderer.highlightIcons.WAGW_STATION = L.icon({
-                    iconUrl: 'icons/wagw_16.png',
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8],
-                    popupAnchor: [0, 0],
-                    shadowUrl: "icons/icon_shadow.png",
-                    shadowSize: [24, 24],
-                    shadowAnchor: [12, 12]
-                });
-                configurationService.featureRenderer.highlightIcons.WAOW_STATION = L.icon({
-                    iconUrl: 'icons/waow_16.png',
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8],
-                    popupAnchor: [0, 0],
-                    shadowUrl: "icons/icon_shadow.png",
-                    shadowSize: [24, 24],
-                    shadowAnchor: [12, 12]
-                });
-                configurationService.featureRenderer.highlightIcons.EPRTR_INSTALLATION = L.icon({
-                    iconUrl: 'icons/factory_16.png',
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8],
-                    popupAnchor: [0, 0],
-                    shadowUrl: "icons/icon_shadow.png",
-                    shadowSize: [24, 24],
-                    shadowAnchor: [12, 12]
-                });
-                configurationService.featureRenderer.highlightIcons.MOSS = L.icon({
-                    iconUrl: 'icons/grass_16.png',
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8],
-                    popupAnchor: [0, 0],
-                    shadowUrl: "icons/icon_shadow.png",
-                    shadowSize: [24, 24],
-                    shadowAnchor: [12, 12]
-                });
-
-                configurationService.featureRenderer.layergroupNames = {};
-                configurationService.featureRenderer.layergroupNames.MOSS = 'Moose';
-                configurationService.featureRenderer.layergroupNames.EPRTR_INSTALLATION = 'ePRTR Einrichtungen';
-                configurationService.featureRenderer.layergroupNames.WAOW_STATION = 'Wassermesstellen';
-                configurationService.featureRenderer.layergroupNames.WAGW_STATION = 'Grundwassermesstellen';
-                configurationService.featureRenderer.layergroupNames.BORIS_SITE = 'Bodenmesstellen';
-
-
+                // </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="=== multiselect ===========================">
                 configurationService.multiselect = {};
                 configurationService.multiselect.settings = {
                     styleActive: true,
@@ -3909,7 +4168,7 @@ angular.module(
                         id: 0,
                         geometry: null
                     }, {
-                        name: 'Boundingbox Auswahl',
+                        name: 'Ausgewählte Geometrie',
                         id: 1,
                         geometry: null,
                         disabled: true
@@ -4077,7 +4336,8 @@ angular.module(
 
                 var config, getFeatureRenderer, createNodeFeature,
                         createGazetteerLocationLayer, createNodeFeatureGroups,
-                        createOverlayLayer, getIconForNode, getHighlightIconForNode;
+                        createOverlayLayer, getIconForNode, getHighlightIconForNode,
+                        applyZoomLevelRestriction;
 
                 config = configurationService.featureRenderer;
 
@@ -4125,6 +4385,7 @@ angular.module(
                             feature.$key = node.objectKey;
                             feature.$groupKey = theme;
                             feature.$node = node;
+                            feature.$hidden = false;
 
                             feature.on('click', function (e) {
                                 selectNodeCallback(this.$node);
@@ -4154,8 +4415,9 @@ angular.module(
                  * @param {type} gazetteerLocation
                  * @returns {featureRendererService_L18.createGazetteerLocationLayer.featureLayer}
                  */
-                createGazetteerLocationLayer = function (gazetteerLocation) {
-                    var wktString, wktObject, geometryCollection, featureLayer;
+                createGazetteerLocationLayer = function (gazetteerLocation, gazetteerLocationCallback) {
+                    var wktString, wktObject, geometryCollection, featureLayer,
+                            gazetteerLocationPopup;
                     if (gazetteerLocation.hasOwnProperty('area')) {
                         wktString = gazetteerLocation.area.geo_field;
                         geometryCollection = false;
@@ -4178,6 +4440,22 @@ angular.module(
                     featureLayer.setStyle(angular.copy(config.gazetteerStyle));
                     featureLayer.$name = gazetteerLocation.name;
                     featureLayer.$key = 'gazetteerLocation';
+                    
+                    /*gazetteerLocationPopup = L.popup.angular({
+                                template: '<div>' +
+                                        '<h5"><strong><a ng-click="$content.gazetteerLocationCallback()>' +
+                                        'verwenden'+
+                                        '</a></strong></h5>' +
+                                        '</div>'
+                            });
+
+                    featureLayer.setContent({
+                        gazetteerLocationCallback: function(){
+                            gazetteerLocationCallback(featureLayer);
+                        }
+                    });
+                    
+                    featureLayer.bindPopup(featureLayer);*/
 
                     // not needed atm:
                     //gazetteerLocation.$layer = featureLayer;
@@ -4293,6 +4571,31 @@ angular.module(
                     icon = config.highlightIcons[theme];
 
                     return icon;
+                };
+
+                /**
+                 * Show or hide features depending on zoom level
+                 * 
+                 * @param {type} featureGroupLayer
+                 * @param {type} currentZoomLevel
+                 * @param {type} maxZoomLevel
+                 * @returns {undefined}
+                 */
+                applyZoomLevelRestriction = function (featureGroupLayer, currentZoomLevel) {
+                    var maxZoomLevel = featureGroupLayer.$maxZoom;
+                    if (currentZoomLevel > maxZoomLevel) {
+                        //console.log(' hiding ' + featureGroupLayer.getLayers().length + ' features at zoom level ' + zoomLevel);
+                        featureGroupLayer.eachLayer(function (feature) {
+                            feature.setOpacity(0);
+                            feature.$hidden = true;
+                        });
+                    } else {
+                        //console.log(' showing ' + featureGroupLayer.getLayers().length + ' features at zoom level ' + zoomLevel);
+                        featureGroupLayer.eachLayer(function (feature) {
+                            feature.setOpacity(1);
+                            feature.$hidden = false;
+                        });
+                    }
                 };
 
                 // </editor-fold>
@@ -4454,6 +4757,7 @@ angular.module(
                     createOverlayLayer: createOverlayLayer,
                     getIconForNode: getIconForNode,
                     getHighlightIconForNode: getHighlightIconForNode,
+                    applyZoomLevelRestriction: applyZoomLevelRestriction,
                     defaultStyle: config.defaultStyle,
                     highlightStyle: config.highlightStyle
                 };
@@ -4470,94 +4774,21 @@ angular.module(
  * ***************************************************
  */
 
-/* global Wkt */
+/* global angular, Wkt */
 
 angular.module('de.cismet.uim2020-html5-demonstrator.services')
-        .factory('geoTools', 
-        ['leafletData',
-    function (leafletData) {
-            'use strict';
-            var wicket, defaultStyle, noDrawOptions, defaultDrawOptions, 
-                    readSpatialCoverageFunction, writeSpatialCoverageFunction, 
-                    fireResizeFunction;
-            
-            wicket = new Wkt.Wkt();
-            defaultStyle = {color: '#0000FF', fillOpacity: 0.3, weight: 2, fill: true, fillColor: '#1589FF', riseOnHover: true, clickable: true};
-            
-            defaultDrawOptions = {
-                    polyline: false,
-                    polygon: {
-                        shapeOptions: defaultStyle,
-                        showArea: true,
-                        metric: true,
-                        allowIntersection: false,
-                        drawError: {
-                            color: '#e1e100', // Color the shape will turn when intersects
-                            message: '<strong>Oh snap!<strong> you can\'t draw that!</strong>' // Message that will show when intersect
-                        }       
-                    },
-                    rectangle: {
-                        shapeOptions: defaultStyle,
-                        metric: true
-                    },
-                    // no circles for starters as not compatible with WKT
-                    circle: false,
-                    marker: false
-                };
-                
-            noDrawOptions = { 
-                polyline: false,
-                polygon: false,
-                rectangle: false,
-                circle: false,
-                marker: false
-            };
-            
-            
-            
-            readSpatialCoverageFunction = function(dataset) {
-                if(dataset.spatialcoverage && dataset.spatialcoverage.geo_field) { // jshint ignore:line
-                    var wktString = dataset.spatialcoverage.geo_field; // jshint ignore:line
-                    
-                    // WKT from REST API contains EPSG definition. 
-                    // WKT from data upload tool does not!
-                    if(wktString.indexOf(';') !== -1) {
-                        wicket.read(wktString.substr(wktString.indexOf(';') + 1));
-                    } else {
-                        wicket.read(wktString);
-                    }
-                    var layer = wicket.toObject(defaultStyle);
-                    layer.setStyle(defaultStyle);
-                    return layer;
-                }
+        .factory('geoTools',
+                ['leafletData',
+                    function (leafletData) {
+                        'use strict';
+                        var wicket;
 
-                return undefined;
-            };
-            
-            writeSpatialCoverageFunction = function(dataset, wktString) {
-                if(wktString && dataset.spatialcoverage) { // jshint ignore:line
-                    var wktStringWithSRS = 'SRID=4326;'+wktString;
-                    dataset.spatialcoverage.geo_field = wktStringWithSRS; // jshint ignore:line
-                }
-            };
+                        wicket = new Wkt.Wkt();
 
-            fireResizeFunction = function (mapid) {
-                leafletData.getMap(mapid).then(function (map) {
-                    setTimeout(function(){ map.invalidateSize();}, 50);
-                });
-            };
-            
-        
-        return {
-            wicket:wicket,
-            defaultStyle:defaultStyle,
-            defaultDrawOptions:defaultDrawOptions,
-            noDrawOptions:noDrawOptions,
-            readSpatialCoverage:readSpatialCoverageFunction,
-            writeSpatialCoverage:writeSpatialCoverageFunction,
-            fireResize:fireResizeFunction
-        };    
-	}]);
+                        return {
+                            wicket: wicket
+                        };
+                    }]);
 
 
 

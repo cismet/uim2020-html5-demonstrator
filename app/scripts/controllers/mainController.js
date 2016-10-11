@@ -50,7 +50,17 @@ angular.module(
                  * @returns {undefined}
                  */
                 mainController.addAnalysisNode = function (node) {
-                    var index = sharedDatamodel.analysisNodes.indexOf(node);
+                    var i, index;
+
+                    // indexOf does not work since node$feature is different!
+                    index = -1; //sharedDatamodel.analysisNodes.indexOf(node);
+                    for (i = 0; i < sharedDatamodel.analysisNodes.length; i++) {
+                        if (sharedDatamodel.analysisNodes[i].objectKey === node.objectKey) {
+                            index = i;
+                            break;
+                        }
+                    }
+
                     if (index !== -1) {
                         console.warn("mainController::addAnalysisNode: node '" + node.name + "' already in list of analysis nodes!");
                     } else {

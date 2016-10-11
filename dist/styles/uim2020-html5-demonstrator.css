@@ -44,6 +44,11 @@ form-signin-page {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
+.leaflet-draw-toolbar a {
+	background-image: url('../images/spritesheet.png');
+	background-repeat: no-repeat;
+        background-size: 330px 30px;
+}
 .cs-navbar-top {
     margin-bottom: 0px !important;
 }

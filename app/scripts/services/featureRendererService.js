@@ -21,7 +21,8 @@ angular.module(
 
                 var config, getFeatureRenderer, createNodeFeature,
                         createGazetteerLocationLayer, createNodeFeatureGroups,
-                        createOverlayLayer, getIconForNode, getHighlightIconForNode;
+                        createOverlayLayer, getIconForNode, getHighlightIconForNode,
+                        applyZoomLevelRestriction;
 
                 config = configurationService.featureRenderer;
 
@@ -69,6 +70,7 @@ angular.module(
                             feature.$key = node.objectKey;
                             feature.$groupKey = theme;
                             feature.$node = node;
+                            feature.$hidden = false;
 
                             feature.on('click', function (e) {
                                 selectNodeCallback(this.$node);
@@ -98,8 +100,9 @@ angular.module(
                  * @param {type} gazetteerLocation
                  * @returns {featureRendererService_L18.createGazetteerLocationLayer.featureLayer}
                  */
-                createGazetteerLocationLayer = function (gazetteerLocation) {
-                    var wktString, wktObject, geometryCollection, featureLayer;
+                createGazetteerLocationLayer = function (gazetteerLocation, setSearchGeometryFromGazetteerLocationLayer) {
+                    var wktString, wktObject, geometryCollection, gazetteerLocationLayer,
+                            gazetteerLocationPopup;
                     if (gazetteerLocation.hasOwnProperty('area')) {
                         wktString = gazetteerLocation.area.geo_field;
                         geometryCollection = false;
@@ -114,19 +117,33 @@ angular.module(
                     wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
 
                     if (geometryCollection === true) {
-                        featureLayer = wktObject.toObject().getLayers()[0];
+                        gazetteerLocationLayer = wktObject.toObject().getLayers()[0];
                     } else {
-                        featureLayer = wktObject.toObject();
+                        gazetteerLocationLayer = wktObject.toObject();
                     }
 
-                    featureLayer.setStyle(angular.copy(config.gazetteerStyle));
-                    featureLayer.$name = gazetteerLocation.name;
-                    featureLayer.$key = 'gazetteerLocation';
+                    gazetteerLocationLayer.setStyle(angular.copy(config.gazetteerStyle));
+                    gazetteerLocationLayer.$name = gazetteerLocation.name;
+                    gazetteerLocationLayer.$key = 'gazetteerLocation';
+
+                    gazetteerLocationPopup = L.popup.angular({
+                        template: '<div>' +
+                                '<h5"><strong><a ng-click="$content.setSearchGeometryFromGazetteerLocation()">' +
+                                'Diese Geometrie für die Suche verwenden' +
+                                '</a></strong></h5>' +
+                                '</div>'
+                    });
+
+                    gazetteerLocationPopup.setContent({
+                        setSearchGeometryFromGazetteerLocation: setSearchGeometryFromGazetteerLocationLayer
+                    });
+
+                    gazetteerLocationLayer.bindPopup(gazetteerLocationPopup);
 
                     // not needed atm:
-                    //gazetteerLocation.$layer = featureLayer;
+                    //gazetteerLocation.$layer = gazetteerLocationLayer;
 
-                    return featureLayer;
+                    return gazetteerLocationLayer;
                 };
 
                 /**
@@ -237,6 +254,31 @@ angular.module(
                     icon = config.highlightIcons[theme];
 
                     return icon;
+                };
+
+                /**
+                 * Show or hide features depending on zoom level
+                 * 
+                 * @param {type} featureGroupLayer
+                 * @param {type} currentZoomLevel
+                 * @param {type} maxZoomLevel
+                 * @returns {undefined}
+                 */
+                applyZoomLevelRestriction = function (featureGroupLayer, currentZoomLevel) {
+                    var maxZoomLevel = featureGroupLayer.$maxZoom;
+                    if (currentZoomLevel > maxZoomLevel) {
+                        //console.log(' hiding ' + featureGroupLayer.getLayers().length + ' features at zoom level ' + zoomLevel);
+                        featureGroupLayer.eachLayer(function (feature) {
+                            feature.setOpacity(0);
+                            feature.$hidden = true;
+                        });
+                    } else {
+                        //console.log(' showing ' + featureGroupLayer.getLayers().length + ' features at zoom level ' + zoomLevel);
+                        featureGroupLayer.eachLayer(function (feature) {
+                            feature.setOpacity(1);
+                            feature.$hidden = false;
+                        });
+                    }
                 };
 
                 // </editor-fold>
@@ -398,6 +440,7 @@ angular.module(
                     createOverlayLayer: createOverlayLayer,
                     getIconForNode: getIconForNode,
                     getHighlightIconForNode: getHighlightIconForNode,
+                    applyZoomLevelRestriction: applyZoomLevelRestriction,
                     defaultStyle: config.defaultStyle,
                     highlightStyle: config.highlightStyle
                 };

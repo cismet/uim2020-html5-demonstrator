@@ -25,7 +25,7 @@ angular.module(
                         id: 0,
                         geometry: null
                     }, {
-                        name: 'Boundingbox Auswahl',
+                        name: 'Ausgewählte Geometrie',
                         id: 1,
                         geometry: null,
                         disabled: true

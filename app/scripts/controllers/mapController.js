@@ -6,19 +6,21 @@ angular.module(
         ).controller(
         'mapController',
         ['$scope',
+            '$timeout',
             'leafletData',
             'configurationService',
             'sharedDatamodel',
             'sharedControllers',
             'featureRendererService',
-            function ($scope, leafletData, configurationService,
+            function ($scope, $timeout, leafletData, configurationService,
                     sharedDatamodel, sharedControllers, featureRendererService) {
                 'use strict';
 
                 var leafletMap, mapId, mapController, config, layerControl, searchGeometryLayerGroup, drawControl,
                         defaults, center, basemaps, overlays, layerControlOptions,
                         drawOptions, maxBounds, setSearchGeometry, gazetteerLocationLayer, layerControlMappings,
-                        overlaysNodeLayersIndex, fitBoundsOptions, selectedNode, selectNode;
+                        overlaysNodeLayersIndex, fitBoundsOptions, selectedNode, selectNode, featureLayersWithZoomRestriction,
+                        nodeOverlays, setSearchGeometryFromGazetteerLocationLayer;
 
                 mapController = this;
                 mapController.mode = $scope.mainController.mode;
@@ -32,6 +34,7 @@ angular.module(
                 searchGeometryLayerGroup.$key = 'searchGeometries';
                 gazetteerLocationLayer = null;
 
+                featureLayersWithZoomRestriction = [];
                 overlays = [];
                 defaults = angular.copy(config.defaults);
                 center = angular.copy(config.maxBounds);
@@ -42,6 +45,7 @@ angular.module(
                 fitBoundsOptions = angular.copy(config.fitBoundsOptions);
 
                 selectedNode = null;
+                nodeOverlays = angular.copy(config.nodeOverlays);
 
                 if (mapController.mode === 'search') {
                     mapController.nodes = sharedDatamodel.resultNodes;
@@ -52,23 +56,28 @@ angular.module(
                         expanded: false,
                         layers: {}
                     });
-                    overlays.push(angular.copy(config.nodeOverlays));
+
+                    overlays.push(nodeOverlays);
                     overlaysNodeLayersIndex = 1; // after gazetteer layer ....
 
                     // drawControl only available in search mode
                     drawControl = new L.Control.Draw({
                         draw: drawOptions,
-                        /*edit: {
-                         featureGroup: searchGeometryLayerGroup
-                         }*/
-                        edit: false,
-                        remove: false
+                        edit: {
+                            featureGroup: searchGeometryLayerGroup,
+                            remove: false, // disable removal
+                            buffer: {
+                                replace_polylines: false, // why false? because true does not work !!??!!
+                                separate_buffer: false,
+                                buffer_style: drawOptions.polygon.shapeOptions
+                            }
+                        }
                     });
                 } else if (mapController.mode === 'analysis') {
                     mapController.nodes = sharedDatamodel.analysisNodes;
                     sharedControllers.analysisMapController = mapController;
 
-                    overlays.push(angular.copy(config.nodeOverlays));
+                    overlays.push(nodeOverlays);
                     overlays.push({
                         groupName: configurationService.map.layerGroupMappings['external'],
                         expanded: false,
@@ -77,6 +86,24 @@ angular.module(
                     overlaysNodeLayersIndex = 0; // before external layers ....
                 }
 
+                // TODO: iterate properties
+                if (overlays[overlaysNodeLayersIndex].layers[config.layerMappings['BORIS_SITE']].$maxZoom) {
+                    featureLayersWithZoomRestriction.push(overlays[overlaysNodeLayersIndex].layers[config.layerMappings['BORIS_SITE']]);
+                }
+                if (overlays[overlaysNodeLayersIndex].layers[config.layerMappings['EPRTR_INSTALLATION']].$maxZoom) {
+                    featureLayersWithZoomRestriction.push(overlays[overlaysNodeLayersIndex].layers[config.layerMappings['EPRTR_INSTALLATION']]);
+                }
+                if (overlays[overlaysNodeLayersIndex].layers[config.layerMappings['MOSS']].$maxZoom) {
+                    featureLayersWithZoomRestriction.push(overlays[overlaysNodeLayersIndex].layers[config.layerMappings['MOSS']]);
+                }
+                if (overlays[overlaysNodeLayersIndex].layers[config.layerMappings['WAGW_STATION']].$maxZoom) {
+                    featureLayersWithZoomRestriction.push(overlays[overlaysNodeLayersIndex].layers[config.layerMappings['WAGW_STATION']]);
+                }
+                if (overlays[overlaysNodeLayersIndex].layers[config.layerMappings['WAOW_STATION']].$maxZoom) {
+                    featureLayersWithZoomRestriction.push(overlays[overlaysNodeLayersIndex].layers[config.layerMappings['WAOW_STATION']]);
+                }
+
+                // TODO: iterate overlays!
                 layerControlMappings = {};
                 // Basemap Mappings
                 layerControlMappings.basemap_at =
@@ -121,6 +148,7 @@ angular.module(
                         layerControlOptions);
 
                 // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ===========================">
+
                 /**
                  * Select a node in the map and changes the feature icon
                  * 
@@ -131,21 +159,46 @@ angular.module(
                     var icon;
 
                     // reset selection
-                    if (selectedNode !== null && selectedNode.$feature) {
+                    if (selectedNode !== node && selectedNode !== null && selectedNode.$feature) {
                         icon = featureRendererService.getIconForNode(selectedNode);
                         selectedNode.$feature.setIcon(icon);
                     }
 
                     if (node.$feature) {
                         selectedNode = node;
+
+                        // highlight only visible features!
+                        //if (!node.$feature.$hidden) {
                         icon = featureRendererService.getHighlightIconForNode(selectedNode);
                         selectedNode.$feature.setIcon(icon);
+                        //}
+
+                        if (node.$feature.$hidden) {
+                            selectedNode.$feature.setOpacity(0);
+                        }
 
                     } else {
                         selectedNode = null;
                     }
 
                     return selectedNode;
+                };
+
+                setSearchGeometryFromGazetteerLocationLayer = function () {
+                    if (gazetteerLocationLayer !== null) {
+                        var searchGeometryLayer = gazetteerLocationLayer;
+                        gazetteerLocationLayer.closePopup();
+                        gazetteerLocationLayer.unbindPopup();
+                        layerControl.removeLayer(gazetteerLocationLayer);
+                        leafletMap.removeLayer(gazetteerLocationLayer);
+                        gazetteerLocationLayer = null;
+                        
+                        searchGeometryLayer.setStyle(drawOptions.polygon.shapeOptions);
+                        setSearchGeometry(searchGeometryLayer, 'polygon');                        
+                        
+                    } else {
+                        console.warn('setSearchGeometryFromGazetteerLocationLayer: no gazetteerLocationLayer available!');
+                    }
                 };
 
                 /**
@@ -156,6 +209,7 @@ angular.module(
                  * @returns {undefined}
                  */
                 setSearchGeometry = function (searchGeometryLayer, layerType) {
+                    console.log('setSearchGeometry: ' + layerType);
                     if (mapController.mode === 'search') {
                         searchGeometryLayerGroup.clearLayers();
                         if (searchGeometryLayer !== null) {
@@ -164,7 +218,7 @@ angular.module(
                             searchGeometryLayer.$key = 'searchGeometry';
                             searchGeometryLayerGroup.addLayer(searchGeometryLayer);
 
-                            if (config.options.centerOnSearchGeometry) {
+                            if (config.options.centerOnSearchGeometry && searchGeometryLayerGroup.getBounds()) {
                                 leafletData.getMap(mapId).then(function (map) {
                                     map.fitBounds(searchGeometryLayerGroup.getBounds(), {
                                         animate: true,
@@ -174,14 +228,14 @@ angular.module(
                                     });
                                 });
                             }
-                            searchGeometryLayer.once('click', function (event) {
-                                setSearchGeometry(null);
-                            });
-
-                            // TODO: set sharedDatamodel.selectedSearchGeometry!
+                            
+                            sharedDatamodel.selectedSearchLocation.id = 1;
+                        } else {
+                            // ignore
+                            // console.warn("mapController:: cannot add empty search geometry layer!");
                         }
                     } else {
-                        console.warn("mapController:: cannot add search geomatry to analysis map!");
+                        console.warn("mapController:: cannot add search geometry to analysis map!");
                     }
                 };
                 //<editor-fold/>
@@ -338,11 +392,22 @@ angular.module(
                  * @returns {undefined}
                  */
                 mapController.gotoNode = function (node) {
-                    var theSelectedNode;
+                    var theSelectedNode, zoom;
 
+                    zoom = 14;
                     theSelectedNode = selectNode(node);
+
                     if (theSelectedNode) {
-                        leafletMap.setView(selectedNode.$feature.getLatLng(), 14 /*leafletMap.getZoom()*/);
+
+                        // FIXME: probably immediate clustered layer in between!
+                        if (theSelectedNode.$feature.__parent &&
+                                theSelectedNode.$feature.__parent._group &&
+                                theSelectedNode.$feature.__parent._group.$maxZoom) {
+
+                            zoom = theSelectedNode.$feature.__parent._group.$maxZoom;
+                        }
+
+                        leafletMap.setView(selectedNode.$feature.getLatLng(), zoom);
                         //node.$feature.togglePopup();
                     }
                 };
@@ -354,6 +419,8 @@ angular.module(
                  * @returns {undefined}
                  */
                 mapController.addNode = function (node) {
+
+                    // FIXME: prevent adding duplicate nodes!
                     if (mapController.mode === 'analysis') {
                         mapController.setNodes([node]);
 
@@ -422,8 +489,11 @@ angular.module(
                  * @returns {undefined}
                  */
                 mapController.gotoNodes = function () {
-                    var bounds, nodeLayerControlIds, featureGroupLayer;
+                    var bounds, nodeLayerControlIds, featureGroupLayer, nodesFitBoundsOptions;
 
+                    nodesFitBoundsOptions = angular.extend({}, fitBoundsOptions);
+
+                    // FIXME: take from nodeOverlays
                     nodeLayerControlIds = [
                         layerControlMappings.BORIS_SITE,
                         layerControlMappings.EPRTR_INSTALLATION,
@@ -438,14 +508,24 @@ angular.module(
                             featureGroupLayer = layerControl._layers[layerControlId].layer;
 
                             // center only on visible layers!
-                            if (leafletMap.hasLayer(featureGroupLayer)) {
+                            // for some reason, a layer without any features has non-empty bounds ?!
+                            if (leafletMap.hasLayer(featureGroupLayer) &&
+                                    featureGroupLayer.getLayers() && featureGroupLayer.getLayers().length > 0) {
+
                                 bounds = !bounds ? featureGroupLayer.getBounds() : bounds.extend(featureGroupLayer.getBounds());
+                                if (featureGroupLayer.$maxZoom) {
+                                    nodesFitBoundsOptions.maxZoom = featureGroupLayer.$maxZoom;
+                                }
                             }
                         }
                     });
 
                     if (bounds) {
-                        leafletMap.fitBounds(bounds, fitBoundsOptions);
+                        leafletData.getMap(mapId).then(function (map) {
+                            map.fitBounds(bounds, nodesFitBoundsOptions);
+                            //console.log('fit bounds:' + JSON.stringify(bounds));
+                            //console.log('fit bounds:' + JSON.stringify(nodesFitBoundsOptions));
+                        });
                     }
                 };
 
@@ -459,9 +539,10 @@ angular.module(
                  */
                 mapController.setNodes = function (nodes, fitBounds, clearLayers) {
                     var featureGroups, featureGroup, featureGroupLayer, theme,
-                            layerControlId, bounds;
+                            layerControlId;
 
-                    if (!clearLayers) {
+                    // check for falsy, undefoined, whatever, ....
+                    if (clearLayers !== false && clearLayers !== true) {
                         clearLayers = mapController.mode === 'search' ? true : false;
                     }
 
@@ -485,20 +566,28 @@ angular.module(
                                 /*jshint loopfunc:true */
                                 featureGroup.forEach(function (feature) {
                                     feature.addTo(featureGroupLayer);
+                                    if (featureGroup.$maxZoom) {
+                                        var currentZoomLevel = leafletMap.getZoom();
+
+                                        if (currentZoomLevel > featureGroup.$maxZoom) {
+                                            feature.setOpacity(0);
+                                            feature.$hidden = true;
+                                        } else {
+                                            feature.setOpacity(1);
+                                            feature.$hidden = false;
+                                        }
+                                    }
                                 });
 
                                 layerControl.selectLayer(featureGroupLayer);
-                                if (fitBounds) {
-                                    bounds = !bounds ? featureGroupLayer.getBounds() : bounds.extend(featureGroupLayer.getBounds());
-                                }
                             } else {
                                 console.warn("mapController::setNodes unsupported theme (feature group) '" + theme + "'");
                             }
 
                         }
 
-                        if (bounds) {
-                            leafletMap.fitBounds(bounds, fitBoundsOptions);
+                        if (fitBounds) {
+                            mapController.gotoNodes();
                         }
                     }
 
@@ -515,8 +604,12 @@ angular.module(
                                 gazetteerLocationLayer = null;
                             }
 
+                            // pass setSearchGeometry function to be called in popup
                             gazetteerLocationLayer =
-                                    featureRendererService.createGazetteerLocationLayer(gazetteerLocation);
+                                    featureRendererService.createGazetteerLocationLayer(
+                                            gazetteerLocation,
+                                            setSearchGeometryFromGazetteerLocationLayer);
+
                             layerControlMappings.gazetteer =
                                     L.stamp(gazetteerLocationLayer);
 
@@ -660,15 +753,47 @@ angular.module(
                         map.addControl(drawControl);
 
                         map.on('draw:created', function (event) {
+
+                            // ugly workaround for leafleft.buffer plugin which does not set the layer type
+                            if (!event.layerType) {
+                                event.layerType = 'polygon';
+                            }
+                            console.log('draw:created: ' + event.layerType);
                             setSearchGeometry(event.layer, event.layerType);
                             // this is madness!
                             sharedDatamodel.selectedSearchLocation.id = 1;
+                            console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+
+                            // directly switch to expand mode after drawing polyline
+                            if (event.layerType === 'polyline') {
+                                // FIXME: prevent search in line geometry if user skiops or cancels expand
+                                drawControl._toolbars.edit._modes.buffer.handler.enable();
+                            }
                         });
 
-                        map.on('draw:deleted', function (event) {
-                            setSearchGeometry(null);
-                            sharedDatamodel.selectedSearchLocation.id = 0;
-                        });
+                        /*map.on('draw:edited', function (event) {
+                         console.log('draw:edited: ' + event.layers.getLayers().length);
+                         console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                         });*/
+
+                        /*map.on('draw:deleted', function (event) {
+                         console.log('draw:deleted: ' + event.layers.getLayers().length);
+                         if (event.layers.getLayers().length > 0) {
+                         // ugly workaround for leafleft.buffer plugin which does not remove expanded polyline layers
+                         event.layers.eachLayer(function (deletedLayer) {
+                         searchGeometryLayerGroup.removeLayer(deletedLayer);
+                         });
+                         }
+                         
+                         console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                         if (searchGeometryLayerGroup.getLayers().length === 0) {
+                         sharedDatamodel.selectedSearchLocation.id = 0;
+                         }
+                         });*/
+
+                        /*map.on('draw:buffered', function (event) {
+                         console.log('draw:buffered: ' + event.layers.getLayers().length);
+                         });*/
                     }
 
                     map.addControl(layerControl);
@@ -680,10 +805,33 @@ angular.module(
                     // select the default basemap
                     layerControl.selectLayer(basemaps[0].layers[config.defaultBasemapLayer]);
 
+                    /**
+                     * Show or hide features based on zoom level
+                     */
+                    map.on('zoomend', function () {
+                        var currentZoomLevel, zoom;
+
+                        // always close popups on close: it may leak the position of a hidden feature!
+                        map.closePopup();
+                        currentZoomLevel = map.getZoom();
+
+                        // check all layers with restrictions
+                        featureLayersWithZoomRestriction.forEach(function (featureGroupLayer) {
+                            if (map.hasLayer(featureGroupLayer) && featureGroupLayer.$maxZoom) {
+                                featureRendererService.applyZoomLevelRestriction(featureGroupLayer, currentZoomLevel);
+
+                                // if a node is selected when the layer is invisiable (max zoom level exceeded), show the selection
+                                // FIXME: find beter option to avoid unecessary class to selectedNode()
+                                /*if(selectedNode) {
+                                 selectNode(selectedNode);
+                                 }*/
+                            }
+                        });
+                    });
+
                     // FIXME: removes also layers from layercontrol that are just deselected!
                     map.on('layerremove', function (layerEvent) {
                         var removedLayer = layerEvent.layer;
-
 
                         if (removedLayer.StyledLayerControl &&
                                 removedLayer.StyledLayerControl.removable &&
@@ -692,13 +840,25 @@ angular.module(
                             layerControl.removeLayer(removedLayer);
                         }
 
-                        console.log('mapController:: layer removed: ' + removedLayer.$name +
-                                ' (' + L.stamp(removedLayer) + ')');
+                        /*console.log('mapController:: layer removed: ' + removedLayer.$name +
+                         ' (' + L.stamp(removedLayer) + ')');*/
 
                         if (removedLayer && removedLayer === gazetteerLocationLayer) {
-                            console.log('mapController::gazetteerLocationLayer removed');
+                            //console.log('mapController::gazetteerLocationLayer removed');
                             //gazetteerLocationLayer = null;
                             //layerControl.removeLayer(gazetteerLocationLayer);
+                        }
+                    });
+
+                    /**
+                     * Hide features on may zoom.
+                     * This function is necessary, since StyledLayerControl removes 
+                     * and adds visiable or hidden layers from map ...
+                     */
+                    map.on('layeradd', function (layerEvent) {
+                        var addedLayer = layerEvent.layer;
+                        if (addedLayer.$maxZoom) {
+                            featureRendererService.applyZoomLevelRestriction(addedLayer, map.getZoom());
                         }
                     });
 
@@ -706,13 +866,22 @@ angular.module(
                     if (mapController.mode === 'analysis' &&
                             sharedDatamodel.analysisNodes &&
                             sharedDatamodel.analysisNodes.length > 0) {
-                        // set nodes and fit bounds
-                        mapController.setNodes(sharedDatamodel.analysisNodes, true);
+
+                        // set nodes and fit bounds manually after delay (to allow map to be rendered)
+                        mapController.setNodes(sharedDatamodel.analysisNodes, false);
+                        $timeout(function () {
+                            mapController.gotoNodes();
+                        }, 500);
                     } else if (mapController.mode === 'search' &&
                             sharedDatamodel.resultNodes &&
                             sharedDatamodel.resultNodes.length > 0) {
                         console.warn(sharedDatamodel.resultNodes.length + ' result nodes available before search map controler instance created: possible sticky state synchrnoisation problem!');
-                        mapController.setNodes(sharedDatamodel.resultNodes, true, true);
+
+                        // set nodes and fit bounds manually after delay (to allow map to be rendered)
+                        mapController.setNodes(sharedDatamodel.resultNodes, false, true);
+                        $timeout(function () {
+                            mapController.gotoNodes();
+                        }, 500);
                     }
                 });
 
@@ -720,6 +889,5 @@ angular.module(
                 // FIXME: use sharedControllers Service instead
                 $scope.$parent.mapController = mapController;
 
-                console.log($scope.mainController.mode + ' map controller instance created');
             }]
         );

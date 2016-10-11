@@ -18,12 +18,12 @@ angular.module(
             'use strict';
 
             return function (data) {
-                if(!data) {
-                    return null;
-                }
-                
                 var description = 'keine Beschreibung verfügbar';
-                
+
+                if (!data) {
+                    return description;
+                }
+
                 // BORIS
                 if (data.literatur || data.institut) {
                     if (data.literatur) {
@@ -46,8 +46,8 @@ angular.module(
                     if (data.zustaendigestelle) {
                         description = 'Zuständige Stelle: ' + data.zustaendigestelle;
                         /*if (data.bundesland && data.bundesland !== data.zustaendigestelle) {
-                            description += (' (' + data.bundesland + ")");
-                        }*/
+                         description += (' (' + data.bundesland + ")");
+                         }*/
                     } else {
                         description = 'Bundesland Stelle: ' + data.bundesland;
                     }
@@ -58,11 +58,12 @@ angular.module(
                     } else {
                         description = '';
                     }
-                    
-                    if(data.sampleid) {
+
+                    if (data.sampleid) {
                         description += 'Probennummer: ' + data.sampleid;
                     }
                 }
+
                 return description;
             };
         }
