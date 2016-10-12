@@ -1619,14 +1619,16 @@ angular.module(
         'listController',
         [
             '$scope', 'configurationService',
-            'sharedDatamodel', 'TagPostfilterCollection', 'NgTableParams',
-            function ($scope, configurationService,
-                    sharedDatamodel, TagPostfilterCollection, NgTableParams) {
+            'sharedDatamodel', 'TagPostfilterCollection', 'postfilterService', 'NgTableParams',
+            function ($scope, configurationService, sharedDatamodel, TagPostfilterCollection,
+                    postfilterService, NgTableParams) {
                 'use strict';
 
-                var listController, ngTableParams;
+                var listController, ngTableParams, postfilters;
 
                 listController = this;
+                postfilters = [];
+
                 listController.mode = $scope.mainController.mode;
 
                 listController.resultNodes = sharedDatamodel.resultNodes;
@@ -1683,38 +1685,96 @@ angular.module(
                         });
 
 
-                listController.pollutantPostfilters = new TagPostfilterCollection('ALL', 'POLLUTANT', 'Schadstoffe');
+
+                // Allgemeine Schadstoffe
+                listController.pollutantPostfilters = new TagPostfilterCollection(
+                        'ALL',
+                        'POLLUTANT',
+                        'Schadstoffe');
+                postfilters.push(listController.pollutantPostfilters);
+
+                // EPRTR Meldeperiode
+                listController.notificationPeriodPostfilters = new TagPostfilterCollection(
+                        'EPRTR_INSTALLATION',
+                        'EPRTR.NOTIFICATION_PERIOD',
+                        'Meldeperiode');
+                postfilters.push(listController.notificationPeriodPostfilters);
+
+                // EPRTR Freisetzungsart
+                listController.releaseTypePostfilters = new TagPostfilterCollection(
+                        'EPRTR_INSTALLATION',
+                        'EPRTR.RELEASE_TYPE',
+                        'Freisetzungsart');
+                postfilters.push(listController.releaseTypePostfilters);
 
                 listController.clearPostfilters = function () {
-                    listController.pollutantPostfilters.clear();
+                    postfilters.forEach(function (postfilterCollection) {
+                        postfilterCollection.clear();
+                    });
                 };
 
-                listController.setNodes = function (nodes) {
-                    var i, node, tags, feature, featureGroup, featureGroups;
-                    
+                listController.applyPostfilters = function () {
+                    var nodes, promise;
+
+                    // filter nodes in place
+                    nodes = sharedDatamodel.resultNodes;
+                    promise = postfilterService.filterNodesByTags(sharedDatamodel.resultNodes, postfilters);
+
+                    promise.then(
+                            function resolve(filteredNodesIndices) {
+                                // don't reset the postfilters!
+                                listController.setNodes(nodes, false);
+
+                                if (filteredNodesIndices.length < nodes.length) {
+                                    sharedDatamodel.status.type = 'success';
+                                    sharedDatamodel.status.message = listController.getAppliedPostfiltersSize() +
+                                            ' Postfilter angewendet und ' +
+                                            filteredNodesIndices.length + ' von ' +
+                                            nodes.length + ' Messstellen herausgefiltert.';
+                                } else {
+                                    sharedDatamodel.status.type = 'warning';
+                                    sharedDatamodel.status.message = 'Alle ' +
+                                            nodes.length + ' Messstellen wurden herausgefiltert. Bitte setzen Sie die Postfilter zurück.';
+                                }
+
+                            }, function reject(filteredNodesIndices) {
+                        sharedDatamodel.status.type = 'danger';
+                        sharedDatamodel.status.message = 'Beim Anwenden der Postfilter ist ein Fehler aufgetreten.';
+                    });
+                };
+
+                listController.resetPostfilters = function () {
+                    postfilterService.resetFilteredNodes(sharedDatamodel.resultNodes);
+                    listController.setNodes(sharedDatamodel.resultNodes);
+                    sharedDatamodel.status.type = 'success';
+                    sharedDatamodel.status.message = 'Alle Postfilter zurückgesetzt.';
+                };
+
+                listController.getAppliedPostfiltersSize = function () {
+                    var appliedPostfiltersSize = 0;
+                    postfilters.forEach(function (postfilterCollection) {
+                        appliedPostfiltersSize += postfilterCollection.getDeselectedKeys().length;
+                    });
+
+                    return appliedPostfiltersSize;
+                };
+
+                listController.setNodes = function (nodes, clearPostfilters) {
                     listController.tableData.reload();
                     
-                    // clear all
-                    listController.clearPostfilters();
-                    if (nodes !== null && nodes.length > 0) {
-                        for (i = 0; i < nodes.length; ++i) {
-                            node = nodes[i];
-                            if(node.$data && node.$data.tags) {
-                                tags = node.$data.tags;
-                                // don't clear sort
-                                listController.pollutantPostfilters.addAll(tags, false, true);
-                            } 
-                        }
-                    }
-                };
+                    // default set to true
+                    clearPostfilters = typeof clearPostfilters !== 'undefined' ? clearPostfilters : true;
 
-                /*listController.setNodes = function (nodes) {
-                 
-                 //listController.tableData.reload();
-                 listController.tableData.settings({
-                 dataset: nodes
-                 });
-                 };*/
+                    // clear all
+                    if (clearPostfilters === true) {
+                        listController.clearPostfilters();
+                    }
+                    
+                    postfilters.forEach(function (postfilterCollection) {
+                        // don't clear, sort = true
+                        postfilterCollection.addAllFromNodes(nodes, false, true);
+                    }); 
+                };
 
                 // leak this to parent scope
                 $scope.$parent.listController = listController;
@@ -1730,7 +1790,13 @@ angular.module(
                     }
                 });
 
-                console.log('new listController instance created from ' + $scope.name);
+                if (sharedDatamodel.resultNodes &&
+                        sharedDatamodel.resultNodes.length > 0) {
+                    console.log(sharedDatamodel.resultNodes.length + ' result nodes available before listController instance created!');
+                    listController.setNodes(sharedDatamodel.resultNodes);
+                }
+
+                console.log('new listController instance created');
             }
         ]
         );
@@ -1788,6 +1854,12 @@ angular.module(
                  */
                 mainController.addAnalysisNode = function (node) {
                     var i, index;
+
+                    if (node.$filtered) {
+                        console.warn('mainController::addAnalysisNode: node "' + node.name +
+                                '" (' + node.objectKey + ') is NOT visible (filtered)!?!');
+                        node.$filtered = false;
+                    }
 
                     // indexOf does not work since node$feature is different!
                     index = -1; //sharedDatamodel.analysisNodes.indexOf(node);
@@ -1863,7 +1935,7 @@ angular.module(
                         defaults, center, basemaps, overlays, layerControlOptions,
                         drawOptions, maxBounds, setSearchGeometry, gazetteerLocationLayer, layerControlMappings,
                         overlaysNodeLayersIndex, fitBoundsOptions, selectedNode, selectNode, featureLayersWithZoomRestriction,
-                        nodeOverlays;
+                        nodeOverlays, setSearchGeometryFromGazetteerLocationLayer;
 
                 mapController = this;
                 mapController.mode = $scope.mainController.mode;
@@ -1991,6 +2063,7 @@ angular.module(
                         layerControlOptions);
 
                 // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ===========================">
+
                 /**
                  * Select a node in the map and changes the feature icon
                  * 
@@ -2026,6 +2099,23 @@ angular.module(
                     return selectedNode;
                 };
 
+                setSearchGeometryFromGazetteerLocationLayer = function () {
+                    if (gazetteerLocationLayer !== null) {
+                        var searchGeometryLayer = gazetteerLocationLayer;
+                        gazetteerLocationLayer.closePopup();
+                        gazetteerLocationLayer.unbindPopup();
+                        layerControl.removeLayer(gazetteerLocationLayer);
+                        leafletMap.removeLayer(gazetteerLocationLayer);
+                        gazetteerLocationLayer = null;
+                        
+                        searchGeometryLayer.setStyle(drawOptions.polygon.shapeOptions);
+                        setSearchGeometry(searchGeometryLayer, 'polygon');                        
+                        
+                    } else {
+                        console.warn('setSearchGeometryFromGazetteerLocationLayer: no gazetteerLocationLayer available!');
+                    }
+                };
+
                 /**
                  * Sets the search geometry
                  * 
@@ -2053,6 +2143,8 @@ angular.module(
                                     });
                                 });
                             }
+                            
+                            sharedDatamodel.selectedSearchLocation.id = 1;
                         } else {
                             // ignore
                             // console.warn("mapController:: cannot add empty search geometry layer!");
@@ -2427,8 +2519,12 @@ angular.module(
                                 gazetteerLocationLayer = null;
                             }
 
+                            // pass setSearchGeometry function to be called in popup
                             gazetteerLocationLayer =
-                                    featureRendererService.createGazetteerLocationLayer(gazetteerLocation);
+                                    featureRendererService.createGazetteerLocationLayer(
+                                            gazetteerLocation,
+                                            setSearchGeometryFromGazetteerLocationLayer);
+
                             layerControlMappings.gazetteer =
                                     L.stamp(gazetteerLocationLayer);
 
@@ -2996,8 +3092,6 @@ angular.module(
                             {
                                 sharedDatamodel.resultNodes.length = 0;
                                 if (searchResult.$collection && searchResult.$collection.length > 0) {
-                                    //console.log(success);
-                                    //
                                     // The .push method can take multiple arguments, so by using 
                                     // .apply to pass all the elements of the second array as 
                                     // arguments to .push, you can get the result you want because
@@ -3017,7 +3111,7 @@ angular.module(
                             });
 
                     // <editor-fold defaultstate="collapsed" desc="[!!!!] MOCK DATA (DISABLED) ----------------">        
-                    /*                    
+                    /*                   
                      if(mockNodes === null || mockNodes === undefined) {
                      mockNodes = dataService.getMockNodes();
                      }             
@@ -3071,24 +3165,7 @@ angular.module(
                             });
                         }
                     }
-                });
-                //                var fireResize = function () {
-                //                    //$scope.currentHeight = $window.innerHeight - $scope.navbarHeight;
-                //                    //$scope.currentWidth = $window.innerWidth - ($scope.toolbarShowing ? $scope.toolbarWidth : 0);
-                //                    leafletData.getMap('search-map').then(function (map) {
-                //                        if (map && map._container.parentElement) {
-                //                            console.log('searchController::fireResize: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
-                //                            $scope.mapHeight = map._container.parentElement.offsetHeight;
-                //                            $scope.mapWidth = map._container.parentElement.offsetWidth;
-                //                            //map.invalidateSize(animate);
-                //                        }
-                //
-                //                    });
-                //                };
-                //
-                //                angular.element($window).bind('resize', function () {
-                //                    fireResize(false);
-                //                });
+                });        
 
                 console.log('searchController instance created');
             }
@@ -3666,7 +3743,7 @@ angular.module(
                     fill: true,
                     weight: 4,
                     riseOnHover: false,
-                    clickable: false
+                    clickable: true
                 };
                 configurationService.featureRenderer.defaultStyle = {
                     color: '#0000FF',
@@ -4415,8 +4492,8 @@ angular.module(
                  * @param {type} gazetteerLocation
                  * @returns {featureRendererService_L18.createGazetteerLocationLayer.featureLayer}
                  */
-                createGazetteerLocationLayer = function (gazetteerLocation, gazetteerLocationCallback) {
-                    var wktString, wktObject, geometryCollection, featureLayer,
+                createGazetteerLocationLayer = function (gazetteerLocation, setSearchGeometryFromGazetteerLocationLayer) {
+                    var wktString, wktObject, geometryCollection, gazetteerLocationLayer,
                             gazetteerLocationPopup;
                     if (gazetteerLocation.hasOwnProperty('area')) {
                         wktString = gazetteerLocation.area.geo_field;
@@ -4432,35 +4509,33 @@ angular.module(
                     wktObject.read(wktString.substr(wktString.indexOf(';') + 1));
 
                     if (geometryCollection === true) {
-                        featureLayer = wktObject.toObject().getLayers()[0];
+                        gazetteerLocationLayer = wktObject.toObject().getLayers()[0];
                     } else {
-                        featureLayer = wktObject.toObject();
+                        gazetteerLocationLayer = wktObject.toObject();
                     }
 
-                    featureLayer.setStyle(angular.copy(config.gazetteerStyle));
-                    featureLayer.$name = gazetteerLocation.name;
-                    featureLayer.$key = 'gazetteerLocation';
-                    
-                    /*gazetteerLocationPopup = L.popup.angular({
-                                template: '<div>' +
-                                        '<h5"><strong><a ng-click="$content.gazetteerLocationCallback()>' +
-                                        'verwenden'+
-                                        '</a></strong></h5>' +
-                                        '</div>'
-                            });
+                    gazetteerLocationLayer.setStyle(angular.copy(config.gazetteerStyle));
+                    gazetteerLocationLayer.$name = gazetteerLocation.name;
+                    gazetteerLocationLayer.$key = 'gazetteerLocation';
 
-                    featureLayer.setContent({
-                        gazetteerLocationCallback: function(){
-                            gazetteerLocationCallback(featureLayer);
-                        }
+                    gazetteerLocationPopup = L.popup.angular({
+                        template: '<div>' +
+                                '<h5"><strong><a ng-click="$content.setSearchGeometryFromGazetteerLocation()">' +
+                                'Diese Geometrie für die Suche verwenden' +
+                                '</a></strong></h5>' +
+                                '</div>'
                     });
-                    
-                    featureLayer.bindPopup(featureLayer);*/
+
+                    gazetteerLocationPopup.setContent({
+                        setSearchGeometryFromGazetteerLocation: setSearchGeometryFromGazetteerLocationLayer
+                    });
+
+                    gazetteerLocationLayer.bindPopup(gazetteerLocationPopup);
 
                     // not needed atm:
-                    //gazetteerLocation.$layer = featureLayer;
+                    //gazetteerLocation.$layer = gazetteerLocationLayer;
 
-                    return featureLayer;
+                    return gazetteerLocationLayer;
                 };
 
                 /**
@@ -4774,34 +4849,6 @@ angular.module(
  * ***************************************************
  */
 
-/* global angular, Wkt */
-
-angular.module('de.cismet.uim2020-html5-demonstrator.services')
-        .factory('geoTools',
-                ['leafletData',
-                    function (leafletData) {
-                        'use strict';
-                        var wicket;
-
-                        wicket = new Wkt.Wkt();
-
-                        return {
-                            wicket: wicket
-                        };
-                    }]);
-
-
-
-/* 
- * ***************************************************
- * 
- * cismet GmbH, Saarbruecken, Germany
- * 
- *               ... and it just works.
- * 
- * ***************************************************
- */
-
 /*global angular, L, Wkt */
 
 angular.module(
@@ -4825,6 +4872,109 @@ angular.module(
             }
         ]
         );
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+/* global angular */
+
+angular.module('de.cismet.uim2020-html5-demonstrator.services')
+        .factory('postfilterService',
+                ['$q', 'sharedDatamodel',
+                    function ($q, sharedDatamodel) {
+                        'use strict';
+                        var filterNodesByTags, getFilteredNodeIndices, resetFilteredNodes;
+
+                        getFilteredNodeIndices = function (nodes, tagPostfilterCollections) {
+                            return $q(function (resolve, reject) {
+                                var filteredNodesIndices = [];
+
+                                if (sharedDatamodel.resultNodes !== nodes) {
+                                    console.error('postfilterService::getFilteredNodeIndices: provided nodes array (' +
+                                            nodes.length + ' does not match sharedDatamodel.resultNodes (' +
+                                            sharedDatamodel.resultNodes.length + ')!');
+                                    reject(filteredNodesIndices);
+                                }
+
+                                // process tag filters and add filtered nodes to index
+                                tagPostfilterCollections.forEach(function (tagPostfilterCollection) {
+                                    nodes.forEach(function (node, index) {
+                                        // process only nodes not yet filtered!
+                                        if (!filteredNodesIndices.includes(index)) {
+                                            // process only filters matching the node class
+                                            if (tagPostfilterCollection.className === 'ALL' ||
+                                                    tagPostfilterCollection.className === node.$className) {
+
+                                                var tags, deselectedTagKeys, filtered;
+
+                                                tags = node.$data.tags;
+                                                deselectedTagKeys = tagPostfilterCollection.getDeselectedKeys();
+
+                                                filtered = !tags.every(function (tag, index, array) {
+                                                    // return false if tag is filtered (Array.every stops on false)
+                                                    return !deselectedTagKeys.includes(tag.key);
+                                                });
+
+                                                if (filtered) {
+                                                    filteredNodesIndices.push(index);
+                                                }
+                                            }
+                                        }
+                                    });
+                                });
+
+                                console.log('postfilterService: filtered ' + filteredNodesIndices.length + ' nodes of ' + nodes.length + ' available result nodes nodes');
+
+                                resolve(filteredNodesIndices);
+                            });
+                        };
+
+                        /**
+                         * Returns a promise which resolved to the filtered nodes array
+                         * @param {type} nodes
+                         * @param {type} tagPostfilterCollections
+                         * @return {unresolved}
+                         */
+                        filterNodesByTags = function (nodes, tagPostfilterCollections) {
+                            var promise = getFilteredNodeIndices(nodes, tagPostfilterCollections);
+                            return promise.then(
+                                    function resolve(filteredNodesIndices) {
+                                        nodes.forEach(function (node, index, array) {
+                                            if (filteredNodesIndices.includes(index)) {
+                                                node.$filtered = true;
+                                            } else {
+                                                node.$filtered = false;
+                                            }
+                                        });
+
+                                        return filteredNodesIndices;
+                                    },
+                                    function reject(filteredNodesIndices) {
+                                        return filteredNodesIndices;
+                                    }
+                            );
+                        };
+
+                        resetFilteredNodes = function (nodes) {
+                            nodes.forEach(function (node, index, array) {
+                                node.$filtered = false;
+                            });
+                        };
+
+                        return {
+                            filterNodesByTags: filterNodesByTags,
+                            resetFilteredNodes: resetFilteredNodes
+                        };
+                    }]);
+
+
+
 /* 
  * ***************************************************
  * 
@@ -4947,7 +5097,7 @@ angular.module(
                     defaultRestApiSearchResult.$promise.then(
                             function success(searchResult) {
                                 //console.log('searchService::defaultSearchFunction()->success()');
-                                var key, i, length, curentNode, dataObject, className, classTitle;
+                                var key, i, length, currentNode, dataObject, className, classTitle;
                                 // doing the same as ngResource: copying the results in the already returned obj (shallow)
                                 for (key in searchResult) {
                                     if (searchResult.hasOwnProperty(key) &&
@@ -4957,34 +5107,40 @@ angular.module(
                                         if (key === '$collection' && angular.isArray(defaultSearchResult.$collection)) {
                                             length = defaultSearchResult.$collection.length;
                                             for (i = 0; i < length; i++) {
-                                                curentNode = defaultSearchResult.$collection[i];
+                                                currentNode = defaultSearchResult.$collection[i];
 
-                                                className = curentNode.classKey.split(".").slice(1, 2).pop();
+                                                className = currentNode.classKey.split(".").slice(1, 2).pop();
 
                                                 // ----------------------------------------------------------
                                                 // Extend the resolved object by local properties
                                                 // ----------------------------------------------------------
-                                                curentNode.$className = className;
-                                                
+
+                                                /**
+                                                 * filtered node flag!
+                                                 */
+                                                currentNode.$filtered = false;
+
+                                                currentNode.$className = className;
+
                                                 if (configurationService.featureRenderer.icons[className]) {
-                                                    curentNode.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
+                                                    currentNode.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
                                                 }
 
                                                 // FIXME: extract class name from CS_CLASS description (server-side)
                                                 if (configurationService.featureRenderer.layergroupNames[className]) {
-                                                    curentNode.$classTitle = configurationService.featureRenderer.layergroupNames[className];
+                                                    currentNode.$classTitle = configurationService.featureRenderer.layergroupNames[className];
                                                 } else {
-                                                    curentNode.$classTitle = className;
+                                                    currentNode.$classTitle = className;
                                                 }
 
-                                                if (curentNode.lightweightJson) {
+                                                if (currentNode.lightweightJson) {
                                                     try {
-                                                        dataObject = angular.fromJson(curentNode.lightweightJson);
-                                                        curentNode.$data = dataObject;
-                                                        delete curentNode.lightweightJson;
+                                                        dataObject = angular.fromJson(currentNode.lightweightJson);
+                                                        currentNode.$data = dataObject;
+                                                        delete currentNode.lightweightJson;
                                                         // FIXME: extract class name from CS_CLASS description (server-side)
-                                                        /*curentNode.$classTitle = dataObject.classTitle ?
-                                                                dataObject.classTitle : classTitle;*/
+                                                        /*currentNode.$classTitle = dataObject.classTitle ?
+                                                         dataObject.classTitle : classTitle;*/
                                                     } catch (err) {
                                                         console.error(err.message);
                                                     }
@@ -5117,17 +5273,17 @@ angular.module(
             function () {
                 'use strict';
 
-                function TagPostfilterCollection(classname, taggroupkey, title) {
-                    this.classname = classname;
+                function TagPostfilterCollection(className, taggroupkey, title) {
+                    this.className = className;
                     this.taggroupkey = taggroupkey;
                     this.title = title;
                     this.tags = [];
                     this.tagsKeys = [];
-                    
+
                     /**
                      * Tags not available for filtering
                      */
-                    this.forbiddenTags = ['METPlus','KWSplus','PESTplus','THGundLSSplus','DNMplus','SYSSplus'];
+                    this.forbiddenTags = ['METplus', 'KWSplus', 'PESTplus', 'THGundLSSplus', 'DNMplus', 'SYSSplus'];
                 }
 
                 TagPostfilterCollection.prototype.clear = function () {
@@ -5136,24 +5292,25 @@ angular.module(
                 };
 
                 /**
-                 * Add a new distinct tag to the collection
+                 * Add a new distinct tag to the collection and set $selected property
+                 * to true by default
                  * 
                  * @param {type} tag
                  * @returns {Boolean}
                  */
                 TagPostfilterCollection.prototype.addTag = function (tag) {
                     // only add tags not yet in list 
-                    if (tag && tag.key && tag.taggroupkey && 
+                    if (tag && tag.key && tag.taggroupkey &&
                             this.taggroupkey === tag.taggroupkey &&
-                            this.forbiddenTags.indexOf(tag.key) === -1 && 
+                            this.forbiddenTags.indexOf(tag.key) === -1 &&
                             this.tagsKeys.indexOf(tag.key) === -1)
                     {
-                        // keep tag keys seperately because indexOg does not work anymore after extendingthe tag object
+                        // keep tag keys seperately because indexOf does not work anymore after extending the tag object
                         // don't use js associate arrays: length is always null!!?? :-(
                         this.tagsKeys.push(tag.key);
                         // push a shallow copy and extend by $selected property
                         this.tags.push(angular.extend({
-                            '$selected': false}, tag));
+                            '$selected': true}, tag));
                         return true;
                     }
 
@@ -5163,22 +5320,48 @@ angular.module(
                 TagPostfilterCollection.prototype.removeTag = function (key) {
                     return delete this.tags[key];
                 };
-                
+
                 TagPostfilterCollection.prototype.isEmpty = function () {
                     return this.tags.length === 0;
                 };
-                
+
                 TagPostfilterCollection.prototype.length = function () {
-                    return  Object.keys(this.tags).length;
+                    return  this.tags.length;
                 };
-                
+
+                /**
+                 * Add all supported tags from nodes that match the configured className and
+                 * taggroupkey
+                 * 
+                 * @param {type} nodes
+                 * @param {type} clear
+                 * @param {type} sort
+                 * @return {undefined}
+                 */
+                TagPostfilterCollection.prototype.addAllFromNodes = function (nodes, clear, sort) {
+                    var i, node, tags;
+                    if (nodes !== null && nodes.length > 0) {
+                        for (i = 0; i < nodes.length; ++i) {
+                            node = nodes[i];
+                            // don't collect tags of filtered nodes!
+                            if (!node.$filtered && node.$data && node.$data.tags &&
+                                    (this.className === 'ALL' || this.className === node.$className)) {
+                                tags = node.$data.tags;
+                                this.addAll(tags, clear, sort);
+                            }
+                        }
+                    }
+
+                    return this.tags;
+                };
+
                 TagPostfilterCollection.prototype.addAll = function (tags, clear, sort) {
                     var i;
                     if (clear === true) {
                         this.clear();
                     }
-                    
-                    for(i = 0; i < tags.length; i++) {
+
+                    for (i = 0; i < tags.length; i++) {
                         this.addTag(tags[i]);
                     }
 
@@ -5194,6 +5377,8 @@ angular.module(
                             return 0;
                         });
                     }
+
+                    return this.tags;
                 };
 
                 TagPostfilterCollection.prototype.selectAll = function () {
@@ -5247,6 +5432,18 @@ angular.module(
                     return selectedTags;
                 };
 
+                TagPostfilterCollection.prototype.getDeselectedTags = function () {
+                    var deselectedTags = [];
+
+                    this.tags.forEach(function (tag) {
+                        if (tag.$selected === false) {
+                            deselectedTags.push(tag);
+                        }
+                    });
+
+                    return deselectedTags;
+                };
+
                 TagPostfilterCollection.prototype.getSelectedKeys = function () {
                     var selectedKeys = [];
 
@@ -5257,6 +5454,18 @@ angular.module(
                     });
 
                     return selectedKeys;
+                };
+
+                TagPostfilterCollection.prototype.getDeselectedKeys = function () {
+                    var deselectedKeys = [];
+
+                    this.tags.forEach(function (tag) {
+                        if (tag.$selected === false) {
+                            deselectedKeys.push(tag.key);
+                        }
+                    });
+
+                    return deselectedKeys;
                 };
 
                 return TagPostfilterCollection;

@@ -11,7 +11,7 @@
             <col width="2%" />
             <col width="2%" />
         </colgroup>
-        <tr ng-repeat="node in $data track by node.objectKey">
+        <tr ng-repeat="node in $data| filter:{$filtered:false} track by node.objectKey">
             <td>
                 <span class="btn-icon">
                     <img src="{{node.$icon}}" alt="{{node.$className}}" title="{{node.$classTitle}}"> 
@@ -27,7 +27,7 @@
                 {{node.$data| descriptionFilter}}
             </td>                                       
             <td title="'Schadstoffe'">
-                <span ng-repeat="tag in node.$data.tags | filter:{taggroupkey:'POLLUTANT'}:true | omit:'key===\'METPlus\' || key===\'KWSplus\' || key===\'PESTplus\' || key===\'THGundLSSplus\' || key===\'DNMplus\' || key===\'SYSSplus\''">
+                <span ng-repeat="tag in node.$data.tags| filter:{taggroupkey:'POLLUTANT'}:true | omit:'key===\'METplus\' || key===\'KWSplus\' || key===\'PESTplus\' || key===\'THGundLSSplus\' || key===\'DNMplus\' || key===\'SYSSplus\''">
                     <span class="label label-warning">{{tag.key}}</span>
                 </span>
             </td>
@@ -48,64 +48,11 @@
             </td>
         </tr>
     </table>
-
-    <!--<table ng-table="listController.tableData" class="table" show-filter="false" >
-        <colgroup>
-            <col width="20%" />
-            <col width="20%" />
-            <col width="20%" />
-        </colgroup>
-        <tr class="ng-table-group" ng-repeat-start="group in $groups">
-            <td colspan="3">
-                <a href="" ng-click="group.$hideRows = !group.$hideRows">
-                    <span class="glyphicon" 
-                          ng-class="{ 'glyphicon-chevron-right': group.$hideRows, 'glyphicon-chevron-down': !group.$hideRows }"></span>
-                    <strong>{{group.value}}</strong>
-                </a>
-            </td>
-        </tr>
-        
-        <tr ng-hide="group.$hideRows" 
-            ng-repeat="node in group.data" 
-            ng-repeat-end>
-            <td title="'Thema'" groupable="'classKey'" ng-if="false">
-                {{node.classKey}}</td>
-            <td title="'Name'" sortable="'name'" groupable="'name'">
-                {{node.name}}</td>
-            <td title="'Beschreibung'" groupable="'description'">
-                {{node.description}}</td>
-        </tr>
-    </table>-->
-
-    <!--
-    <table ng-table-dynamic="listController.tableData with listController.tableColumns" 
-           class="table table-condensed table-bordered table-hover">
-        <colgroup>
-          <col width="20%" />
-          <col width="30%" />
-          <col width="30%" />
-        </colgroup>
-        <tr class="ng-table-group" ng-repeat-start="group in $groups">
-          <td colspan="{{$groups.visibleColumnCount}}">
-            <a href="" ng-click="group.$hideRows = !group.$hideRows">
-              <span class="glyphicon" ng-class="{ 'glyphicon-chevron-right': group.$hideRows, 'glyphicon-chevron-down': !group.$hideRows }"></span>
-              <strong>{{ group.value }}</strong>
-            </a>
-          </td>
-        </tr>
-        <tr ng-hide="group.$hideRows" ng-repeat="node in group.data" ng-repeat-end>
-          <td ng-repeat="col in $columns">{{node[col.field]}}</td>
-        </tr>
-      </table>    -->
 </div>
 
 
 <div class="cs-filter">
-    <!--<div class="flex-container-horizontal" style="margin:100px">
-        <center><h1>POST-FILTER Platzhalter</h1></center>
-    </div>-->
-
-    <!-- Allgemeine Schadstoffe -->
+    <!-- Allgemeine Schadstoffe -------------------------------------------- -->
     <div class="cs-filter-panel" ng-if="!listController.pollutantPostfilters.isEmpty()">
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -114,12 +61,12 @@
                          alt="Schadstoffe"
                          title="Suchergebnisse nach Schadstoffen filtern"/>
                 </span>
-                <strong>Schadstoffe</strong>
+                <strong>Schadstoffe</strong> ({{listController.pollutantPostfilters.tags.length}})
             </div>
-            <div class="panel-body" style="min-width:200px;height:220px; overflow-y:scroll">
-                <span ng-repeat="tag in listController.pollutantPostfilters.tags track by tag.key">
-                    <span class="label"
-                          title="{{tag.name}}"
+    <div class="panel-body" style="min-width:200px;height:220px; overflow-y:scroll">
+        <span ng-repeat="tag in listController.pollutantPostfilters.tags track by tag.key">
+        <span class="label"
+              title="{{tag.name}}"
                           ng-click="tag.$selected = !tag.$selected"
                           ng-class="tag.$selected ? 'label-warning' : 'label-default'">{{tag.key}}</span>
                 </span>
@@ -127,46 +74,51 @@
         </div>
     </div>
 
-    <div class="cs-filter-panel">
+    <!-- EPRTR Meldeperiode ------------------------------------------------ -->
+    <div class="cs-filter-panel" ng-if="!listController.notificationPeriodPostfilters.isEmpty()">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <span class="btn-icon">
-                    <img src="icons/factory_16.png" alt="ePRTR"/>
+                    <img src="icons/factory_16.png" 
+                         alt="ePRTR"
+                         title="Suchergebnisse nach Meldeperiode filtern"/>
                 </span>
-                Meldeperiode
+                <strong>Meldeperiode</strong> ({{listController.notificationPeriodPostfilters.tags.length}})
             </div>
-            <div class="panel-body" style="min-width:200px;height:220px">
-                <label class="label label-primary">1999</label><label class="label label-primary">2000</label><label class="label label-primary">2001</label>
-                <span class="label label-primary">2002</span>
-                <span class="label label-primary">2003</span>
-                <span class="label label-primary">2004</span>
-                <span class="label label-primary">2005</span>
-                <span class="label label-primary">2006</span>
-                <span class="label label-primary">2007</span>
-                <span class="label label-primary">2008</span>
-                <span class="label label-primary">2009</span>
-                <span class="label label-primary">2010</span>
-                <span class="label label-primary">2010</span>
+            <div class="panel-body" style="min-width:200px;height:220px; overflow-y:scroll">
+                <span ng-repeat="tag in listController.notificationPeriodPostfilters.tags track by tag.key">
+                    <span class="label"
+                          title="{{tag.name}}"
+                          ng-click="tag.$selected = !tag.$selected"
+                          ng-class="tag.$selected ? 'label-primary' : 'label-default'">{{tag.key}}</span>
+                </span>
             </div>
         </div>
     </div>
-
-    <div class="cs-filter-panel">
+    
+    <!-- EPRTR Freisetzungsart --------------------------------------------- -->
+    <div class="cs-filter-panel" ng-if="!listController.releaseTypePostfilters.isEmpty()">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <span class="btn-icon">
-                    <img src="icons/factory_16.png" alt="ePRTR"/>
+                    <img src="icons/factory_16.png" 
+                         alt="ePRTR"
+                         title="Suchergebnisse nach ePRTR Freisetzungsart filtern"/>
                 </span>
-                Freisetzungsart
+                <strong>Freisetzungsart</strong> ({{listController.releaseTypePostfilters.tags.length}})
             </div>
-            <div class="panel-body" style="min-width:200px;height:220px">
-                <span class="label label-primary">LUFT</span>
-                <span class="label label-primary">WASSER DIREKT</span>
-                <span class="label label-primary">WASSER INDIREKT</span>
+            <div class="panel-body" style="min-width:200px;height:220px; overflow-y:scroll">
+                <span ng-repeat="tag in listController.releaseTypePostfilters.tags track by tag.key">
+                    <span class="label"
+                          title="{{tag.name}}"
+                          ng-click="tag.$selected = !tag.$selected"
+                          ng-class="tag.$selected ? 'label-primary' : 'label-default'">{{tag.key}}</span>
+                </span>
             </div>
         </div>
     </div>
-
+    
+    <!--
     <div class="cs-filter-panel">
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -208,11 +160,18 @@
             </div>
         </div>
     </div>
+    -->
 
     <div class="cs-filter-panel last">
-        <button class="btn btn-default" ng-disabled="true">Filter anwenden</button>
-        <p>&nbsp;</p>
-        <button class="btn btn-default" ng-disabled="true">Filter löschen</button>
+        <button class="btn btn-default" 
+                style="width:50px; display: block; clear: both; margin-bottom:10px"
+                ng-click="listController.applyPostfilters()"
+                title="Filter anwenden"><span class="fa fa-check-circle-o fa-2x pull-right" style="color:green"></span>
+        </button>
+        <button class="btn btn-default" 
+                style="width:50px;clear:both;"
+                ng-click="listController.resetPostfilters()"
+                title="Filter zurücksetzen"><span class="fa fa-ban fa-2x" style="color:red"></span>
+        </button>
     </div>
-
 </div>
