@@ -4,10 +4,10 @@ angular.module(
         ).controller(
         'listController',
         [
-            '$scope', 'configurationService',
-            'sharedDatamodel', 'TagPostfilterCollection', 'postfilterService', 'NgTableParams',
-            function ($scope, configurationService, sharedDatamodel, TagPostfilterCollection,
-                    postfilterService, NgTableParams) {
+            '$scope', 'configurationService', 'sharedDatamodel', 'sharedControllers',
+            'TagPostfilterCollection', 'postfilterService', 'NgTableParams',
+            function ($scope, configurationService, sharedDatamodel, sharedControllers,
+                    TagPostfilterCollection, postfilterService, NgTableParams) {
                 'use strict';
 
                 var listController, ngTableParams, postfilters;
@@ -110,6 +110,9 @@ angular.module(
                             function resolve(filteredNodesIndices) {
                                 // don't reset the postfilters!
                                 listController.setNodes(nodes, false);
+                                
+                                // hide features previously made visible by de-applying filters
+                                sharedControllers.searchMapController.applyZoomLevelRestriction();
 
                                 if (filteredNodesIndices.length < nodes.length) {
                                     sharedDatamodel.status.type = 'success';
@@ -126,12 +129,19 @@ angular.module(
                             }, function reject(filteredNodesIndices) {
                         sharedDatamodel.status.type = 'danger';
                         sharedDatamodel.status.message = 'Beim Anwenden der Postfilter ist ein Fehler aufgetreten.';
+                        
+                        // hide features previously made visible by de-applying filters
+                        sharedControllers.searchMapController.applyZoomLevelRestriction();
                     });
                 };
 
                 listController.resetPostfilters = function () {
                     postfilterService.resetFilteredNodes(sharedDatamodel.resultNodes);
                     listController.setNodes(sharedDatamodel.resultNodes);
+                    
+                    // hide features previously made visible by de-applying filters
+                    sharedControllers.searchMapController.applyZoomLevelRestriction();
+                    
                     sharedDatamodel.status.type = 'success';
                     sharedDatamodel.status.message = 'Alle Postfilter zurückgesetzt.';
                 };
@@ -147,7 +157,7 @@ angular.module(
 
                 listController.setNodes = function (nodes, clearPostfilters) {
                     listController.tableData.reload();
-                    
+
                     // default set to true
                     clearPostfilters = typeof clearPostfilters !== 'undefined' ? clearPostfilters : true;
 
@@ -155,11 +165,11 @@ angular.module(
                     if (clearPostfilters === true) {
                         listController.clearPostfilters();
                     }
-                    
+
                     postfilters.forEach(function (postfilterCollection) {
                         // don't clear, sort = true
                         postfilterCollection.addAllFromNodes(nodes, false, true);
-                    }); 
+                    });
                 };
 
                 // leak this to parent scope

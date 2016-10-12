@@ -74,8 +74,12 @@ angular.module('de.cismet.uim2020-html5-demonstrator.services')
                                         nodes.forEach(function (node, index, array) {
                                             if (filteredNodesIndices.includes(index)) {
                                                 node.$filtered = true;
+                                                node.$feature.setOpacity(0);
+                                                node.$feature.$hidden = true;
                                             } else {
                                                 node.$filtered = false;
+                                                node.$feature.setOpacity(1);
+                                                node.$feature.$hidden = false;
                                             }
                                         });
 
@@ -90,6 +94,8 @@ angular.module('de.cismet.uim2020-html5-demonstrator.services')
                         resetFilteredNodes = function (nodes) {
                             nodes.forEach(function (node, index, array) {
                                 node.$filtered = false;
+                                node.$feature.setOpacity(1);
+                                node.$feature.$hidden = false;
                             });
                         };
 

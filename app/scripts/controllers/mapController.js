@@ -192,10 +192,10 @@ angular.module(
                         layerControl.removeLayer(gazetteerLocationLayer);
                         leafletMap.removeLayer(gazetteerLocationLayer);
                         gazetteerLocationLayer = null;
-                        
+
                         searchGeometryLayer.setStyle(drawOptions.polygon.shapeOptions);
-                        setSearchGeometry(searchGeometryLayer, 'polygon');                        
-                        
+                        setSearchGeometry(searchGeometryLayer, 'polygon');
+
                     } else {
                         console.warn('setSearchGeometryFromGazetteerLocationLayer: no gazetteerLocationLayer available!');
                     }
@@ -228,7 +228,7 @@ angular.module(
                                     });
                                 });
                             }
-                            
+
                             sharedDatamodel.selectedSearchLocation.id = 1;
                         } else {
                             // ignore
@@ -566,7 +566,12 @@ angular.module(
                                 /*jshint loopfunc:true */
                                 featureGroup.forEach(function (feature) {
                                     feature.addTo(featureGroupLayer);
-                                    if (featureGroup.$maxZoom) {
+
+                                    // filtered node added ....
+                                    if (feature.$node.$filtered === true) {
+                                        feature.setOpacity(0);
+                                        feature.$hidden = true;
+                                    } else if (featureGroup.$maxZoom) {
                                         var currentZoomLevel = leafletMap.getZoom();
 
                                         if (currentZoomLevel > featureGroup.$maxZoom) {
@@ -576,6 +581,9 @@ angular.module(
                                             feature.setOpacity(1);
                                             feature.$hidden = false;
                                         }
+                                    } else {
+                                        feature.setOpacity(1);
+                                        feature.$hidden = false;
                                     }
                                 });
 
@@ -651,6 +659,28 @@ angular.module(
                     }
                 };
 
+
+                mapController.applyZoomLevelRestriction = function () {
+                    var currentZoomLevel, zoom;
+
+                    // always close popups on close: it may leak the position of a hidden feature!
+                    leafletMap.closePopup();
+                    currentZoomLevel = leafletMap.getZoom();
+
+                    // check all layers with restrictions
+                    featureLayersWithZoomRestriction.forEach(function (featureGroupLayer) {
+                        if (leafletMap.hasLayer(featureGroupLayer) && featureGroupLayer.$maxZoom) {
+                            featureRendererService.applyZoomLevelRestriction(featureGroupLayer, currentZoomLevel);
+
+                            // if a node is selected when the layer is invisiable (max zoom level exceeded), show the selection
+                            // FIXME: find better option to avoid unecessary calls to selectedNode()
+                            /*if(selectedNode) {
+                             selectNode(selectedNode);
+                             }*/
+                        }
+                    });
+                };
+
                 //</editor-fold>
 
                 // register search map event handlers
@@ -692,6 +722,11 @@ angular.module(
                             sharedDatamodel.selectedSearchLocation.id = 0;
                         }
                     });
+
+                    /*$scope.$on('nodesFiltered()', function (event) {
+                     console.log('mapController::nodesFiltered');
+                     mapController.applyZoomLevelRestriction();
+                     });*/
                 }
 
                 // <editor-fold defaultstate="collapsed" desc="=== DISABLED               ===========================">
@@ -809,24 +844,7 @@ angular.module(
                      * Show or hide features based on zoom level
                      */
                     map.on('zoomend', function () {
-                        var currentZoomLevel, zoom;
-
-                        // always close popups on close: it may leak the position of a hidden feature!
-                        map.closePopup();
-                        currentZoomLevel = map.getZoom();
-
-                        // check all layers with restrictions
-                        featureLayersWithZoomRestriction.forEach(function (featureGroupLayer) {
-                            if (map.hasLayer(featureGroupLayer) && featureGroupLayer.$maxZoom) {
-                                featureRendererService.applyZoomLevelRestriction(featureGroupLayer, currentZoomLevel);
-
-                                // if a node is selected when the layer is invisiable (max zoom level exceeded), show the selection
-                                // FIXME: find beter option to avoid unecessary class to selectedNode()
-                                /*if(selectedNode) {
-                                 selectNode(selectedNode);
-                                 }*/
-                            }
-                        });
+                        mapController.applyZoomLevelRestriction();
                     });
 
                     // FIXME: removes also layers from layercontrol that are just deselected!

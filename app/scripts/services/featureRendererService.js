@@ -275,8 +275,15 @@ angular.module(
                     } else {
                         //console.log(' showing ' + featureGroupLayer.getLayers().length + ' features at zoom level ' + zoomLevel);
                         featureGroupLayer.eachLayer(function (feature) {
-                            feature.setOpacity(1);
-                            feature.$hidden = false;
+                            
+                            // always hide filtered nodes regardless of zoom level!
+                            if (feature.$node.$filtered === true) {
+                                feature.setOpacity(0);
+                                feature.$hidden = true;
+                            } else {
+                                feature.setOpacity(1);
+                                feature.$hidden = false;
+                            }
                         });
                     }
                 };
