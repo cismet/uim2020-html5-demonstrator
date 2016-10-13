@@ -1618,10 +1618,10 @@ angular.module(
         ).controller(
         'listController',
         [
-            '$scope', 'configurationService',
-            'sharedDatamodel', 'TagPostfilterCollection', 'postfilterService', 'NgTableParams',
-            function ($scope, configurationService, sharedDatamodel, TagPostfilterCollection,
-                    postfilterService, NgTableParams) {
+            '$scope', 'configurationService', 'sharedDatamodel', 'sharedControllers',
+            'TagPostfilterCollection', 'postfilterService', 'NgTableParams',
+            function ($scope, configurationService, sharedDatamodel, sharedControllers,
+                    TagPostfilterCollection, postfilterService, NgTableParams) {
                 'use strict';
 
                 var listController, ngTableParams, postfilters;
@@ -1713,30 +1713,59 @@ angular.module(
                     });
                 };
 
+                /**
+                 * Applies the selected tag-based postfilters and alls setNodes()
+                 * to update the table.
+                 * 
+                 * @return {undefined}
+                 */
                 listController.applyPostfilters = function () {
                     var nodes, promise;
 
                     // filter nodes in place
                     nodes = sharedDatamodel.resultNodes;
+
+                    if (nodes.length === 0) {
+                        console.warn('listController::applyPostfilters: cannot apply postfilters: no result nodes available?!');
+                    }
+
                     promise = postfilterService.filterNodesByTags(sharedDatamodel.resultNodes, postfilters);
 
                     promise.then(
                             function resolve(filteredNodesIndices) {
                                 // don't reset the postfilters!
                                 listController.setNodes(nodes, false);
+                                // tells the search map to remove filtered nodes
+                                sharedControllers.searchMapController.setNodes(nodes);
+                                // set node idx in sharedDatamodel
+                                sharedDatamodel.filteredResultNodes.length = 0;
 
-                                if (filteredNodesIndices.length < nodes.length) {
-                                    sharedDatamodel.status.type = 'success';
-                                    sharedDatamodel.status.message = listController.getAppliedPostfiltersSize() +
-                                            ' Postfilter angewendet und ' +
-                                            filteredNodesIndices.length + ' von ' +
-                                            nodes.length + ' Messstellen herausgefiltert.';
+                                if (filteredNodesIndices.length > 0) {
+
+                                    sharedDatamodel.filteredResultNodes.push.apply(
+                                            sharedDatamodel.filteredResultNodes, filteredNodesIndices);
+
+                                    if (filteredNodesIndices.length < nodes.length) {
+                                        sharedDatamodel.status.type = 'success';
+                                        sharedDatamodel.status.message = listController.getAppliedPostfiltersSize() +
+                                                ' Postfilter angewendet und ' +
+                                                filteredNodesIndices.length + ' von ' +
+                                                nodes.length + ' Messstellen herausgefiltert.';
+                                    } else {
+                                        sharedDatamodel.status.type = 'warning';
+                                        sharedDatamodel.status.message = 'Alle ' +
+                                                nodes.length + ' Messstellen wurden herausgefiltert. Bitte setzen Sie die Postfilter zurück.';
+                                    }
                                 } else {
-                                    sharedDatamodel.status.type = 'warning';
-                                    sharedDatamodel.status.message = 'Alle ' +
-                                            nodes.length + ' Messstellen wurden herausgefiltert. Bitte setzen Sie die Postfilter zurück.';
-                                }
+                                    var appliedPostfiltersSize = listController.getAppliedPostfiltersSize();
+                                    if (appliedPostfiltersSize > 0) {
+                                        console.warn('listController::applyPostfilters: ' +
+                                                appliedPostfiltersSize + ' post filters applied but no nodes filtered!');
+                                    }
 
+                                    sharedDatamodel.status.type = 'success';
+                                    sharedDatamodel.status.message = 'Alle Postfilter zurückgesetzt.';
+                                }
                             }, function reject(filteredNodesIndices) {
                         sharedDatamodel.status.type = 'danger';
                         sharedDatamodel.status.message = 'Beim Anwenden der Postfilter ist ein Fehler aufgetreten.';
@@ -1744,8 +1773,13 @@ angular.module(
                 };
 
                 listController.resetPostfilters = function () {
-                    postfilterService.resetFilteredNodes(sharedDatamodel.resultNodes);
-                    listController.setNodes(sharedDatamodel.resultNodes);
+                    var nodes = sharedDatamodel.resultNodes;
+                    sharedDatamodel.filteredResultNodes.length = 0;
+
+                    postfilterService.resetFilteredNodes(nodes);
+                    listController.setNodes(nodes);
+                    sharedControllers.searchMapController.setNodes(nodes);
+
                     sharedDatamodel.status.type = 'success';
                     sharedDatamodel.status.message = 'Alle Postfilter zurückgesetzt.';
                 };
@@ -1761,7 +1795,7 @@ angular.module(
 
                 listController.setNodes = function (nodes, clearPostfilters) {
                     listController.tableData.reload();
-                    
+
                     // default set to true
                     clearPostfilters = typeof clearPostfilters !== 'undefined' ? clearPostfilters : true;
 
@@ -1769,11 +1803,11 @@ angular.module(
                     if (clearPostfilters === true) {
                         listController.clearPostfilters();
                     }
-                    
+
                     postfilters.forEach(function (postfilterCollection) {
                         // don't clear, sort = true
                         postfilterCollection.addAllFromNodes(nodes, false, true);
-                    }); 
+                    });
                 };
 
                 // leak this to parent scope
@@ -2107,10 +2141,10 @@ angular.module(
                         layerControl.removeLayer(gazetteerLocationLayer);
                         leafletMap.removeLayer(gazetteerLocationLayer);
                         gazetteerLocationLayer = null;
-                        
+
                         searchGeometryLayer.setStyle(drawOptions.polygon.shapeOptions);
-                        setSearchGeometry(searchGeometryLayer, 'polygon');                        
-                        
+                        setSearchGeometry(searchGeometryLayer, 'polygon');
+
                     } else {
                         console.warn('setSearchGeometryFromGazetteerLocationLayer: no gazetteerLocationLayer available!');
                     }
@@ -2143,7 +2177,7 @@ angular.module(
                                     });
                                 });
                             }
-                            
+
                             sharedDatamodel.selectedSearchLocation.id = 1;
                         } else {
                             // ignore
@@ -2566,6 +2600,28 @@ angular.module(
                     }
                 };
 
+
+                mapController.applyZoomLevelRestriction = function () {
+                    var currentZoomLevel, zoom;
+
+                    // always close popups on close: it may leak the position of a hidden feature!
+                    leafletMap.closePopup();
+                    currentZoomLevel = leafletMap.getZoom();
+
+                    // check all layers with restrictions
+                    featureLayersWithZoomRestriction.forEach(function (featureGroupLayer) {
+                        if (leafletMap.hasLayer(featureGroupLayer) && featureGroupLayer.$maxZoom) {
+                            featureRendererService.applyZoomLevelRestriction(featureGroupLayer, currentZoomLevel);
+
+                            // if a node is selected when the layer is invisiable (max zoom level exceeded), show the selection
+                            // FIXME: find better option to avoid unecessary calls to selectedNode()
+                            /*if(selectedNode) {
+                             selectNode(selectedNode);
+                             }*/
+                        }
+                    });
+                };
+
                 //</editor-fold>
 
                 // register search map event handlers
@@ -2607,6 +2663,11 @@ angular.module(
                             sharedDatamodel.selectedSearchLocation.id = 0;
                         }
                     });
+
+                    /*$scope.$on('nodesFiltered()', function (event) {
+                     console.log('mapController::nodesFiltered');
+                     mapController.applyZoomLevelRestriction();
+                     });*/
                 }
 
                 // <editor-fold defaultstate="collapsed" desc="=== DISABLED               ===========================">
@@ -2724,24 +2785,7 @@ angular.module(
                      * Show or hide features based on zoom level
                      */
                     map.on('zoomend', function () {
-                        var currentZoomLevel, zoom;
-
-                        // always close popups on close: it may leak the position of a hidden feature!
-                        map.closePopup();
-                        currentZoomLevel = map.getZoom();
-
-                        // check all layers with restrictions
-                        featureLayersWithZoomRestriction.forEach(function (featureGroupLayer) {
-                            if (map.hasLayer(featureGroupLayer) && featureGroupLayer.$maxZoom) {
-                                featureRendererService.applyZoomLevelRestriction(featureGroupLayer, currentZoomLevel);
-
-                                // if a node is selected when the layer is invisiable (max zoom level exceeded), show the selection
-                                // FIXME: find beter option to avoid unecessary class to selectedNode()
-                                /*if(selectedNode) {
-                                 selectNode(selectedNode);
-                                 }*/
-                            }
-                        });
+                        mapController.applyZoomLevelRestriction();
                     });
 
                     // FIXME: removes also layers from layercontrol that are just deselected!
@@ -3983,7 +4027,7 @@ angular.module(
                 defaultClusterGroupOptions = {
                     $icon: null,
                     $theme: null,
-                    spiderfyOnMaxZoom: false,
+                    spiderfyOnMaxZoom: true, //spiderfy occurs at the current zoom level if all items within the cluster are physically located at the same latitude and longitude (e.g. BORIS_SITE).
                     showCoverageOnHover: false,
                     zoomToBoundsOnClick: true,
                     removeOutsideVisibleBounds: true,
@@ -4155,7 +4199,7 @@ angular.module(
                     circle: false,
                     marker: false
                 };
-                
+
                 // Set the leaflet draw i18n translation texts -----------------
                 L.drawLocal.draw.toolbar.actions.title = 'Zeichnen abbrechen';
                 L.drawLocal.draw.toolbar.actions.text = 'Abbrechen';
@@ -4552,18 +4596,32 @@ angular.module(
                     featureGroups = [];
                     for (i = 0; i < nodes.length; ++i) {
                         node = nodes[i];
-                        theme = node.classKey.split(".").slice(1, 2).pop();
-                        feature = createNodeFeature(node, theme, selectNodeCallback);
 
-                        if (feature) {
-                            if (!featureGroups.hasOwnProperty(theme)) {
-                                featureGroup = [];
-                                featureGroups[theme] = featureGroup;
+                        // don't process filtered nodes!
+                        if (node.$filtered === false) {
+                            theme = node.classKey.split(".").slice(1, 2).pop();
+                            // js sucks! undefined !== null ?!!
+                            if (typeof node.$feature !== 'undefined' && node.$feature) {
+                                console.log('featureRendererService::createNodeFeatureGroups: reusing feature  for node "' +
+                                        node.name + ' (' + node.objectKey + ')');
+                                feature = node.$feature;
                             } else {
-                                featureGroup = featureGroups[theme];
+                                feature = createNodeFeature(node, theme, selectNodeCallback);
                             }
 
-                            featureGroup.push(feature);
+                            if (typeof feature !== 'undefined' && feature) {
+                                if (!featureGroups.hasOwnProperty(theme)) {
+                                    featureGroup = [];
+                                    featureGroups[theme] = featureGroup;
+                                } else {
+                                    featureGroup = featureGroups[theme];
+                                }
+
+                                featureGroup.push(feature);
+                            }
+                        } else {
+                            console.log('featureRendererService::createNodeFeatureGroups: ignoring filtered node node "' +
+                                    node.name + ' (' + node.objectKey + ')');
                         }
                     }
 
@@ -5244,6 +5302,9 @@ angular.module(
                 this.resultNodes = [];
                 this.analysisNodes = [];
                 
+                // postfilters
+                this.filteredResultNodes = [];
+                
                 // data import
                 this.selectedGlobalDatasources = [];
                 this.localDatasources = [];
@@ -5343,8 +5404,8 @@ angular.module(
                     if (nodes !== null && nodes.length > 0) {
                         for (i = 0; i < nodes.length; ++i) {
                             node = nodes[i];
-                            // don't collect tags of filtered nodes!
-                            if (!node.$filtered && node.$data && node.$data.tags &&
+                            // Attention: collects also tags of filtered nodes! (node.$filtered)
+                            if (node.$data && node.$data.tags &&
                                     (this.className === 'ALL' || this.className === node.$className)) {
                                 tags = node.$data.tags;
                                 this.addAll(tags, clear, sort);

@@ -110,25 +110,48 @@ angular.module(
 
                     // filter nodes in place
                     nodes = sharedDatamodel.resultNodes;
+
+                    if (nodes.length === 0) {
+                        console.warn('listController::applyPostfilters: cannot apply postfilters: no result nodes available?!');
+                    }
+
                     promise = postfilterService.filterNodesByTags(sharedDatamodel.resultNodes, postfilters);
 
                     promise.then(
                             function resolve(filteredNodesIndices) {
                                 // don't reset the postfilters!
                                 listController.setNodes(nodes, false);
+                                // tells the search map to remove filtered nodes
+                                sharedControllers.searchMapController.setNodes(nodes);
+                                // set node idx in sharedDatamodel
+                                sharedDatamodel.filteredResultNodes.length = 0;
 
-                                if (filteredNodesIndices.length < nodes.length) {
-                                    sharedDatamodel.status.type = 'success';
-                                    sharedDatamodel.status.message = listController.getAppliedPostfiltersSize() +
-                                            ' Postfilter angewendet und ' +
-                                            filteredNodesIndices.length + ' von ' +
-                                            nodes.length + ' Messstellen herausgefiltert.';
+                                if (filteredNodesIndices.length > 0) {
+
+                                    sharedDatamodel.filteredResultNodes.push.apply(
+                                            sharedDatamodel.filteredResultNodes, filteredNodesIndices);
+
+                                    if (filteredNodesIndices.length < nodes.length) {
+                                        sharedDatamodel.status.type = 'success';
+                                        sharedDatamodel.status.message = listController.getAppliedPostfiltersSize() +
+                                                ' Postfilter angewendet und ' +
+                                                filteredNodesIndices.length + ' von ' +
+                                                nodes.length + ' Messstellen herausgefiltert.';
+                                    } else {
+                                        sharedDatamodel.status.type = 'warning';
+                                        sharedDatamodel.status.message = 'Alle ' +
+                                                nodes.length + ' Messstellen wurden herausgefiltert. Bitte setzen Sie die Postfilter zurück.';
+                                    }
                                 } else {
-                                    sharedDatamodel.status.type = 'warning';
-                                    sharedDatamodel.status.message = 'Alle ' +
-                                            nodes.length + ' Messstellen wurden herausgefiltert. Bitte setzen Sie die Postfilter zurück.';
-                                }
+                                    var appliedPostfiltersSize = listController.getAppliedPostfiltersSize();
+                                    if (appliedPostfiltersSize > 0) {
+                                        console.warn('listController::applyPostfilters: ' +
+                                                appliedPostfiltersSize + ' post filters applied but no nodes filtered!');
+                                    }
 
+                                    sharedDatamodel.status.type = 'success';
+                                    sharedDatamodel.status.message = 'Alle Postfilter zurückgesetzt.';
+                                }
                             }, function reject(filteredNodesIndices) {
                         sharedDatamodel.status.type = 'danger';
                         sharedDatamodel.status.message = 'Beim Anwenden der Postfilter ist ein Fehler aufgetreten.';
@@ -136,9 +159,13 @@ angular.module(
                 };
 
                 listController.resetPostfilters = function () {
-                    postfilterService.resetFilteredNodes(sharedDatamodel.resultNodes);
-                    listController.setNodes(sharedDatamodel.resultNodes);
-                    
+                    var nodes = sharedDatamodel.resultNodes;
+                    sharedDatamodel.filteredResultNodes.length = 0;
+
+                    postfilterService.resetFilteredNodes(nodes);
+                    listController.setNodes(nodes);
+                    sharedControllers.searchMapController.setNodes(nodes);
+
                     sharedDatamodel.status.type = 'success';
                     sharedDatamodel.status.message = 'Alle Postfilter zurückgesetzt.';
                 };

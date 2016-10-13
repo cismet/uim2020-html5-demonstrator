@@ -160,18 +160,32 @@ angular.module(
                     featureGroups = [];
                     for (i = 0; i < nodes.length; ++i) {
                         node = nodes[i];
-                        theme = node.classKey.split(".").slice(1, 2).pop();
-                        feature = createNodeFeature(node, theme, selectNodeCallback);
 
-                        if (feature) {
-                            if (!featureGroups.hasOwnProperty(theme)) {
-                                featureGroup = [];
-                                featureGroups[theme] = featureGroup;
+                        // don't process filtered nodes!
+                        if (node.$filtered === false) {
+                            theme = node.classKey.split(".").slice(1, 2).pop();
+                            // js sucks! undefined !== null ?!!
+                            if (typeof node.$feature !== 'undefined' && node.$feature) {
+                                console.log('featureRendererService::createNodeFeatureGroups: reusing feature  for node "' +
+                                        node.name + ' (' + node.objectKey + ')');
+                                feature = node.$feature;
                             } else {
-                                featureGroup = featureGroups[theme];
+                                feature = createNodeFeature(node, theme, selectNodeCallback);
                             }
 
-                            featureGroup.push(feature);
+                            if (typeof feature !== 'undefined' && feature) {
+                                if (!featureGroups.hasOwnProperty(theme)) {
+                                    featureGroup = [];
+                                    featureGroups[theme] = featureGroup;
+                                } else {
+                                    featureGroup = featureGroups[theme];
+                                }
+
+                                featureGroup.push(feature);
+                            }
+                        } else {
+                            console.log('featureRendererService::createNodeFeatureGroups: ignoring filtered node node "' +
+                                    node.name + ' (' + node.objectKey + ')');
                         }
                     }
 

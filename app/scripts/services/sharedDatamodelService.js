@@ -34,6 +34,9 @@ angular.module(
                 this.resultNodes = [];
                 this.analysisNodes = [];
                 
+                // postfilters
+                this.filteredResultNodes = [];
+                
                 // data import
                 this.selectedGlobalDatasources = [];
                 this.localDatasources = [];
