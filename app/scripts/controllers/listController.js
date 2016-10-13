@@ -99,6 +99,12 @@ angular.module(
                     });
                 };
 
+                /**
+                 * Applies the selected tag-based postfilters and alls setNodes()
+                 * to update the table.
+                 * 
+                 * @return {undefined}
+                 */
                 listController.applyPostfilters = function () {
                     var nodes, promise;
 
@@ -110,9 +116,6 @@ angular.module(
                             function resolve(filteredNodesIndices) {
                                 // don't reset the postfilters!
                                 listController.setNodes(nodes, false);
-                                
-                                // hide features previously made visible by de-applying filters
-                                sharedControllers.searchMapController.applyZoomLevelRestriction();
 
                                 if (filteredNodesIndices.length < nodes.length) {
                                     sharedDatamodel.status.type = 'success';
@@ -129,18 +132,12 @@ angular.module(
                             }, function reject(filteredNodesIndices) {
                         sharedDatamodel.status.type = 'danger';
                         sharedDatamodel.status.message = 'Beim Anwenden der Postfilter ist ein Fehler aufgetreten.';
-                        
-                        // hide features previously made visible by de-applying filters
-                        sharedControllers.searchMapController.applyZoomLevelRestriction();
                     });
                 };
 
                 listController.resetPostfilters = function () {
                     postfilterService.resetFilteredNodes(sharedDatamodel.resultNodes);
                     listController.setNodes(sharedDatamodel.resultNodes);
-                    
-                    // hide features previously made visible by de-applying filters
-                    sharedControllers.searchMapController.applyZoomLevelRestriction();
                     
                     sharedDatamodel.status.type = 'success';
                     sharedDatamodel.status.message = 'Alle Postfilter zurückgesetzt.';

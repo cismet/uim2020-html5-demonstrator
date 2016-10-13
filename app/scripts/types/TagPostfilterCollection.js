@@ -85,8 +85,8 @@ angular.module(
                     if (nodes !== null && nodes.length > 0) {
                         for (i = 0; i < nodes.length; ++i) {
                             node = nodes[i];
-                            // don't collect tags of filtered nodes!
-                            if (!node.$filtered && node.$data && node.$data.tags &&
+                            // Attention: collects also tags of filtered nodes! (node.$filtered)
+                            if (node.$data && node.$data.tags &&
                                     (this.className === 'ALL' || this.className === node.$className)) {
                                 tags = node.$data.tags;
                                 this.addAll(tags, clear, sort);

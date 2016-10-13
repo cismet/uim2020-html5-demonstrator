@@ -566,12 +566,7 @@ angular.module(
                                 /*jshint loopfunc:true */
                                 featureGroup.forEach(function (feature) {
                                     feature.addTo(featureGroupLayer);
-
-                                    // filtered node added ....
-                                    if (feature.$node.$filtered === true) {
-                                        feature.setOpacity(0);
-                                        feature.$hidden = true;
-                                    } else if (featureGroup.$maxZoom) {
+                                    if (featureGroup.$maxZoom) {
                                         var currentZoomLevel = leafletMap.getZoom();
 
                                         if (currentZoomLevel > featureGroup.$maxZoom) {
@@ -581,9 +576,6 @@ angular.module(
                                             feature.setOpacity(1);
                                             feature.$hidden = false;
                                         }
-                                    } else {
-                                        feature.setOpacity(1);
-                                        feature.$hidden = false;
                                     }
                                 });
 
