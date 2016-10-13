@@ -283,8 +283,6 @@ angular.module(
                             {
                                 sharedDatamodel.resultNodes.length = 0;
                                 if (searchResult.$collection && searchResult.$collection.length > 0) {
-                                    //console.log(success);
-                                    //
                                     // The .push method can take multiple arguments, so by using 
                                     // .apply to pass all the elements of the second array as 
                                     // arguments to .push, you can get the result you want because
@@ -304,7 +302,7 @@ angular.module(
                             });
 
                     // <editor-fold defaultstate="collapsed" desc="[!!!!] MOCK DATA (DISABLED) ----------------">        
-                    /*                    
+                    /*                   
                      if(mockNodes === null || mockNodes === undefined) {
                      mockNodes = dataService.getMockNodes();
                      }             
@@ -358,24 +356,7 @@ angular.module(
                             });
                         }
                     }
-                });
-                //                var fireResize = function () {
-                //                    //$scope.currentHeight = $window.innerHeight - $scope.navbarHeight;
-                //                    //$scope.currentWidth = $window.innerWidth - ($scope.toolbarShowing ? $scope.toolbarWidth : 0);
-                //                    leafletData.getMap('search-map').then(function (map) {
-                //                        if (map && map._container.parentElement) {
-                //                            console.log('searchController::fireResize: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
-                //                            $scope.mapHeight = map._container.parentElement.offsetHeight;
-                //                            $scope.mapWidth = map._container.parentElement.offsetWidth;
-                //                            //map.invalidateSize(animate);
-                //                        }
-                //
-                //                    });
-                //                };
-                //
-                //                angular.element($window).bind('resize', function () {
-                //                    fireResize(false);
-                //                });
+                });        
 
                 console.log('searchController instance created');
             }

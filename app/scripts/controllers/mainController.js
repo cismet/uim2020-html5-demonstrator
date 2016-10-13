@@ -52,6 +52,12 @@ angular.module(
                 mainController.addAnalysisNode = function (node) {
                     var i, index;
 
+                    if (node.$filtered) {
+                        console.warn('mainController::addAnalysisNode: node "' + node.name +
+                                '" (' + node.objectKey + ') is NOT visible (filtered)!?!');
+                        node.$filtered = false;
+                    }
+
                     // indexOf does not work since node$feature is different!
                     index = -1; //sharedDatamodel.analysisNodes.indexOf(node);
                     for (i = 0; i < sharedDatamodel.analysisNodes.length; i++) {

@@ -120,7 +120,7 @@ angular.module(
                     defaultRestApiSearchResult.$promise.then(
                             function success(searchResult) {
                                 //console.log('searchService::defaultSearchFunction()->success()');
-                                var key, i, length, curentNode, dataObject, className, classTitle;
+                                var key, i, length, currentNode, dataObject, className, classTitle;
                                 // doing the same as ngResource: copying the results in the already returned obj (shallow)
                                 for (key in searchResult) {
                                     if (searchResult.hasOwnProperty(key) &&
@@ -130,34 +130,40 @@ angular.module(
                                         if (key === '$collection' && angular.isArray(defaultSearchResult.$collection)) {
                                             length = defaultSearchResult.$collection.length;
                                             for (i = 0; i < length; i++) {
-                                                curentNode = defaultSearchResult.$collection[i];
+                                                currentNode = defaultSearchResult.$collection[i];
 
-                                                className = curentNode.classKey.split(".").slice(1, 2).pop();
+                                                className = currentNode.classKey.split(".").slice(1, 2).pop();
 
                                                 // ----------------------------------------------------------
                                                 // Extend the resolved object by local properties
                                                 // ----------------------------------------------------------
-                                                curentNode.$className = className;
-                                                
+
+                                                /**
+                                                 * filtered node flag!
+                                                 */
+                                                currentNode.$filtered = false;
+
+                                                currentNode.$className = className;
+
                                                 if (configurationService.featureRenderer.icons[className]) {
-                                                    curentNode.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
+                                                    currentNode.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
                                                 }
 
                                                 // FIXME: extract class name from CS_CLASS description (server-side)
                                                 if (configurationService.featureRenderer.layergroupNames[className]) {
-                                                    curentNode.$classTitle = configurationService.featureRenderer.layergroupNames[className];
+                                                    currentNode.$classTitle = configurationService.featureRenderer.layergroupNames[className];
                                                 } else {
-                                                    curentNode.$classTitle = className;
+                                                    currentNode.$classTitle = className;
                                                 }
 
-                                                if (curentNode.lightweightJson) {
+                                                if (currentNode.lightweightJson) {
                                                     try {
-                                                        dataObject = angular.fromJson(curentNode.lightweightJson);
-                                                        curentNode.$data = dataObject;
-                                                        delete curentNode.lightweightJson;
+                                                        dataObject = angular.fromJson(currentNode.lightweightJson);
+                                                        currentNode.$data = dataObject;
+                                                        delete currentNode.lightweightJson;
                                                         // FIXME: extract class name from CS_CLASS description (server-side)
-                                                        /*curentNode.$classTitle = dataObject.classTitle ?
-                                                                dataObject.classTitle : classTitle;*/
+                                                        /*currentNode.$classTitle = dataObject.classTitle ?
+                                                         dataObject.classTitle : classTitle;*/
                                                     } catch (err) {
                                                         console.error(err.message);
                                                     }

@@ -299,7 +299,7 @@ angular.module(
                 defaultClusterGroupOptions = {
                     $icon: null,
                     $theme: null,
-                    spiderfyOnMaxZoom: false,
+                    spiderfyOnMaxZoom: true, //spiderfy occurs at the current zoom level if all items within the cluster are physically located at the same latitude and longitude (e.g. BORIS_SITE).
                     showCoverageOnHover: false,
                     zoomToBoundsOnClick: true,
                     removeOutsideVisibleBounds: true,
@@ -471,7 +471,7 @@ angular.module(
                     circle: false,
                     marker: false
                 };
-                
+
                 // Set the leaflet draw i18n translation texts -----------------
                 L.drawLocal.draw.toolbar.actions.title = 'Zeichnen abbrechen';
                 L.drawLocal.draw.toolbar.actions.text = 'Abbrechen';
