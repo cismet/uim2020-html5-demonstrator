@@ -43,7 +43,7 @@ angular.module(
 
                             if (!globalDatasource.$layer) {
 
-                                // TODO: contruct and add Layers!
+                                // TODO: construct and add Layers!
                                 globalDatasource.$layer = {
                                     $selected: true
                                 };
@@ -104,11 +104,10 @@ angular.module(
                         function (localDatasource) {
                             var idx = externalDatasourcesController.localDatasources.indexOf(localDatasource);
                             if (idx > -1) {
-                                // calls also remove on map
-                                if(localDatasource.$layer.$selected === true) {
-                                    externalDatasourcesController.toggleLocalDatasourceSelection(localDatasource);
-                                }
-                                
+                                // remove from map and styled layer control
+                                mapController.removeOverlay(localDatasource.$layer);
+
+                                // remove list
                                 externalDatasourcesController.localDatasources.splice(idx, 1);
                             } else {
                                 console.warn("externalDatasourcesController::removeLocalDatasource: unkwon datasource?!");
@@ -126,10 +125,10 @@ angular.module(
 
                             if (localDatasource.$layer.$selected === true) {
                                 localDatasource.$layer.$selected = false;
-                                mapController.removeOverlay(localDatasource.$layer);
+                                mapController.unSelectOverlay(localDatasource.$layer);
                             } else {
                                 localDatasource.$layer.$selected = true;
-                                mapController.addOverlay(localDatasource.$layer);
+                                mapController.selectOverlay(localDatasource.$layer);
                             }
 
                             /*var idx = externalDatasourcesController.selectedLocalDatasources.indexOf(localDatasource);

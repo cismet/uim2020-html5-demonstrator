@@ -10,23 +10,27 @@ angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'importController', [
-            '$scope', '$uibModalInstance', 'dataService', 'featureRendererService', 'sharedDatamodel',
+            '$q', '$scope', '$timeout', '$window', '$uibModalInstance', 'configurationService', 'featureRendererService', 'sharedDatamodel',
             'sharedControllers', 'localDatasource',
-            function ($scope, $uibModalInstance, dataService, featureRendererService, sharedDatamodel,
+            function ($q, $scope, $timeout, $window, $uibModalInstance, configurationService, featureRendererService, sharedDatamodel,
                     sharedControllers, localDatasource) {
                 'use strict';
-                var importController, mapController, handleZipFile, convertToLayer;
+                var config, importController, mapController, handleZipFile, convertToLayer,
+                        updateProgress;
 
                 importController = this;
+                config = configurationService.import;
                 mapController = sharedControllers.analysisMapController;
 
                 importController.importFile = null;
-                importController.maxFilesize = '10MB';
+                importController.maxFilesize = config.maxFilesize;
                 importController.importProgress = 0;
                 importController.importInProgress = false;
                 importController.importCompleted = false;
                 importController.importError = false;
-
+                importController.status = sharedDatamodel.status;
+                importController.status.type = 'primary';
+                importController.status.message = 'Wählen sie eine gezippte Shape Datei aus, um den Datenimport zu starten.';
 
                 // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ===========================">
                 /**
@@ -41,60 +45,86 @@ angular.module(
                     localDatasource.name = file.name.split(".").slice(0, 1).pop();
                     localDatasource.fileName = file.name;
 
-                    /*reader.onload = function () {
-                     if (reader.readyState !== 2 || reader.error) {
-                     console.error("File could not be read! Code " + reader.error);
-                     return;
-                     } else {
-                     convertToLayer(reader.result, file.name);
-                     }
-                     };*/
-
                     reader.onloadstart = function () {
-                        importController.importInProgress = true;
-                        console.log('onloadstart -> importController.importInProgress:' + importController.importInProgress);
-                        if (reader.readyState !== 2 || reader.error) {
-                            //console.error("File could not be read! Code " + reader.error);
-                            //return;
+                        if (reader.error) {
+                            importController.importProgress = 0;
+                            importController.importInProgress = false;
+                            importController.importCompleted = false;
+                            importController.importError = true;
+                            importController.status.type = 'danger';
+                            importController.status.message = 'Die Datei "' + localDatasource.fileName + '" konnte nicht geladen werden: ' + reader.error;
                         } else {
-
+                            $scope.$apply(function () {
+                                importController.importInProgress = true;
+                                importController.status.type = 'primary';
+                                importController.status.message = 'Die Datei "' + localDatasource.fileName + '" wird geladen.';
+                            });
                         }
                     };
 
                     reader.onprogress = function (progressEvent) {
-                        importController.importInProgress = true;
+
+                        $scope.$apply(function () {
+                            importController.importInProgress = true;
+                            importController.importCompleted = false;
+                        });
+
                         var max, current;
                         if (progressEvent.lengthComputable) {
                             max = event.total;
                             current = event.loaded;
 
-                            //console.log('importProgress: ' + current + '(' + Math.min(100, parseInt(100.0 * current / max)) + '%)');
-                            importController.importProgress =
-                                    Math.min(100, parseInt(100.0 * current / max));
+                            //console.log('importController::onprogress -> importProgress: ' + current + '/' + max +
+                            //        ' (' + Math.min(100, parseInt(100.0 * current / max)) + '%)');
+
+                            $scope.$apply(function () {
+                                importController.importProgress =
+                                        Math.min(100, parseInt(100.0 * current / max));
+                            });
 
                         } else {
-                            importController.importProgress = 100;
+                            $scope.$apply(function () {
+                                importController.importProgress = 100;
+                            });
                         }
                     };
 
                     reader.onloadend = function (event) {
                         var arrayBuffer, error;
-                        
-                        
 
                         arrayBuffer = event.target.result;
                         error = event.target.error;
 
                         if (error) {
-                            console.error("File could not be read! Code " + error.code);
-                            importController.importProgress = 0;
-                            importController.importInProgress = false;
-                            importController.importError = true;
+                            console.error('importController::onloadend -> File could not be read! Code ' + error.code);
+                            $scope.$apply(function () {
+                                importController.importProgress = 0;
+                                importController.importInProgress = false;
+                                importController.importError = true;
+                                importController.importCompleted = false;
+                                importController.status.type = 'danger';
+                                importController.status.message = 'Die Datei "' + localDatasource.fileName + '" konnte nicht geladen werden: ' + reader.error;
+                            });
                         } else {
-                            importController.importProgress = 100;
-                            console.log('onloadend -> importController.onloadend: ' + 
-                                    importController.importProgress);
-                            convertToLayer(arrayBuffer, file.name);
+                            $scope.$apply(function () {
+                                importController.importProgress = 100;
+                            });
+
+                            //console.log('importController::onloadend -> importController.onloadend progress: ' +
+                            //        importController.importProgress);
+
+
+
+                            $timeout(function () {
+                                importController.importProgress = 100;
+                                importController.status.type = 'primary';
+                                importController.status.message = 'Die Datei "' + localDatasource.fileName + '" wird verarbeitet.';
+
+                                convertToLayer(arrayBuffer, file.name);
+                            }, 500);
+
+                            //console.log('importController::onloadend -> importController.onloadend progress: ' +
+                            //        importController.importProgress);
                         }
                     };
 
@@ -103,31 +133,100 @@ angular.module(
 
                 // </editor-fold>
 
+                updateProgress = function (max, current) {
+                    var importProgress = 0;
+
+                    if (current < max) {
+                        importProgress = 100 +
+                                Math.min(100, parseInt(100.0 * current / max));
+
+                        // update only every 1% step
+                        if (importProgress > importController.importProgress) {
+                            $scope.$apply(function () {
+                                importController.importProgress = importProgress;
+                            });
+                            //console.log('importController::convertToLayer: importProgress = ' + 
+                            //        importProgress + ' (' + current + '/' + max + ')');
+                        }
+                    } else { // finished
+                        importProgress = 200;
+                        //console.log('importController::convertToLayer: importProgress FINISHED = ' + 
+                        //        importProgress + ' (' + current + '/' + max + ')');
+                        $scope.$apply(function () {
+                            importController.importProgress = 200;
+                            importController.importInProgress = false;
+                            importController.importCompleted = true;
+                            importController.status.type = 'success';
+                            importController.status.message = 'Die Datei "' + localDatasource.fileName + '" wurde importiert.';
+                        });
+                    }
+                };
 
                 convertToLayer = function convertToLayer(buffer) {
-                    var overlayLayer;
-                    
-                    shp(buffer).then(function (geojson) {
-                        console.log('importController::convertToLayer: processing ' + 
-                                geojson.features.length + "' GeoJson Features");
-                        overlayLayer = featureRendererService.createOverlayLayer(
-                                localDatasource, geojson, function (max, current) {
-                                    if (current === max) {
-                                        importController.importProgress = 100 +
-                                                Math.min(100, parseInt(100.0 * current / max));
-                                    } else {
-                                        importController.importProgress = 200;
-                                    }
+                    var promise;
 
-                                    if (importController.importProgress === 200) {
-                                        importController.importInProgress = false;
-                                        importController.importCompleted = true;
-                                    }
-                                });
+                    promise = shp(buffer).then(
+                            function success(geojson) {
+                                var isCreateOverlayLayer = true;
+                                //console.log('importController::convertToLayer: processing ' +
+                                //        geojson.features.length + ' GeoJson Features');
 
-                        sharedDatamodel.localDatasources.push(localDatasource);
-                        mapController.addOverlay(overlayLayer);
+                                importController.status.type = 'primary';
+                                importController.status.message = geojson.features.length + ' Features bereit zum Verarbeiten.';
+
+                                if (geojson.features.length > config.maxFeatureCount) {
+                                    isCreateOverlayLayer = $window.confirm('Die Datei enhält mehr als ' + config.maxFeatureCount + ' Features.\n' +
+                                            'Wollen Sie diese wirklich importieren?');
+                                }
+
+                                if (isCreateOverlayLayer === true) {
+                                    importController.status.message = geojson.features.length + ' Features werden verarbeitet.';
+                                    // return new promise
+                                    return featureRendererService.createOverlayLayer(
+                                            localDatasource, geojson, updateProgress);
+                                } else {
+                                    return $q.reject('Zu viele Features');
+                                }
+                            }, function error(reason) {
+                        console.error('importController::convertToLayer: could not process "' +
+                                localDatasource.fileName + '": ' + reason);
+
+                        importController.importProgress = 0;
+                        importController.importInProgress = false;
+                        importController.importError = true;
+                        importController.importCompleted = false;
+                        importController.status.type = 'danger';
+                        importController.status.message = 'Die Datei "' + localDatasource.fileName + '" konnte nicht verarbeitet werden: ' + reason;
                     });
+
+                    promise.then(
+                            function success(overlayLayer) {
+                                //console.log('importController::convertToLayer: GeoJson Features successfully processed');
+                                $timeout(function () {
+                                    //console.log('importController::convertToLayer: adding  ' + overlayLayer.getLayers().length + ' GeoJson Features to map');
+                                    mapController.addOverlay(overlayLayer);
+                                    //console.log('importController::convertToLayer: ' + overlayLayer.getLayers().length + ' GeoJson Features added to map');
+                                    sharedDatamodel.localDatasources.push(localDatasource);
+
+                                    importController.importProgress = 200;
+                                    importController.importInProgress = false;
+                                    importController.importCompleted = true;
+                                    importController.status.type = 'success';
+                                    importController.status.message = overlayLayer.getLayers().length +
+                                            ' Features aus der Datei "' + localDatasource.fileName + '" wurden der Karte hinzugefügt';
+                                }, 500);
+                            },
+                            function error(reason) {
+                                $timeout(function () {
+                                    console.log('importController::convertToLayer: failed: ' + reason);
+                                    importController.importProgress = 0;
+                                    importController.importInProgress = false;
+                                    importController.importError = true;
+                                    importController.importCompleted = false;
+                                    importController.status.type = 'danger';
+                                    importController.status.message = 'Die Datei "' + localDatasource.fileName + '" konnte nicht verarbeitet werden: ' + reason;
+                                }, 100);
+                            });
                 };
 
                 // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
