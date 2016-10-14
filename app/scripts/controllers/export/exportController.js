@@ -1,17 +1,32 @@
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
 /*global angular*/
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'exportController', [
-            '$scope', '$state', '$stateParams', '$previousState', '$uibModalInstance',
-            'entity', 'entityModalInvoker',
-            function ($scope, $state, $stateParams, $previousState, $uibModalInstance,
-                    entity, entityModalInvoker) {
+            '$scope', '$state', '$uibModalInstance', 'sharedDatamodel',
+            function ($scope, $state, $uibModalInstance, sharedDatamodel) {
                 'use strict';
-                
+
                 var exportController;
                 exportController = this;
                 
+                $scope.status = sharedDatamodel.status;
+                $scope.status.message = 'Bitte wählen Sie ein Exportformat aus';
+                $scope.status.type = 'info';
+                
+                // scope-soup options for wizard panels
+                $scope.options = {};
+
                 /**
                  * Wizard status, etc.
                  */
@@ -24,11 +39,15 @@ angular.module(
                 $scope.wizard.canGoBack = false;
                 $scope.wizard.hasError = false;
                 $scope.wizard.proceedButtonText = 'Weiter';
+                
+                // scope soup madness -> available as wzData.status in wizard-step.tpl.html
+                $scope.wizard.status = sharedDatamodel.status;
+                
                 $scope.wizard.isFinishStep = function () {
-                    return $scope.wizard.currentStep === 'Summary';
+                    return $scope.wizard.currentStep === 'Export';
                 };
                 $scope.wizard.isFirstStep = function () {
-                    return $scope.wizard.currentStep === 'Dataset Description';
+                    return $scope.wizard.currentStep === 'Konfiguration';
                 };
 
                 $scope.$watch('wizard.currentStep', function (n) {
@@ -45,12 +64,17 @@ angular.module(
                         $scope.wizard.proceedButtonText = 'Weiter';
                     }
                 });
-                
+
                 exportController.finishedWizard = function () {
                     $uibModalInstance.dismiss('close');
                 };
 
-                $uibModalInstance.result.finally(function () {
+                $uibModalInstance.result.catch(
+                        function cancel(reason) {
+                        $scope.status.message = 'Export abgebrochen';
+                        $scope.status.type = 'info';
+                    
+                }).finally(function () {
                     $state.go('main.analysis.map');
                 });
 

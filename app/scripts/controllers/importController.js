@@ -29,7 +29,7 @@ angular.module(
                 importController.importCompleted = false;
                 importController.importError = false;
                 importController.status = sharedDatamodel.status;
-                importController.status.type = 'primary';
+                importController.status.type = 'info';
                 importController.status.message = 'Wählen sie eine gezippte Shape Datei aus, um den Datenimport zu starten.';
 
                 // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ===========================">
@@ -56,7 +56,7 @@ angular.module(
                         } else {
                             $scope.$apply(function () {
                                 importController.importInProgress = true;
-                                importController.status.type = 'primary';
+                                importController.status.type = 'info';
                                 importController.status.message = 'Die Datei "' + localDatasource.fileName + '" wird geladen.';
                             });
                         }
@@ -117,7 +117,7 @@ angular.module(
 
                             $timeout(function () {
                                 importController.importProgress = 100;
-                                importController.status.type = 'primary';
+                                importController.status.type = 'info';
                                 importController.status.message = 'Die Datei "' + localDatasource.fileName + '" wird verarbeitet.';
 
                                 convertToLayer(arrayBuffer, file.name);
@@ -171,7 +171,7 @@ angular.module(
                                 //console.log('importController::convertToLayer: processing ' +
                                 //        geojson.features.length + ' GeoJson Features');
 
-                                importController.status.type = 'primary';
+                                importController.status.type = 'info';
                                 importController.status.message = geojson.features.length + ' Features bereit zum Verarbeiten.';
 
                                 if (geojson.features.length > config.maxFeatureCount) {

@@ -456,7 +456,7 @@ app.config(
                 });
 
                 $stateProvider.state('modal.export', {
-                    url: '/export',
+                    url: '/analysis/export',
                     data: {
                         roles: ['User']
                     },
@@ -464,6 +464,8 @@ app.config(
                     templateUrl: 'views/export/modal.html',
                     controller: 'exportController',
                     controllerAs: 'exportController',
+                    backdrop: 'static', // this is js-madness: put modal properties into state options!
+                    size: 'lg',
                     modal: true
                 });
 

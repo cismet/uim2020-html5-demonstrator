@@ -575,11 +575,27 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "        </div>\r" +
     "\n" +
+    "\r" +
+    "\n" +
     "        <div class=\"panel-body\">\r" +
     "\n" +
     "            <div ng-transclude></div>\r" +
     "\n" +
     "        </div>\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "        <div uib-alert \r" +
+    "\n" +
+    "             ng-class=\"'alert-' + (wzData.status.type || 'primary')\"\r" +
+    "\n" +
+    "             style=\"margin: 0\">\r" +
+    "\n" +
+    "            <span ng-bind-html=\"wzData.status.message\" style=\"text-align:left\"></span>\r" +
+    "\n" +
+    "        </div>\r" +
+    "\n" +
+    "        \r" +
     "\n" +
     "        <div class=\"panel-footer clearfix\">\r" +
     "\n" +

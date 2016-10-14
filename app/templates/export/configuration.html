@@ -1,0 +1,114 @@
+<div id="exportConfiguration"
+     ng-controller="exportConfigurationController as configurationController">
+
+    <uib-accordion close-others="false">
+        <!-- Exportoptionen-->
+        <div uib-accordion-group
+             ng-if="options.isMergeExternalDatasourceEnabled"
+             ng-init="options.exportOptionsOpen = false" 
+             is-open="exportOptionsOpen"
+             is-disabled="true" 
+             ng-class="{'text-muted': !options.isMergeExternalDatasourceEnabled}">
+
+            <uib-accordion-heading>
+                <div uib-accordion-header 
+                     style="margin:0px;padding:8px;background-color:#c6e1ec;color:#3d7489"
+                     ng-enabled="isMergeExternalDatasourceEnabled">
+                    <strong>Exportoptionen</strong>
+                    <i class="pull-right fa" 
+                       ng-class="{'fa-chevron-down': exportOptionsOpen, 'fa-chevron-up': !exportOptionsOpen}">
+                    </i>
+                </div>
+            </uib-accordion-heading>
+
+            <form class="form-horizontal"
+                  id="exportOptionsForm"
+                  name="exportOptionsForm">
+                <div class="form-group row" 
+                     ng-class="{'has-error':wizard.hasError === 'exportOptions'}">
+                    <div class="col-md-12">
+                        <div class="checkbox" style="width:100%;clear:right">
+                            <label class="form-check-label">
+                                <input 
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="Mit externer Datenquelle verschneiden"
+                                    ng-model="options.isMergeExternalDatasource"> 
+                                Mit externer Datenquelle verschneiden
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Exportformat -->
+        <div uib-accordion-group  
+             ng-init="exportFormatOpen = true" 
+             is-open="exportFormatOpen">
+
+            <uib-accordion-heading>
+                <div uib-accordion-header 
+                     style="margin:0px;padding:8px;background-color:#c6e1ec;color:#3d7489">
+                    Exportformat
+                    <i class="pull-right fa" 
+                       ng-class="{'fa-chevron-down': exportFormatOpen, 'fa-chevron-up': !exportFormatOpen}">
+                    </i>
+                </div>
+            </uib-accordion-heading>
+
+            <form class="form-horizontal"
+                  id="exportFormatForm"
+                  name="exportFormatForm">
+                <div class="form-group row" 
+                     ng-class="{'has-error':wizard.hasError === 'exportFormat'}">
+                    <div class="col-md-12">
+                        <div class="radio" style="width:100%;clear:right">
+                            <label class="form-check-label">
+                                <input 
+                                    class="form-check-input"
+                                    type="radio"
+                                    ng-model="options.exportFormat" 
+                                    value="shp"
+                                    name="shp"> 
+                                ESRI ShapeFile (SHP)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row" 
+                     ng-class="{'has-error':wizard.hasError === 'exportFormat'}">
+                    <div class="col-md-12">
+                        <div class="radio" style="width:100%;clear:right">
+                            <label class="form-check-label">
+                                <input 
+                                    class="form-check-input"
+                                    type="radio"
+                                    ng-model="options.exportFormat" 
+                                    value="xlsx"
+                                    name="xlsx"> 
+                                Microsoft Excel (XLSX)  
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row" 
+                     ng-class="{'has-error':wizard.hasError === 'exportFormat'}">
+                    <div class="col-md-12">
+                        <div class="radio" style="width:100%;clear:right">
+                            <label class="form-check-label">
+                                <input 
+                                    class="form-check-input"
+                                    type="radio"
+                                    ng-model="options.exportFormat" 
+                                    value="csv"
+                                    name="csv"> 
+                                Comma-Separated-Values (CSV)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </uib-accordion>
+</div>

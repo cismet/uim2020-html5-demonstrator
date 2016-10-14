@@ -1,0 +1,75 @@
+<div id="exportConfiguration"
+     ng-controller="exportConfigurationController as configurationController">
+
+    <uib-accordion close-others="false">
+        <!-- Exportoptionen-->
+        <div uib-accordion-group  
+             ng-init="exportOptionsOpen = false" 
+             is-open="exportOptionsOpen"
+             ng-class="{'text-muted': isDisabled}">
+
+            <uib-accordion-heading>
+                <div uib-accordion-header 
+                     style="margin:0px;padding:8px;background-color:#c6e1ec;color:#3d7489">
+                    Exportoptionen
+                    <i class="pull-right glyphicon" 
+                       ng-class="{'glyphicon-chevron-down': exportOptionsOpen, 'glyphicon-chevron-up': !exportOptionsOpen}">
+                    </i>
+                </div>
+            </uib-accordion-heading>
+
+            <div class="checkbox" style="width:100%;clear:right"
+                 ng-repeat="globalDatasource in externalDatasourcesController.globalDatasources">
+                <label class="form-check-label">
+                    <input 
+                        class="form-check-input"
+                        type="checkbox"
+                        name="{{globalDatasource.name}}"
+                        ng-checked="globalDatasource.$layer && globalDatasource.$layer.$selected"
+                        ng-click="externalDatasourcesController.toggleGlobalDatasourceSelection(globalDatasource)"
+                        ng-disabled="true"> 
+                    {{globalDatasource.name}}
+                </label>
+            </div>
+        </div>
+
+        <!-- Exportformat -->
+        <div uib-accordion-group  
+             ng-init="exportFormatOpen = true" 
+             is-open="exportFormatOpen">
+
+            <uib-accordion-heading>
+                <div uib-accordion-header 
+                     style="margin:0px;padding:8px;background-color:#c6e1ec;color:#3d7489">
+                    Exportformat
+                    <i class="pull-right glyphicon" 
+                       ng-class="{'glyphicon-chevron-down': exportFormatOpen, 'glyphicon-chevron-up': !exportFormatOpen}">
+                    </i>
+                </div>
+            </uib-accordion-heading>
+
+            <form class="form-horizontal"
+                  id="exportFormatForm"
+                  name="exportFormatForm">
+
+                <div class="form-group row" 
+                     ng-class="{'has-error':wizard.hasError === 'exportFormat'}">
+                    <div class="col-md-12">
+                        <div class="radio" style="width:100%;clear:right"
+                             ng-repeat="localDatasource in externalDatasourcesController.localDatasources">
+                            <label class="form-check-label">
+                                <input 
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="{{localDatasource.name}}"
+                                    ng-checked="localDatasource.$layer && localDatasource.$layer.$selected"
+                                    ng-click="externalDatasourcesController.toggleLocalDatasourceSelection(localDatasource)"> 
+                                {{localDatasource.name}}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </uib-accordion>
+</div>

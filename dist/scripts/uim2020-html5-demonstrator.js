@@ -456,7 +456,7 @@ app.config(
                 });
 
                 $stateProvider.state('modal.export', {
-                    url: '/export',
+                    url: '/analysis/export',
                     data: {
                         roles: ['User']
                     },
@@ -464,6 +464,8 @@ app.config(
                     templateUrl: 'views/export/modal.html',
                     controller: 'exportController',
                     controllerAs: 'exportController',
+                    backdrop: 'static', // this is js-madness: put modal properties into state options!
+                    size: 'lg',
                     modal: true
                 });
 
@@ -935,20 +937,89 @@ angular.module(
         );
 
 
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+/*global angular*/
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.controllers'
+        ).controller(
+        'exportConfigurationController', [
+            '$scope', 'sharedDatamodel',
+            function ($scope, sharedDatamodel) {
+                'use strict';
+
+                $scope.options.isMergeExternalDatasource = false;
+                $scope.options.isMergeExternalDatasourceEnabled = sharedDatamodel.localDatasources.length > 0;
+                $scope.options.exportFormat = null;
+
+                $scope.wizard.enterValidators['Konfiguration'] = function (context) {
+                    if (context.valid === true) {
+
+                        $scope.status.message = 'Bitte wählen Sie ein Exportformat aus';
+                        $scope.status.type = 'info';
+                    }
+
+                    return context.valid;
+                };
+
+                $scope.wizard.exitValidators['Konfiguration'] = function (context) {
+                    context.valid = true;
+
+                    if (!$scope.options.exportFormat) {
+                        $scope.status.message = 'Bitte wählen Sie ein Exportformat aus';
+                        $scope.status.type = 'warning';
+                        context.valid = false;
+                    }
+
+                    if (context.valid === true) {
+                        $scope.wizard.hasError = null;
+                    }
+                    // no error? -> reset
+
+                    return context.valid;
+                };
+            }
+        ]
+        );
+
+
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
 /*global angular*/
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'exportController', [
-            '$scope', '$state', '$stateParams', '$previousState', '$uibModalInstance',
-            'entity', 'entityModalInvoker',
-            function ($scope, $state, $stateParams, $previousState, $uibModalInstance,
-                    entity, entityModalInvoker) {
+            '$scope', '$state', '$uibModalInstance', 'sharedDatamodel',
+            function ($scope, $state, $uibModalInstance, sharedDatamodel) {
                 'use strict';
-                
+
                 var exportController;
                 exportController = this;
                 
+                $scope.status = sharedDatamodel.status;
+                $scope.status.message = 'Bitte wählen Sie ein Exportformat aus';
+                $scope.status.type = 'info';
+                
+                // scope-soup options for wizard panels
+                $scope.options = {};
+
                 /**
                  * Wizard status, etc.
                  */
@@ -961,11 +1032,15 @@ angular.module(
                 $scope.wizard.canGoBack = false;
                 $scope.wizard.hasError = false;
                 $scope.wizard.proceedButtonText = 'Weiter';
+                
+                // scope soup madness -> available as wzData.status in wizard-step.tpl.html
+                $scope.wizard.status = sharedDatamodel.status;
+                
                 $scope.wizard.isFinishStep = function () {
-                    return $scope.wizard.currentStep === 'Summary';
+                    return $scope.wizard.currentStep === 'Export';
                 };
                 $scope.wizard.isFirstStep = function () {
-                    return $scope.wizard.currentStep === 'Dataset Description';
+                    return $scope.wizard.currentStep === 'Konfiguration';
                 };
 
                 $scope.$watch('wizard.currentStep', function (n) {
@@ -982,12 +1057,17 @@ angular.module(
                         $scope.wizard.proceedButtonText = 'Weiter';
                     }
                 });
-                
+
                 exportController.finishedWizard = function () {
                     $uibModalInstance.dismiss('close');
                 };
 
-                $uibModalInstance.result.finally(function () {
+                $uibModalInstance.result.catch(
+                        function cancel(reason) {
+                        $scope.status.message = 'Export abgebrochen';
+                        $scope.status.type = 'info';
+                    
+                }).finally(function () {
                     $state.go('main.analysis.map');
                 });
 
@@ -1008,271 +1088,6 @@ angular.module(
         );
 
 
-/* 
- * ***************************************************
- * 
- * cismet GmbH, Saarbruecken, Germany
- * 
- *               ... and it just works.
- * 
- * ***************************************************
- */
-
-/*jshint sub:true*/
-
-angular.module(
-        'de.cismet.sip-html5-resource-registration.controllers'
-        ).controller(
-        'de.cismet.sip-html5-resource-registration.controllers.odRegistrationController',
-        [
-            '$scope',
-            '$modal',
-            '$location',
-            'AppConfig',
-            'de.cismet.sip-html5-resource-registration.services.dataset',
-            'de.cismet.sip-html5-resource-registration.services.TagGroupService',
-            'de.cismet.sip-html5-resource-registration.services.searchService',
-            // Controller Constructor Function
-            function (
-                    $scope,
-                    $modal,
-                    $location,
-                    AppConfig,
-                    dataset,
-                    tagGroupService,
-                    searchService
-                    ) {
-                'use strict';
-
-                var _this, duplicateLink;
-                duplicateLink = undefined;
-
-                _this = this;
-                _this.dataset = dataset;
-                _this.config = AppConfig;
-
-                _this.groupBy = function (item) {
-
-                    if (item.name.indexOf(',') > -1) {
-                        return item.name.split(',', 1)[0];
-                    } else {
-                        return item.name.split(' ', 1)[0];
-                    }
-
-                };
-
-                _this.checkLink = function (url) {
-                    //console.log(url);
-                    if (url) {
-                        var searchResultPromise, searchSuccess, searchError;
-                        searchSuccess = function (searchResult) {
-                            if (searchResult && searchResult.$collection && searchResult.$collection.length > 0) {
-                                duplicateLink = 'This dataset is already registered in the SWITCH-ON Spatial Information Platform under the name </strong>"' +
-                                        searchResult.$collection[0].name + '"</strong>. Click <a href="'+AppConfig.byod.baseUrl+'/#/resource/' +
-                                        searchResult.$collection[0].id + '" title="' +
-                                        searchResult.$collection[0].name + '" target="_blank">here</a> to view the dataset meta-data.';
-
-                                $scope.message.text = duplicateLink;
-                                $scope.message.icon = 'fa-warning';
-                                $scope.message.type = 'info';
-                                $scope.wizard.hasError = 'datasetContentlocation';
-                            } else {
-                                // reset the warning!
-                                if($scope.wizard.hasError === 'datasetContentlocation') {
-                                    $scope.wizard.hasError = null;
-                                }
-                                
-                                //console.log('resource ' + url + ' not in Meta-Data Repository');
-                                duplicateLink = undefined;
-                            }
-                        };
-
-                        searchError = function (data) {
-                            console.error('search error: ' + data);
-                            duplicateLink = undefined;
-                        };
-
-                        searchResultPromise = searchService.search(url).$promise.then(searchSuccess, searchError);
-                    }
-
-                    duplicateLink = undefined;
-                };
-                
-                _this.selectKeywords = function () {
-                    $modal.open({
-                        animation: true,
-                        templateUrl: 'templates/keywordSelection.html',
-                        controller: 'de.cismet.sip-html5-resource-registration.controllers.keywordsController',
-                        controllerAs: 'keywordsController',
-                        keyboard: 'true',
-                        size: 'lg',
-                        scope: $scope
-                    });
-                };
-                
-                _this.gotoUploadTool = function () {
-                    var uploadToolUrl = _this.config.uploadtool.baseUrl + 
-                            '?datasetname=' + _this.dataset.name;
-                    //console.log(uploadToolUrl);
-                    $location.url(uploadToolUrl); 
-                };
-                
-                _this.checkUploadName = function () {
-                     if (!dataset.name) {
-                        $scope.message.text = 'Please enter the name / title of the dataset before uploading ';
-                        $scope.message.icon = 'fa-warning';
-                        $scope.message.type = 'warning';
-
-                        $scope.wizard.hasError = 'datasetUploadchoiceName';
-                        return false;
-                    }
-                    
-                    return true;
-                };
-
-                // load list
-                $scope.tags['function'] = tagGroupService.getTagList('function');
-                $scope.tags['content type'] = tagGroupService.getTagList('content type');
-                $scope.tags['keywords - X-CUAHSI'] = tagGroupService.getTagList('keywords - X-CUAHSI');
-
-                // set default values
-//                _this.dataset.representation[0].function = tagGroupService.getTag('function', 'download',
-//                        function (tag) {
-//                            _this.dataset.representation[0].function = tag;
-//                        });
-//                
-//                _this.dataset.representation[0].contenttype = tagGroupService.getTag('content type', 'application/octet-stream',
-//                        function (tag) {
-//                            _this.dataset.representation[0].contenttype = tag;
-//                        });
-
-                $scope.wizard.enterValidators['Dataset Description'] = function (context) {
-                    if (context.valid === true) {
-                        $scope.message.text = 'Please provide some general information about the new dataset such as name, description, a (download) link and keywords.';
-                        $scope.message.icon = 'fa-info-circle';
-                        $scope.message.type = 'success';
-                    }
-
-                    return context.valid;
-                };
-
-                $scope.wizard.exitValidators['Dataset Description'] = function (context) {
-                    context.valid = true;
-
-                    // CONTENT TYPE
-                    var isInvalidContenttype = $scope.tags['content type'].every(function (element) {
-                        if (_this.dataset.representation[0] && _this.dataset.representation[0].contenttype &&
-                                (element.name === _this.dataset.representation[0].contenttype.name)) {
-                            _this.dataset.representation[0].contenttype = element;
-                            return false;
-                        }
-
-                        return true;
-                    });
-
-                    // FUNCTION
-                    var isInvalidFunction = $scope.tags['function'].every(function (element) {
-                        if (_this.dataset.representation[0] && _this.dataset.representation[0].function &&
-                                (element.name === _this.dataset.representation[0].function.name)) {
-                            _this.dataset.representation[0].function = element;
-                            return false;
-                        } else {
-                            return true;
-                        }
-                    });
-
-                    // NAME
-                    if (!dataset.name) {
-                        $scope.message.text = 'Please enter the name / title of the dataset.';
-                        $scope.message.icon = 'fa-warning';
-                        $scope.message.type = 'warning';
-
-                        $scope.wizard.hasError = 'datasetName';
-                        context.valid = false;
-                    } else if (dataset.$uploaded === undefined) {
-                        $scope.message.text = 'Please chose wheter you want to upload a new dataset or to provide a link to anexisting dataset.';
-                        $scope.message.icon = 'fa-warning';
-                        $scope.message.type = 'warning';
-
-                        $scope.wizard.hasError = 'datasetUploadchoice';
-                        context.valid = false;
-                    } else if (isInvalidFunction) {
-                        $scope.message.text = 'Please select a valid function (e.g. download) of the link.';
-                        $scope.message.icon = 'fa-warning';
-                        $scope.message.type = 'warning';
-
-                        $scope.wizard.hasError = 'datasetContentlocation';
-                        context.valid = false;
-                    } else if (!dataset.representation[0].function) {
-                        $scope.message.text = 'Please select a function (e.g. download) of the link.';
-                        $scope.message.icon = 'fa-warning';
-                        $scope.message.type = 'warning';
-
-                        $scope.wizard.hasError = 'datasetContentlocation';
-                        context.valid = false;
-                    }  else if ($scope.odRegistrationForm.datasetContentlocation.$error.url) {
-                        // CONTENT LOCATION       
-                        $scope.message.text = 'The link to the dataset you have provided is not a valid <a href=\'https://en.wikipedia.org/wiki/Uniform_Resource_Locator#Syntax\' target=\'_blank\' title=\'Uniform Resource Locator\'>URL</a> .';
-                        $scope.message.icon = 'fa-warning';
-                        $scope.message.type = 'warning';
-
-                        $scope.wizard.hasError = 'datasetContentlocation';
-                        context.valid = false;
-                    } else if (!dataset.representation[0].contentlocation) {
-                        $scope.message.text = 'Please provide link to the dataset.';
-                        $scope.message.icon = 'fa-warning';
-                        $scope.message.type = 'warning';
-
-                        $scope.wizard.hasError = 'datasetContentlocation';
-                        context.valid = false;
-                    } else if (duplicateLink) {
-                        $scope.message.text = duplicateLink;
-                        $scope.message.icon = 'fa-warning';
-                        $scope.message.type = 'warning';
-
-                        $scope.wizard.hasError = 'datasetContentlocation';
-                        context.valid = false;
-                    } else if (isInvalidContenttype) {
-                        $scope.message.text = 'Please select a valid content type (e.g. ESRI Shapefile) of the link.';
-                        $scope.message.icon = 'fa-warning';
-                        $scope.message.type = 'warning';
-
-                        $scope.wizard.hasError = 'datasetContentlocation';
-                        context.valid = false;
-                    } else if (!dataset.representation[0].contenttype) {
-                        $scope.message.text = 'Please select a valid content type (e.g. ESRI Shapefile) of the link.';
-                        $scope.message.icon = 'fa-warning';
-                        $scope.message.type = 'warning';
-
-                        $scope.wizard.hasError = 'datasetContentlocation';
-                        context.valid = false;
-                    } else if (!dataset.description) {
-                        // DESCRIPTION
-                        $scope.message.text = 'Please provide a description of the dataset.';
-                        $scope.message.icon = 'fa-warning';
-                        $scope.message.type = 'warning';
-
-                        $scope.wizard.hasError = 'datasetDescription';
-                        context.valid = false;
-                    } else if (!_this.dataset.tags || _this.dataset.tags.length === 0) {
-                        $scope.message.text = 'Please assign at least one keyword to the Dataset.';
-                        $scope.message.icon = 'fa-warning';
-                        $scope.message.type = 'warning';
-
-                        $scope.wizard.hasError = 'datasetTags';
-                        context.valid = false;
-                    }
-
-                    if (context.valid === true) {
-                        $scope.wizard.hasError = null;
-                    }
-                    // no error? -> reset
-
-                    return context.valid;
-                };
-            }
-        ]
-        );
 /*global angular, shp, L*/
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
@@ -1451,7 +1266,7 @@ angular.module(
                 importController.importCompleted = false;
                 importController.importError = false;
                 importController.status = sharedDatamodel.status;
-                importController.status.type = 'primary';
+                importController.status.type = 'info';
                 importController.status.message = 'Wählen sie eine gezippte Shape Datei aus, um den Datenimport zu starten.';
 
                 // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ===========================">
@@ -1478,7 +1293,7 @@ angular.module(
                         } else {
                             $scope.$apply(function () {
                                 importController.importInProgress = true;
-                                importController.status.type = 'primary';
+                                importController.status.type = 'info';
                                 importController.status.message = 'Die Datei "' + localDatasource.fileName + '" wird geladen.';
                             });
                         }
@@ -1539,7 +1354,7 @@ angular.module(
 
                             $timeout(function () {
                                 importController.importProgress = 100;
-                                importController.status.type = 'primary';
+                                importController.status.type = 'info';
                                 importController.status.message = 'Die Datei "' + localDatasource.fileName + '" wird verarbeitet.';
 
                                 convertToLayer(arrayBuffer, file.name);
@@ -1593,7 +1408,7 @@ angular.module(
                                 //console.log('importController::convertToLayer: processing ' +
                                 //        geojson.features.length + ' GeoJson Features');
 
-                                importController.status.type = 'primary';
+                                importController.status.type = 'info';
                                 importController.status.message = geojson.features.length + ' Features bereit zum Verarbeiten.';
 
                                 if (geojson.features.length > config.maxFeatureCount) {
@@ -5413,38 +5228,250 @@ angular.module(
 
                 // auth token
                 this.identity = null;
-                
+
                 // resolved entity
                 this.resolvedEntity = null;
-                
+
                 // search selection
                 this.selectedSearchThemes = [];
                 this.selectedSearchPollutants = [];
                 this.selectedGazetteerLocation = {};
                 //this.selectedSearchGeometry = {};
                 this.selectedSearchLocation = {
-                    id:0
+                    id: 0
                 };
 
                 // search results
                 this.resultNodes = [];
                 this.analysisNodes = [];
-                
+
                 // postfilters
                 this.filteredResultNodes = [];
-                
+
                 // data import
                 this.selectedGlobalDatasources = [];
                 this.localDatasources = [];
                 this.selectedLocalDatasources = [];
-                
+
                 this.status = {};
                 this.status.type = 'success';
                 this.status.message = 'UIM-2020 Demonstrator Datenintegration';
                 this.status.progress = {};
                 this.status.progress.current = 0;
-                this.status.progress.max = 0;  
+                this.status.progress.max = 0;
             }]);
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.types'
+        ).factory('ExportParameterCollection',
+        [
+            function () {
+                'use strict';
+
+                function ExportParameterCollection(className, title) {
+                    this.className = className;
+                    this.title = title;
+                    this.parameters = [];
+                    this.parametersKeys = [];
+
+                    /**
+                     * Parameters not available for filtering
+                     */
+                    this.forbiddenParameters = [];
+                }
+
+                ExportParameterCollection.prototype.clear = function () {
+                    this.parametersKeys.length = 0;
+                    this.parameters.length = 0;
+                };
+
+                /**
+                 * Add a new distinct parameter to the collection and set selected property
+                 * to true by default
+                 * 
+                 * @param {type} parameter
+                 * @returns {Boolean}
+                 */
+                ExportParameterCollection.prototype.addParameter = function (parameter) {
+                    // only add parameters not yet in list 
+                    if (parameter && parameter.parameterpk &&
+                            this.forbiddenParameters.indexOf(parameter.parameterpk === -1) &&
+                            this.parametersKeys.indexOf(parameter.parameterpk) === -1)
+                    {
+                        this.parametersKeys.push(parameter.parameterpk);
+                        // push a shallow copy and extend by selected property
+                        this.parameters.push(parameter);
+                        return true;
+                    }
+
+                    return false;
+                };
+
+                ExportParameterCollection.prototype.removeParameter = function (key) {
+                    return delete this.parameters[key];
+                };
+
+                ExportParameterCollection.prototype.isEmpty = function () {
+                    return this.parameters.length === 0;
+                };
+
+                ExportParameterCollection.prototype.length = function () {
+                    return  this.parameters.length;
+                };
+
+                /**
+                 * Add all supported parameters from nodes that match the configured className and
+                 * parametergroupkey
+                 * 
+                 * @param {type} nodes
+                 * @param {type} clear
+                 * @param {type} sort
+                 * @return {undefined}
+                 */
+                ExportParameterCollection.prototype.addAllFromNodes = function (nodes, clear, sort) {
+                    var i, node, parameters;
+                    if (nodes !== null && nodes.length > 0) {
+                        for (i = 0; i < nodes.length; ++i) {
+                            node = nodes[i];
+                            // Attention: collects also parameters of filtered nodes! (node.$filtered)
+                            if (node.$data && node.$data.parameters &&
+                                    (this.className === 'ALL' || this.className === node.$className)) {
+                                parameters = node.$data.parameters;
+                                this.addAll(parameters, clear, sort);
+                            }
+                        }
+                    }
+
+                    return this.parameters;
+                };
+
+                ExportParameterCollection.prototype.addAll = function (parameters, clear, sort) {
+                    var i;
+                    if (clear === true) {
+                        this.clear();
+                    }
+
+                    for (i = 0; i < parameters.length; i++) {
+                        this.addParameter(parameters[i]);
+                    }
+
+                    if (sort === true) {
+                        this.parameters.sort(function (a, b) {
+                            if (a.parametername > b.parametername) {
+                                return 1;
+                            }
+                            if (a.parametername < b.parametername) {
+                                return -1;
+                            }
+                            // a must be equal to b
+                            return 0;
+                        });
+                    }
+
+                    return this.parameters;
+                };
+
+                ExportParameterCollection.prototype.selectAll = function () {
+                    this.parameters.forEach(function (parameter) {
+                        parameter.selected = true;
+                    });
+                };
+
+
+                ExportParameterCollection.prototype.deselectAll = function () {
+                    this.parameters.forEach(function (parameter) {
+                        parameter.selected = false;
+                    });
+                };
+
+                ExportParameterCollection.prototype.invertSelection = function () {
+                    this.parameters.forEach(function (parameter) {
+                        parameter.selected = !parameter.selected;
+                    });
+                };
+
+                ExportParameterCollection.prototype.allSelected = function () {
+                    this.parameters.every(function (parameter, index, array) {
+                        if (!parameter.selected) {
+                            return false;
+                        }
+                    });
+
+                    return true;
+                };
+
+                ExportParameterCollection.prototype.allDeselected = function () {
+                    this.parameters.every(function (parameter, index, array) {
+                        if (parameter.selected) {
+                            return false;
+                        }
+                    });
+
+                    return true;
+                };
+
+                ExportParameterCollection.prototype.getSelectedParameters = function () {
+                    var selectedParameters = [];
+
+                    this.parameters.forEach(function (parameter) {
+                        if (parameter.selected === true) {
+                            selectedParameters.push(parameter);
+                        }
+                    });
+
+                    return selectedParameters;
+                };
+
+                ExportParameterCollection.prototype.getDeselectedParameters = function () {
+                    var deselectedParameters = [];
+
+                    this.parameters.forEach(function (parameter) {
+                        if (parameter.selected === false) {
+                            deselectedParameters.push(parameter);
+                        }
+                    });
+
+                    return deselectedParameters;
+                };
+
+                ExportParameterCollection.prototype.getSelectedKeys = function () {
+                    var selectedKeys = [];
+
+                    this.parameters.forEach(function (parameter) {
+                        if (parameter.selected === true) {
+                            selectedKeys.push(parameter.parameterpk);
+                        }
+                    });
+
+                    return selectedKeys;
+                };
+
+                ExportParameterCollection.prototype.getDeselectedKeys = function () {
+                    var deselectedKeys = [];
+
+                    this.parameters.forEach(function (parameter) {
+                        if (parameter.selected === false) {
+                            deselectedKeys.push(parameter.parameterpk);
+                        }
+                    });
+
+                    return deselectedKeys;
+                };
+
+                return ExportParameterCollection;
+            }]
+        );
+
+
 /* 
  * ***************************************************
  * 
