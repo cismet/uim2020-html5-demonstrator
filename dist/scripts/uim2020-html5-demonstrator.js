@@ -1379,12 +1379,9 @@ angular.module(
                         function (localDatasource) {
                             var idx = externalDatasourcesController.localDatasources.indexOf(localDatasource);
                             if (idx > -1) {
-                                // calls also remove on map
-                                if(localDatasource.$layer.$selected === true) {
-                                    // remove from map
-                                    externalDatasourcesController.toggleLocalDatasourceSelection(localDatasource);
-                                }
-                                
+                                // remove from map and styled layer control
+                                mapController.removeOverlay(localDatasource.$layer);
+
                                 // remove list
                                 externalDatasourcesController.localDatasources.splice(idx, 1);
                             } else {
@@ -1403,10 +1400,10 @@ angular.module(
 
                             if (localDatasource.$layer.$selected === true) {
                                 localDatasource.$layer.$selected = false;
-                                mapController.removeOverlay(localDatasource.$layer);
+                                mapController.unSelectOverlay(localDatasource.$layer);
                             } else {
                                 localDatasource.$layer.$selected = true;
-                                mapController.addOverlay(localDatasource.$layer);
+                                mapController.selectOverlay(localDatasource.$layer);
                             }
 
                             /*var idx = externalDatasourcesController.selectedLocalDatasources.indexOf(localDatasource);
@@ -2386,6 +2383,9 @@ angular.module(
                 mapController.removeOverlay = function (layer) {
                     mapController.unSelectOverlay(layer);
                     layerControl.removeLayer(layer);
+                    if (layer.$key) {
+                        delete layerControlMappings[layer.$key];
+                    }
                 };
 
                 mapController.addOverlay = function (layer) {
@@ -2889,15 +2889,20 @@ angular.module(
                         mapController.applyZoomLevelRestriction();
                     });
 
-                    // FIXME: removes also layers from layercontrol that are just deselected!
                     map.on('layerremove', function (layerEvent) {
                         var removedLayer = layerEvent.layer;
 
                         if (removedLayer.StyledLayerControl &&
-                                removedLayer.StyledLayerControl.removable &&
                                 layerControl._layers[L.stamp(removedLayer)]) {
-                            // bugfix-hack for StyledLayerControl.
-                            layerControl.removeLayer(removedLayer);
+                            
+                            if(removedLayer.StyledLayerControl.removable) {
+                                // bugfix-hack for StyledLayerControl.
+                                // FIXME: removes also layers from layercontrol that are just deselected!
+                                layerControl.removeLayer(removedLayer);
+                            } else {
+                                // bugfix-hack for StyledLayerControl: layer deselected instead of removed ...
+                                removedLayer.$selected = false;
+                            } 
                         }
 
                         /*console.log('mapController:: layer removed: ' + removedLayer.$name +
@@ -4371,7 +4376,7 @@ angular.module(
                 // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="=== IMPORT ===========================">
                 configurationService.import = {};
-                configurationService.import.maxFilesize = '1MB';
+                configurationService.import.maxFilesize = '10MB';
                 configurationService.import.maxFeatureCount = 1000;
                 // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="=== EXPORT ===========================">

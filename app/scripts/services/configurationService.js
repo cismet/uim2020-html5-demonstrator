@@ -542,7 +542,7 @@ angular.module(
                 // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="=== IMPORT ===========================">
                 configurationService.import = {};
-                configurationService.import.maxFilesize = '1MB';
+                configurationService.import.maxFilesize = '10MB';
                 configurationService.import.maxFeatureCount = 1000;
                 // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="=== EXPORT ===========================">

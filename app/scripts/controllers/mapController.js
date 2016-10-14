@@ -336,6 +336,9 @@ angular.module(
                 mapController.removeOverlay = function (layer) {
                     mapController.unSelectOverlay(layer);
                     layerControl.removeLayer(layer);
+                    if (layer.$key) {
+                        delete layerControlMappings[layer.$key];
+                    }
                 };
 
                 mapController.addOverlay = function (layer) {
@@ -839,15 +842,20 @@ angular.module(
                         mapController.applyZoomLevelRestriction();
                     });
 
-                    // FIXME: removes also layers from layercontrol that are just deselected!
                     map.on('layerremove', function (layerEvent) {
                         var removedLayer = layerEvent.layer;
 
                         if (removedLayer.StyledLayerControl &&
-                                removedLayer.StyledLayerControl.removable &&
                                 layerControl._layers[L.stamp(removedLayer)]) {
-                            // bugfix-hack for StyledLayerControl.
-                            layerControl.removeLayer(removedLayer);
+                            
+                            if(removedLayer.StyledLayerControl.removable) {
+                                // bugfix-hack for StyledLayerControl.
+                                // FIXME: removes also layers from layercontrol that are just deselected!
+                                layerControl.removeLayer(removedLayer);
+                            } else {
+                                // bugfix-hack for StyledLayerControl: layer deselected instead of removed ...
+                                removedLayer.$selected = false;
+                            } 
                         }
 
                         /*console.log('mapController:: layer removed: ' + removedLayer.$name +
