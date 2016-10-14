@@ -14,9 +14,9 @@ angular.module(
         'de.cismet.uim2020-html5-demonstrator.services'
         ).factory(
         'featureRendererService',
-        ['$location',
+        ['$q', '$timeout', '$location',
             'configurationService',
-            function ($location, configurationService) {
+            function ($q, $timeout, $location, configurationService) {
                 'use strict';
 
                 var config, getFeatureRenderer, createNodeFeature,
@@ -166,8 +166,8 @@ angular.module(
                             theme = node.classKey.split(".").slice(1, 2).pop();
                             // js sucks! undefined !== null ?!!
                             if (typeof node.$feature !== 'undefined' && node.$feature) {
-                                console.log('featureRendererService::createNodeFeatureGroups: reusing feature  for node "' +
-                                        node.name + ' (' + node.objectKey + ')');
+                                //console.log('featureRendererService::createNodeFeatureGroups: reusing feature  for node "' +
+                                //        node.name + ' (' + node.objectKey + ')');
                                 feature = node.$feature;
                             } else {
                                 feature = createNodeFeature(node, theme, selectNodeCallback);
@@ -184,8 +184,8 @@ angular.module(
                                 featureGroup.push(feature);
                             }
                         } else {
-                            console.log('featureRendererService::createNodeFeatureGroups: ignoring filtered node node "' +
-                                    node.name + ' (' + node.objectKey + ')');
+                            //console.log('featureRendererService::createNodeFeatureGroups: ignoring filtered node node "' +
+                            //        node.name + ' (' + node.objectKey + ')');
                         }
                     }
 
@@ -200,14 +200,23 @@ angular.module(
                  * 
                  */
                 createOverlayLayer = function (localDatasource, geojson, progressCallBack) {
-                    var i = 0;
-                    var overlayLayer;
+                    var geoJsonLayer, overlayLayer, i, deferred, isPointLayer;
+
+                    i = 0;
+                    isPointLayer = true;
+                    deferred = $q.defer();
+
+                    //$timeout(function () {
 
                     geojson.fileName = localDatasource.fileName;
 
                     // onEachFeature: Helper Method for GeoJson Features to open a popup dialog for each Feature
-                    overlayLayer = L.geoJson(geojson, {
+                    geoJsonLayer = L.geoJson(geojson, {
                         onEachFeature: function (feature, layer) {
+
+                            // set to false on first non-point feature
+                            isPointLayer = isPointLayer === false ? false : (feature.geometry.type === 'Point');
+
                             if (feature.properties) {
                                 layer.bindPopup(Object.keys(feature.properties).map(function (k) {
                                     return k + ": " + feature.properties[k];
@@ -217,41 +226,40 @@ angular.module(
                             }
 
                             if (progressCallBack) {
-                                progressCallBack(geojson.features.length, i++);
+                                progressCallBack(geojson.features.length, ++i);
                             }
                         }
-
-                        /**
-                         var promise = $q(function (resolve, reject) {
-                         if (feature.properties) {
-                         layer.bindPopup(Object.keys(feature.properties).map(function (k) {
-                         return k + ": " + feature.properties[k];
-                         }).join("<br />"), {
-                         maxHeight: 200
-                         });
-                         }
-                         resolve({max: geojson.features.length, current: i++});
-                         });
-                         
-                         if (progressCallBack) {
-                         promise.then(function (progress) {
-                         progressCallBack(progress.max, progress.current);
-                         });
-                         }*/
-
                     });
+
+                    // cluster point layer ....
+                    if (isPointLayer === true) {
+                        overlayLayer = L.markerClusterGroup(
+                                angular.copy(configurationService.map.externalClusterGroupOptions));
+                        overlayLayer.addLayer(geoJsonLayer);
+                    } else {
+                        overlayLayer = geoJsonLayer;
+                    }
 
                     overlayLayer.$name = localDatasource.name;
                     overlayLayer.$key = localDatasource.fileName;
                     overlayLayer.$selected = true;
+
+                    // SyledLayerControlProperties
                     overlayLayer.StyledLayerControl = {
-                        removable: true,
+                        removable: false,
                         visible: false
                     };
 
                     localDatasource.$layer = overlayLayer;
 
-                    return overlayLayer;
+                    console.log('featureRendererService::createOverlayLayer -> resolve(overlayLayer)');
+                    if (progressCallBack) {
+                        progressCallBack(geojson.features.length, geojson.features.length);
+                    }
+                    deferred.resolve(overlayLayer);
+                    //}, 500, false);
+
+                    return deferred.promise;
                 };
 
                 getIconForNode = function (node) {

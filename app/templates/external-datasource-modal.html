@@ -19,19 +19,21 @@
             <div class="col-md-12">
                 <div class="input-group">
                     <label class="input-group-btn">
-                        <span class="btn btn-default">
+                        <span class="btn btn-default"
+                              ng-disabled="importController.importInProgress === true || importController.importCompleted === true">
                             Datei auswählen: 
                             <input type="file" 
                                    style="display: none;" 
                                    id="importFiles"
                                    required
                                    ng-model="importController.importFile"
-                                   ng-disabled="importController.importInProgress || importController.importCompleted" 
+                                   ng-disabled="importController.importInProgress === true || importController.importCompleted === true" 
                                    ngf-select
                                    ngf-model-invalid="errorFile"
                                    ngf-max-size="importController.maxFilesize"
                                    ngf-multiple="false" 
                                    ngf-pattern="'.zip'"
+                                   ngf-accept="'application/zip'"
                                    name="importFile">
                         </span>
                     </label>
@@ -44,6 +46,7 @@
         </div>
 
         <!-- upload file -->
+        <!--
         <div class="form-group row">
             <div class="col-xs-10">
                 <div class="form-check">
@@ -56,23 +59,29 @@
                 </div>
             </div>
         </div>
-        
+        -->
+
         <!-- Upload and Processing Progress -->
         <div class="form-group row">
             <div class="col-md-12">
                 <p>
-                    <i ng-show="importForm.importFile.$error.maxSize">
-                        Die Datei ist zu groß: {{errorFile.size / 1000000|number:1}}MB. 
-                        Maximale Dateigröße:  {{importController.maxFilesize}}.
-                    </i>
+                    <span ng-show="importForm.importFile.$error.maxSize">
+                        <strong>
+                            Die Datei ist zu groß: {{errorFile.size / 1000000|number:1}}MB. 
+                            Maximale Dateigröße:  {{importController.maxFilesize}}.
+                        </strong>
+                    </span>
                 </p>
                 <uib-progressbar class="progress-striped" 
-                             ng-class="{active:importController.importInProgress}"
-                             max="200" 
-                             value="importController.importProgress"
-                             type="primary">
-                    <!--{{importController.importProgress}}-->
+                                 ng-class="{active:importController.importInProgress}"
+                                 max="200" 
+                                 value="importController.importProgress"
+                                 type="{{importController.status.type}}">
+                    <!--{{importController.importInProgress}} : {{importController.importProgress}} -->
                 </uib-progressbar>
+                <center>
+                    <p>{{importController.status.message}}</p>
+                </center>
             </div>
         </div>
     </form>
@@ -101,6 +110,7 @@
         class="btn btn-default pull-left" 
         type="button" 
         ng-disabled="importController.importInProgress" 
+        ng-hide="importController.importCompleted" 
         ng-click="importController.cancel()">Abbrechen
     </button>
 </div>

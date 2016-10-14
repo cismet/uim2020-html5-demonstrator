@@ -209,10 +209,10 @@ angular.module(
                  * @returns {undefined}
                  */
                 setSearchGeometry = function (searchGeometryLayer, layerType) {
-                    console.log('setSearchGeometry: ' + layerType);
                     if (mapController.mode === 'search') {
                         searchGeometryLayerGroup.clearLayers();
                         if (searchGeometryLayer !== null) {
+                            console.log('setSearchGeometry: ' + layerType);
 
                             searchGeometryLayer.$name = layerType;
                             searchGeometryLayer.$key = 'searchGeometry';

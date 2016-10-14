@@ -104,7 +104,9 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "                    <label class=\"input-group-btn\">\r" +
     "\n" +
-    "                        <span class=\"btn btn-default\">\r" +
+    "                        <span class=\"btn btn-default\"\r" +
+    "\n" +
+    "                              ng-disabled=\"importController.importInProgress === true || importController.importCompleted === true\">\r" +
     "\n" +
     "                            Datei auswählen: \r" +
     "\n" +
@@ -118,7 +120,7 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "                                   ng-model=\"importController.importFile\"\r" +
     "\n" +
-    "                                   ng-disabled=\"importController.importInProgress || importController.importCompleted\" \r" +
+    "                                   ng-disabled=\"importController.importInProgress === true || importController.importCompleted === true\" \r" +
     "\n" +
     "                                   ngf-select\r" +
     "\n" +
@@ -129,6 +131,8 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "                                   ngf-multiple=\"false\" \r" +
     "\n" +
     "                                   ngf-pattern=\"'.zip'\"\r" +
+    "\n" +
+    "                                   ngf-accept=\"'application/zip'\"\r" +
     "\n" +
     "                                   name=\"importFile\">\r" +
     "\n" +
@@ -154,6 +158,8 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "        <!-- upload file -->\r" +
     "\n" +
+    "        <!--\r" +
+    "\n" +
     "        <div class=\"form-group row\">\r" +
     "\n" +
     "            <div class=\"col-xs-10\">\r" +
@@ -178,7 +184,9 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "        </div>\r" +
     "\n" +
-    "        \r" +
+    "        -->\r" +
+    "\n" +
+    "\r" +
     "\n" +
     "        <!-- Upload and Processing Progress -->\r" +
     "\n" +
@@ -188,29 +196,39 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "                <p>\r" +
     "\n" +
-    "                    <i ng-show=\"importForm.importFile.$error.maxSize\">\r" +
+    "                    <span ng-show=\"importForm.importFile.$error.maxSize\">\r" +
     "\n" +
-    "                        Die Datei ist zu groß: {{errorFile.size / 1000000|number:1}}MB. \r" +
+    "                        <strong>\r" +
     "\n" +
-    "                        Maximale Dateigröße:  {{importController.maxFilesize}}.\r" +
+    "                            Die Datei ist zu groß: {{errorFile.size / 1000000|number:1}}MB. \r" +
     "\n" +
-    "                    </i>\r" +
+    "                            Maximale Dateigröße:  {{importController.maxFilesize}}.\r" +
+    "\n" +
+    "                        </strong>\r" +
+    "\n" +
+    "                    </span>\r" +
     "\n" +
     "                </p>\r" +
     "\n" +
     "                <uib-progressbar class=\"progress-striped\" \r" +
     "\n" +
-    "                             ng-class=\"{active:importController.importInProgress}\"\r" +
+    "                                 ng-class=\"{active:importController.importInProgress}\"\r" +
     "\n" +
-    "                             max=\"200\" \r" +
+    "                                 max=\"200\" \r" +
     "\n" +
-    "                             value=\"importController.importProgress\"\r" +
+    "                                 value=\"importController.importProgress\"\r" +
     "\n" +
-    "                             type=\"primary\">\r" +
+    "                                 type=\"{{importController.status.type}}\">\r" +
     "\n" +
-    "                    <!--{{importController.importProgress}}-->\r" +
+    "                    <!--{{importController.importInProgress}} : {{importController.importProgress}} -->\r" +
     "\n" +
     "                </uib-progressbar>\r" +
+    "\n" +
+    "                <center>\r" +
+    "\n" +
+    "                    <p>{{importController.status.message}}</p>\r" +
+    "\n" +
+    "                </center>\r" +
     "\n" +
     "            </div>\r" +
     "\n" +
@@ -267,6 +285,8 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "        type=\"button\" \r" +
     "\n" +
     "        ng-disabled=\"importController.importInProgress\" \r" +
+    "\n" +
+    "        ng-hide=\"importController.importCompleted\" \r" +
     "\n" +
     "        ng-click=\"importController.cancel()\">Abbrechen\r" +
     "\n" +
@@ -325,15 +345,13 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "    <div class=\"popover-content\">\r" +
     "\n" +
-    "\r" +
-    "\n" +
     "        <uib-accordion close-others=\"false\">\r" +
     "\n" +
     "            <!-- Vorkonfigurierte globale Datenquellen-->\r" +
     "\n" +
     "            <div uib-accordion-group  \r" +
     "\n" +
-    "                 ng-init=\"globalDatasourcesOpen = true\" \r" +
+    "                 ng-init=\"globalDatasourcesOpen = false\" \r" +
     "\n" +
     "                 is-open=\"globalDatasourcesOpen\"\r" +
     "\n" +

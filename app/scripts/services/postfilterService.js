@@ -55,8 +55,7 @@ angular.module('de.cismet.uim2020-html5-demonstrator.services')
                                     });
                                 });
 
-                                console.log('postfilterService: filtered ' + filteredNodesIndices.length + ' nodes of ' + nodes.length + ' available result nodes nodes');
-
+                                //console.log('postfilterService: filtered ' + filteredNodesIndices.length + ' nodes of ' + nodes.length + ' available result nodes nodes');
                                 resolve(filteredNodesIndices);
                             });
                         };

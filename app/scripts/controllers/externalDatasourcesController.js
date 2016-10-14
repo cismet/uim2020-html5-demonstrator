@@ -43,7 +43,7 @@ angular.module(
 
                             if (!globalDatasource.$layer) {
 
-                                // TODO: contruct and add Layers!
+                                // TODO: construct and add Layers!
                                 globalDatasource.$layer = {
                                     $selected: true
                                 };
@@ -106,9 +106,11 @@ angular.module(
                             if (idx > -1) {
                                 // calls also remove on map
                                 if(localDatasource.$layer.$selected === true) {
+                                    // remove from map
                                     externalDatasourcesController.toggleLocalDatasourceSelection(localDatasource);
                                 }
                                 
+                                // remove list
                                 externalDatasourcesController.localDatasources.splice(idx, 1);
                             } else {
                                 console.warn("externalDatasourcesController::removeLocalDatasource: unkwon datasource?!");

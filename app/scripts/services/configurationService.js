@@ -441,6 +441,12 @@ angular.module(
                             }
                         ]);
 
+                configurationService.map.externalClusterGroupOptions = {
+                    spiderfyOnMaxZoom: true, //spiderfy occurs at the current zoom level if all items within the cluster are physically located at the same latitude and longitude (e.g. BORIS_SITE).
+                    showCoverageOnHover: false,
+                    zoomToBoundsOnClick: true,
+                    removeOutsideVisibleBounds: true
+                };
 
                 configurationService.map.drawOptions = {
                     polyline: {
@@ -533,4 +539,13 @@ angular.module(
                     dynamicButtonTextSuffix: 'ausgewählt',
                     selectGroup: 'Alle auswählen: '
                 };
+                // </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="=== IMPORT ===========================">
+                configurationService.import = {};
+                configurationService.import.maxFilesize = '1MB';
+                configurationService.import.maxFeatureCount = 1000;
+                // </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="=== EXPORT ===========================">
+                configurationService.export = {};
+                // </editor-fold>
             }]);
