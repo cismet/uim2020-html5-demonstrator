@@ -547,5 +547,12 @@ angular.module(
                 // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="=== EXPORT ===========================">
                 configurationService.export = {};
+                configurationService.export.exportPKs = {};
+                configurationService.export.exportPKs.MOSS = 'sampleId';
+                configurationService.export.exportPKs.EPRTR_INSTALLATION = 'erasId';
+                configurationService.export.exportPKs.WAOW_STATION = 'pk';
+                configurationService.export.exportPKs.WAGW_STATION = 'pk';
+                configurationService.export.exportPKs.BORIS_SITE = 'pk';
+                
                 // </editor-fold>
             }]);

@@ -12,8 +12,8 @@
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.services'
         ).factory('dataService',
-        ['$resource',
-            function ($resource) {
+        ['$q', '$resource', 'ExternalDatasource',
+            function ($q, $resource, ExternalDatasource) {
                 'use strict';
 
                 var staticResourceFiles, cachedResources,
@@ -65,7 +65,24 @@ angular.module(
                             }
                         });
 
-                        cachedResources[resourceName] = resource.query();
+                        if (resourceName === 'globalDatasources') {
+                            cachedResources[resourceName] = resource.query().$promise.then(function success(datasources) {
+                                var globalDatasources = [];
+                                datasources.forEach(function (datasource) {
+                                    //invoke  constructor
+                                    var externalDatasource = new ExternalDatasource(datasource);
+                                    datasource.isGlobal = true;
+                                    globalDatasources.push(datasource);
+                                });
+                                globalDatasources.$promise = $q.when(globalDatasources);
+                                globalDatasources.$resolved = true;
+
+                                return globalDatasources;
+                            });
+                        } else {
+                            cachedResources[resourceName] = resource.query();
+                        }
+
                         return cachedResources[resourceName];
                     } else {
                         console.warn('unknown static resource:' + resourceName);

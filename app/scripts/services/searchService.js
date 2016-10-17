@@ -164,6 +164,21 @@ angular.module(
                                                         // FIXME: extract class name from CS_CLASS description (server-side)
                                                         /*currentNode.$classTitle = dataObject.classTitle ?
                                                          dataObject.classTitle : classTitle;*/
+
+                                                        // extract PKs for Oracle DWH Export
+                                                        /* jshint loopfunc:true */
+                                                        Object.keys(configurationService.export.exportPKs).forEach(function (key, index) {
+                                                            if (currentNode.$className === key &&
+                                                                    typeof dataObject[key] !== 'undefined' &&
+                                                                    dataObject[key] !== null) {
+                                                                currentNode.$exportPK = dataObject[key];
+                                                            }
+                                                        });
+
+                                                        if (typeof currentNode.$exportPK === 'undefined' || currentNode.$exportPK === null) {
+                                                            console.warn('searchService::extracrExportPKs -> no export PK found for node ' + currentNode.$self);
+                                                        }
+
                                                     } catch (err) {
                                                         console.error(err.message);
                                                     }

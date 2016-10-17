@@ -13,8 +13,9 @@ angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'exportController', [
-            '$scope', '$state', '$uibModalInstance', 'sharedDatamodel',
-            function ($scope, $state, $uibModalInstance, sharedDatamodel) {
+            '$scope', '$state', '$uibModalInstance', 'sharedDatamodel', 'exportService',
+            'ExportEntityMap',
+            function ($scope, $state, $uibModalInstance, sharedDatamodel, exportService, ExportEntityMap) {
                 'use strict';
 
                 var exportController;
@@ -26,6 +27,7 @@ angular.module(
                 
                 // scope-soup options for wizard panels
                 $scope.options = {};
+                $scope.exportEntityMap = new ExportEntityMap(sharedDatamodel.analysisNodes);
 
                 /**
                  * Wizard status, etc.

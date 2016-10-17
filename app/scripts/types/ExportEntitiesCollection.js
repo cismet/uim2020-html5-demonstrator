@@ -10,16 +10,18 @@
 
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.types'
-        ).factory('ExportParameterCollection',
+        ).factory('ExportEntitiesCollection',
         [
             function () {
                 'use strict';
 
-                function ExportParameterCollection(className, title) {
+                function ExportEntitiesCollection(className, title) {
                     this.className = className;
                     this.title = title;
                     this.parameters = [];
                     this.parametersKeys = [];
+                    this.exportPKs = [];
+
 
                     /**
                      * Parameters not available for filtering
@@ -27,9 +29,10 @@ angular.module(
                     this.forbiddenParameters = [];
                 }
 
-                ExportParameterCollection.prototype.clear = function () {
+                ExportEntitiesCollection.prototype.clear = function () {
                     this.parametersKeys.length = 0;
                     this.parameters.length = 0;
+                    this.exportPKs.length = 0;
                 };
 
                 /**
@@ -39,30 +42,30 @@ angular.module(
                  * @param {type} parameter
                  * @returns {Boolean}
                  */
-                ExportParameterCollection.prototype.addParameter = function (parameter) {
+                ExportEntitiesCollection.prototype.addParameter = function (parameter) {
                     // only add parameters not yet in list 
                     if (parameter && parameter.parameterpk &&
                             this.forbiddenParameters.indexOf(parameter.parameterpk === -1) &&
                             this.parametersKeys.indexOf(parameter.parameterpk) === -1)
                     {
                         this.parametersKeys.push(parameter.parameterpk);
-                        // push a shallow copy and extend by selected property
-                        this.parameters.push(parameter);
+                        // push a shallow copy
+                        this.parameters.push(angular.extend({}, parameter));
                         return true;
                     }
 
                     return false;
                 };
 
-                ExportParameterCollection.prototype.removeParameter = function (key) {
+                ExportEntitiesCollection.prototype.removeParameter = function (key) {
                     return delete this.parameters[key];
                 };
 
-                ExportParameterCollection.prototype.isEmpty = function () {
+                ExportEntitiesCollection.prototype.isEmpty = function () {
                     return this.parameters.length === 0;
                 };
 
-                ExportParameterCollection.prototype.length = function () {
+                ExportEntitiesCollection.prototype.length = function () {
                     return  this.parameters.length;
                 };
 
@@ -75,24 +78,39 @@ angular.module(
                  * @param {type} sort
                  * @return {undefined}
                  */
-                ExportParameterCollection.prototype.addAllFromNodes = function (nodes, clear, sort) {
+                ExportEntitiesCollection.prototype.addAllFromNodes = function (nodes, clear, sort) {
                     var i, node, parameters;
                     if (nodes !== null && nodes.length > 0) {
                         for (i = 0; i < nodes.length; ++i) {
                             node = nodes[i];
-                            // Attention: collects also parameters of filtered nodes! (node.$filtered)
-                            if (node.$data && node.$data.parameters &&
-                                    (this.className === 'ALL' || this.className === node.$className)) {
-                                parameters = node.$data.parameters;
-                                this.addAll(parameters, clear, sort);
-                            }
+                            this.addAllFromNode(node);
                         }
                     }
 
                     return this.parameters;
                 };
 
-                ExportParameterCollection.prototype.addAll = function (parameters, clear, sort) {
+                ExportEntitiesCollection.prototype.addAllFromNode = function (node, clear, sort) {
+                    var parameters;
+
+                    if (typeof node.$exportPK !== 'undefined' && node.$exportPK !== null &&
+                            this.exportPKs.indexOf(node.$exportPK) === -1 &&
+                            node.$data !== 'undefined' && node.$data !== null &&
+                            node.$data.parameters !== 'undefined' && node.$data.parameters !== null &&
+                            (this.className === 'ALL' || this.className === node.$className)) {
+
+                        // add the export PK!
+                        this.exportPKs.push(node.$exportPK);
+
+                        // Attention: collects also parameters of filtered nodes! (node.$filtered)
+                        parameters = node.$data.parameters;
+
+                        // add the parameters
+                        this.addAll(parameters, clear, sort);
+                    }
+                };
+
+                ExportEntitiesCollection.prototype.addAll = function (parameters, clear, sort) {
                     var i;
                     if (clear === true) {
                         this.clear();
@@ -118,26 +136,26 @@ angular.module(
                     return this.parameters;
                 };
 
-                ExportParameterCollection.prototype.selectAll = function () {
+                ExportEntitiesCollection.prototype.selectAll = function () {
                     this.parameters.forEach(function (parameter) {
                         parameter.selected = true;
                     });
                 };
 
 
-                ExportParameterCollection.prototype.deselectAll = function () {
+                ExportEntitiesCollection.prototype.deselectAll = function () {
                     this.parameters.forEach(function (parameter) {
                         parameter.selected = false;
                     });
                 };
 
-                ExportParameterCollection.prototype.invertSelection = function () {
+                ExportEntitiesCollection.prototype.invertSelection = function () {
                     this.parameters.forEach(function (parameter) {
                         parameter.selected = !parameter.selected;
                     });
                 };
 
-                ExportParameterCollection.prototype.allSelected = function () {
+                ExportEntitiesCollection.prototype.allSelected = function () {
                     this.parameters.every(function (parameter, index, array) {
                         if (!parameter.selected) {
                             return false;
@@ -147,7 +165,7 @@ angular.module(
                     return true;
                 };
 
-                ExportParameterCollection.prototype.allDeselected = function () {
+                ExportEntitiesCollection.prototype.allDeselected = function () {
                     this.parameters.every(function (parameter, index, array) {
                         if (parameter.selected) {
                             return false;
@@ -157,7 +175,7 @@ angular.module(
                     return true;
                 };
 
-                ExportParameterCollection.prototype.getSelectedParameters = function () {
+                ExportEntitiesCollection.prototype.getSelectedParameters = function () {
                     var selectedParameters = [];
 
                     this.parameters.forEach(function (parameter) {
@@ -169,7 +187,7 @@ angular.module(
                     return selectedParameters;
                 };
 
-                ExportParameterCollection.prototype.getDeselectedParameters = function () {
+                ExportEntitiesCollection.prototype.getDeselectedParameters = function () {
                     var deselectedParameters = [];
 
                     this.parameters.forEach(function (parameter) {
@@ -181,7 +199,7 @@ angular.module(
                     return deselectedParameters;
                 };
 
-                ExportParameterCollection.prototype.getSelectedKeys = function () {
+                ExportEntitiesCollection.prototype.getSelectedKeys = function () {
                     var selectedKeys = [];
 
                     this.parameters.forEach(function (parameter) {
@@ -193,7 +211,7 @@ angular.module(
                     return selectedKeys;
                 };
 
-                ExportParameterCollection.prototype.getDeselectedKeys = function () {
+                ExportEntitiesCollection.prototype.getDeselectedKeys = function () {
                     var deselectedKeys = [];
 
                     this.parameters.forEach(function (parameter) {
@@ -205,7 +223,7 @@ angular.module(
                     return deselectedKeys;
                 };
 
-                return ExportParameterCollection;
+                return ExportEntitiesCollection;
             }]
         );
 

@@ -38,9 +38,8 @@ angular.module(
                 this.filteredResultNodes = [];
 
                 // data import
-                this.selectedGlobalDatasources = [];
+                this.globalDatasources = [];
                 this.localDatasources = [];
-                this.selectedLocalDatasources = [];
 
                 this.status = {};
                 this.status.type = 'success';
