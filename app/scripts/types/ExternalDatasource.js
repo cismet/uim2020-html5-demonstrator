@@ -20,7 +20,8 @@ angular.module(
 
                     this.name = null;
                     this.fileName = null;
-                    this.isGlobal = false;
+                    this.global = false;
+                    this.parameters = [];
 
                     // copy properties from externalDatasource object (angular resource)
                     // and ignore $resolved and $promise
@@ -35,17 +36,32 @@ angular.module(
                 }
 
                 ExternalDatasource.prototype.isSelected = function () {
-                    if (this.$layer !== null &&
+                    if (typeof this.$layer !== 'undefined' &&
+                            this.$layer !== null &&
                             typeof this.$layer.$selected !== 'undefined' &&
                             this.$layer.$selected === true) {
                         return true;
                     }
+
+                    return false;
                 };
 
                 ExternalDatasource.prototype.setSelected = function (selected) {
-                    if (this.$layer !== null) {
+                    if (typeof this.$layer !== 'undefined' && this.$layer !== null) {
                         this.$layer.$selected = selected;
+                    } else {
+                        console.warn('ExternalDatasource::setSelected -> cannot set selected property of datasource "' +
+                                fileName + '", $layer property is null');
                     }
+                };
+
+                ExternalDatasource.prototype.setLayer = function (layer) {
+                    this.$layer = layer;
+                };
+
+                ExternalDatasource.prototype.setParameters = function (parameters) {
+                    this.parameters.length = 0;
+                    this.parameters.push.apply(this.parameters, parameters);
                 };
 
                 return ExternalDatasource;

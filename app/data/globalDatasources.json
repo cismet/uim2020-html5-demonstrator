@@ -3,23 +3,23 @@
         "name": "Bodenkarte aus dem Hydrologischen Atlas Österreichs"
     },
     {
-        "id": 0,
+        "id": 1,
         "name": "Einzugsgebiet 100km"
     },
     {
-        "id": 0,
+        "id": 2,
         "name": "FAO Bodentypen"
     },
     {
-        "id": 0,
+        "id": 3,
         "name": "Forstliche Wuchsgebiete Österreichs"
     },
     {
-        "id": 0,
+        "id": 4,
         "name": "Oberflächennahe GWK"
     },
     {
-        "id": 0,
+        "id": 5,
         "name": "Standorte"
     }
 ]

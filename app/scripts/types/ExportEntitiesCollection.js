@@ -21,7 +21,7 @@ angular.module(
                     this.parameters = [];
                     this.parametersKeys = [];
                     this.exportPKs = [];
-
+                    this.selected = false;
 
                     /**
                      * Parameters not available for filtering
@@ -65,7 +65,7 @@ angular.module(
                     return this.parameters.length === 0;
                 };
 
-                ExportEntitiesCollection.prototype.length = function () {
+                ExportEntitiesCollection.prototype.size = function () {
                     return  this.parameters.length;
                 };
 
@@ -78,39 +78,39 @@ angular.module(
                  * @param {type} sort
                  * @return {undefined}
                  */
-                ExportEntitiesCollection.prototype.addAllFromNodes = function (nodes, clear, sort) {
+                ExportEntitiesCollection.prototype.addAllParametersFromNodes = function (nodes, clear, sort) {
                     var i, node, parameters;
                     if (nodes !== null && nodes.length > 0) {
                         for (i = 0; i < nodes.length; ++i) {
                             node = nodes[i];
-                            this.addAllFromNode(node);
+                            this.addAllParametersFromNode(node);
                         }
                     }
 
                     return this.parameters;
                 };
 
-                ExportEntitiesCollection.prototype.addAllFromNode = function (node, clear, sort) {
+                ExportEntitiesCollection.prototype.addAllParametersFromNode = function (node, clear, sort) {
                     var parameters;
 
                     if (typeof node.$exportPK !== 'undefined' && node.$exportPK !== null &&
                             this.exportPKs.indexOf(node.$exportPK) === -1 &&
                             node.$data !== 'undefined' && node.$data !== null &&
-                            node.$data.parameters !== 'undefined' && node.$data.parameters !== null &&
+                            node.$data.probenparameter !== 'undefined' && node.$data.probenparameter !== null &&
                             (this.className === 'ALL' || this.className === node.$className)) {
 
                         // add the export PK!
                         this.exportPKs.push(node.$exportPK);
 
                         // Attention: collects also parameters of filtered nodes! (node.$filtered)
-                        parameters = node.$data.parameters;
+                        parameters = node.$data.probenparameter;
 
                         // add the parameters
-                        this.addAll(parameters, clear, sort);
+                        this.addAllParameters(parameters, clear, sort);
                     }
                 };
 
-                ExportEntitiesCollection.prototype.addAll = function (parameters, clear, sort) {
+                ExportEntitiesCollection.prototype.addAllParameters = function (parameters, clear, sort) {
                     var i;
                     if (clear === true) {
                         this.clear();
@@ -136,26 +136,26 @@ angular.module(
                     return this.parameters;
                 };
 
-                ExportEntitiesCollection.prototype.selectAll = function () {
+                ExportEntitiesCollection.prototype.selectAllParameters = function () {
                     this.parameters.forEach(function (parameter) {
                         parameter.selected = true;
                     });
                 };
 
 
-                ExportEntitiesCollection.prototype.deselectAll = function () {
+                ExportEntitiesCollection.prototype.deselectAllParameters = function () {
                     this.parameters.forEach(function (parameter) {
                         parameter.selected = false;
                     });
                 };
 
-                ExportEntitiesCollection.prototype.invertSelection = function () {
+                ExportEntitiesCollection.prototype.invertParameterSelection = function () {
                     this.parameters.forEach(function (parameter) {
                         parameter.selected = !parameter.selected;
                     });
                 };
 
-                ExportEntitiesCollection.prototype.allSelected = function () {
+                ExportEntitiesCollection.prototype.allParametersSelected = function () {
                     this.parameters.every(function (parameter, index, array) {
                         if (!parameter.selected) {
                             return false;
@@ -165,7 +165,7 @@ angular.module(
                     return true;
                 };
 
-                ExportEntitiesCollection.prototype.allDeselected = function () {
+                ExportEntitiesCollection.prototype.allParametersDeselected = function () {
                     this.parameters.every(function (parameter, index, array) {
                         if (parameter.selected) {
                             return false;
@@ -199,7 +199,7 @@ angular.module(
                     return deselectedParameters;
                 };
 
-                ExportEntitiesCollection.prototype.getSelectedKeys = function () {
+                ExportEntitiesCollection.prototype.getSelectedParameterKeys = function () {
                     var selectedKeys = [];
 
                     this.parameters.forEach(function (parameter) {
@@ -211,7 +211,7 @@ angular.module(
                     return selectedKeys;
                 };
 
-                ExportEntitiesCollection.prototype.getDeselectedKeys = function () {
+                ExportEntitiesCollection.prototype.getDeselectedParameterKeys = function () {
                     var deselectedKeys = [];
 
                     this.parameters.forEach(function (parameter) {
@@ -221,6 +221,19 @@ angular.module(
                     });
 
                     return deselectedKeys;
+                };
+
+                ExportEntitiesCollection.isSelected = function () {
+                    return this.selected;
+                };
+
+                ExportEntitiesCollection.setSelected = function (selected) {
+                    this.selected = selected;
+                };
+
+                ExportEntitiesCollection.toggleSelection = function () {
+                    this.selected = !this.selected;
+                    return this.selected;
                 };
 
                 return ExportEntitiesCollection;

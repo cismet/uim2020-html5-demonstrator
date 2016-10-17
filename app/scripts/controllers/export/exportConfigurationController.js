@@ -18,12 +18,11 @@ angular.module(
                 'use strict';
 
                 $scope.options.isMergeExternalDatasource = false;
-                $scope.options.isMergeExternalDatasourceEnabled = sharedDatamodel.localDatasources.length > 0;
-                $scope.options.exportFormat = null;
+                $scope.options.isMergeExternalDatasourceEnabled = true //sharedDatamodel.localDatasources.length > 0 || sharedDatamodel.globalDatasources.length > 0;
+                $scope.options.exportFormat = 'shp';
 
                 $scope.wizard.enterValidators['Konfiguration'] = function (context) {
                     if (context.valid === true) {
-
                         $scope.status.message = 'Bitte wählen Sie ein Exportformat aus';
                         $scope.status.type = 'info';
                     }

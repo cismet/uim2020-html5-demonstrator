@@ -1,70 +1,74 @@
 <div id="exportConfiguration"
-     ng-controller="exportConfigurationController as configurationController">
+     ng-controller="exportDatasourcesController as datasourcesController">
 
     <uib-accordion close-others="false">
-        <!-- Exportoptionen-->
+        <!-- Themen-->
         <div uib-accordion-group  
-             ng-init="exportOptionsOpen = false" 
-             is-open="exportOptionsOpen"
+             ng-init="exportThemesOpen = false" 
+             is-open="exportThemesOpen"
              ng-class="{'text-muted': isDisabled}">
 
             <uib-accordion-heading>
                 <div uib-accordion-header 
                      style="margin:0px;padding:8px;background-color:#c6e1ec;color:#3d7489">
-                    Exportoptionen
+                    Themen
                     <i class="pull-right glyphicon" 
-                       ng-class="{'glyphicon-chevron-down': exportOptionsOpen, 'glyphicon-chevron-up': !exportOptionsOpen}">
+                       ng-class="{'glyphicon-chevron-down': exportThemesOpen, 'glyphicon-chevron-up': !exportThemesOpen}">
                     </i>
                 </div>
             </uib-accordion-heading>
+            
+            <span ng-repeat="exportTheme in datasourcesController.exportThemes.exportEntitiesCollections">{{exportTheme.name}}</span>
 
             <div class="checkbox" style="width:100%;clear:right"
-                 ng-repeat="globalDatasource in externalDatasourcesController.globalDatasources">
+                 ng-repeat="exportTheme in datasourcesController.exportThemes.exportEntitiesCollections track by exportTheme.className">
                 <label class="form-check-label">
                     <input 
                         class="form-check-input"
                         type="checkbox"
-                        name="{{globalDatasource.name}}"
-                        ng-checked="globalDatasource.$layer && globalDatasource.$layer.$selected"
-                        ng-click="externalDatasourcesController.toggleGlobalDatasourceSelection(globalDatasource)"
-                        ng-disabled="true"> 
-                    {{globalDatasource.name}}
+                        name="{{exportTheme.className}}"
+                        ng-checked="exportTheme.isSelected()"
+                        ng-click="exportTheme.toggleSelection()"
+                        ng-model="options.selectedExportThemes">
+                    {{exportTheme.title}}
                 </label>
             </div>
         </div>
 
-        <!-- Exportformat -->
+        <!-- Externe Datenquellen -->
         <div uib-accordion-group  
-             ng-init="exportFormatOpen = true" 
-             is-open="exportFormatOpen">
+             ng-init="exportDatasourcesOpen = true" 
+             is-open="exportDatasourcesOpen"
+             ng-if="options.isMergeExternalDatasource">
 
             <uib-accordion-heading>
                 <div uib-accordion-header 
                      style="margin:0px;padding:8px;background-color:#c6e1ec;color:#3d7489">
-                    Exportformat
+                    Externe Datenquellen (zum Verschneiden)
                     <i class="pull-right glyphicon" 
-                       ng-class="{'glyphicon-chevron-down': exportFormatOpen, 'glyphicon-chevron-up': !exportFormatOpen}">
+                       ng-class="{'glyphicon-chevron-down': exportThemesOpen, 'glyphicon-chevron-up': !exportThemesOpen}">
                     </i>
                 </div>
             </uib-accordion-heading>
 
             <form class="form-horizontal"
                   id="exportFormatForm"
-                  name="exportFormatForm">
-
+                  name="exportDatasourcesForm">
                 <div class="form-group row" 
-                     ng-class="{'has-error':wizard.hasError === 'exportFormat'}">
-                    <div class="col-md-12">
-                        <div class="radio" style="width:100%;clear:right"
-                             ng-repeat="localDatasource in externalDatasourcesController.localDatasources">
+                     ng-class="{'has-error':wizard.hasError === 'exportDatasources'}"
+                     ng-repeat="(group, exportDatasources) in datasourcesController.exportDatasources | groupBy:'groupName'">
+                    <div class="col-md-12"><span style="display:inline-block; min-width: 400px;"><strong>{{group}}</strong></span>
+                        <div class="checkbox" style="width:100%;clear:right"
+                             ng-repeat="exportDatasource in exportDatasources track by exportDatasource.name">
                             <label class="form-check-label">
                                 <input 
                                     class="form-check-input"
-                                    type="radio"
-                                    name="{{localDatasource.name}}"
-                                    ng-checked="localDatasource.$layer && localDatasource.$layer.$selected"
-                                    ng-click="externalDatasourcesController.toggleLocalDatasourceSelection(localDatasource)"> 
-                                {{localDatasource.name}}
+                                    type="checkbox"
+                                    name="{{exportDatasource.name}}"
+                                    ng-checked="exportDatasource.isSelected()"
+                                    ng-click="exportDatasource.toggleSelection()"
+                                    ng-model="options.selectedExportDatasource"> 
+                                {{exportDatasource.name}}
                             </label>
                         </div>
                     </div>

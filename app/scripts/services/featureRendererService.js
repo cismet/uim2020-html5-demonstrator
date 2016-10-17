@@ -200,9 +200,10 @@ angular.module(
                  * 
                  */
                 createOverlayLayer = function (localDatasource, geojson, progressCallBack) {
-                    var geoJsonLayer, overlayLayer, i, deferred, isPointLayer;
+                    var geoJsonLayer, overlayLayer, i, deferred, isPointLayer, parameters;
 
                     i = 0;
+                    parameters = [];
                     isPointLayer = true;
                     deferred = $q.defer();
 
@@ -216,6 +217,17 @@ angular.module(
 
                             // set to false on first non-point feature
                             isPointLayer = isPointLayer === false ? false : (feature.geometry.type === 'Point');
+                            
+                            // set export parameters from 1st feature
+                            if(parameters.length === 0) {
+                                Object.keys(feature.properties).forEach(function(parameterName){
+                                    parameters.push({
+                                        parameterpk:parameterName,
+                                        parametername:parameterName,
+                                        selected:false
+                                    });
+                                });
+                            }
 
                             if (feature.properties) {
                                 layer.bindPopup(Object.keys(feature.properties).map(function (k) {
@@ -250,7 +262,8 @@ angular.module(
                         visible: false
                     };
 
-                    localDatasource.$layer = overlayLayer;
+                    localDatasource.setParameters(parameters);
+                    localDatasource.setLayer(overlayLayer);
 
                     console.log('featureRendererService::createOverlayLayer -> resolve(overlayLayer)');
                     if (progressCallBack) {

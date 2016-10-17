@@ -13,21 +13,21 @@ angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'exportController', [
-            '$scope', '$state', '$uibModalInstance', 'sharedDatamodel', 'exportService',
-            'ExportEntityMap',
-            function ($scope, $state, $uibModalInstance, sharedDatamodel, exportService, ExportEntityMap) {
+            '$scope', '$state', '$uibModalInstance', 'sharedDatamodel', 'dataService',
+            'exportService', 'ExportThemeCollection',
+            function ($scope, $state, $uibModalInstance, sharedDatamodel, dataService,
+                    exportService, ExportThemeCollection) {
                 'use strict';
 
                 var exportController;
                 exportController = this;
-                
+
                 $scope.status = sharedDatamodel.status;
                 $scope.status.message = 'Bitte wählen Sie ein Exportformat aus';
                 $scope.status.type = 'info';
-                
+
                 // scope-soup options for wizard panels
                 $scope.options = {};
-                $scope.exportEntityMap = new ExportEntityMap(sharedDatamodel.analysisNodes);
 
                 /**
                  * Wizard status, etc.
@@ -41,10 +41,10 @@ angular.module(
                 $scope.wizard.canGoBack = false;
                 $scope.wizard.hasError = false;
                 $scope.wizard.proceedButtonText = 'Weiter';
-                
+
                 // scope soup madness -> available as wzData.status in wizard-step.tpl.html
                 $scope.wizard.status = sharedDatamodel.status;
-                
+
                 $scope.wizard.isFinishStep = function () {
                     return $scope.wizard.currentStep === 'Export';
                 };
@@ -73,10 +73,10 @@ angular.module(
 
                 $uibModalInstance.result.catch(
                         function cancel(reason) {
-                        $scope.status.message = 'Export abgebrochen';
-                        $scope.status.type = 'info';
-                    
-                }).finally(function () {
+                            $scope.status.message = 'Export abgebrochen';
+                            $scope.status.type = 'info';
+
+                        }).finally(function () {
                     $state.go('main.analysis.map');
                 });
 
@@ -92,6 +92,21 @@ angular.module(
                         console.log('exportController::$stateChangeStart: ignore ' + toState);
                     }
                 });
+
+                // <editor-fold defaultstate="collapsed" desc="[!!!!] MOCK DATA (DISABLED) ----------------">        
+                var loadMockNodes = function (mockNodes) {
+                    if (mockNodes.$resolved) {
+                        sharedDatamodel.analysisNodes.length = 0;
+                        sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, mockNodes);
+                    } else {
+                        mockNodes.$promise.then(function (resolvedMockNodes) {
+                            loadMockNodes(resolvedMockNodes);
+                        });
+                    }
+                };
+
+                loadMockNodes(dataService.getMockNodes());
+                // </editor-fold>
             }
         ]
         );
