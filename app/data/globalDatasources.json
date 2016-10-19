@@ -1,25 +1,37 @@
 [{
         "id": 0,
-        "name": "Bodenkarte aus dem Hydrologischen Atlas Österreichs"
+        "name": "Bodenkarte aus dem Hydrologischen Atlas Österreichs",
+        "fileName": "bdk.zip",
+        "parameters": ["A", "B", "C", "D", "E"] 
     },
     {
         "id": 1,
-        "name": "Einzugsgebiet 100km"
+        "name": "Einzugsgebiet 100km",
+        "ezgb.zip": "bdk.zip",
+        "parameters": ["X", "Y", "Z"] 
     },
     {
         "id": 2,
-        "name": "FAO Bodentypen"
+        "name": "FAO Bodentypen",
+        "fileName": "FAO.zip",
+        "parameters": ["1", "2", "3", "4", "5"] 
     },
     {
         "id": 3,
-        "name": "Forstliche Wuchsgebiete Österreichs"
+        "name": "Forstliche Wuchsgebiete Österreichs",
+        "fileName": "WSGÖ.zip",
+        "parameters": ["Baum", "Wald", "Egal"] 
     },
     {
         "id": 4,
-        "name": "Oberflächennahe GWK"
+        "name": "Oberflächennahe GWK",
+        "fileName": "GWK.zip",
+        "parameters": ["AXAADDE", "BXDFEFGH", "SHPI", "XORAR", "ARCADE"] 
     },
     {
         "id": 5,
-        "name": "Standorte"
+        "name": "Standorte",
+        "fileName": "Standorte.zip",
+        "parameters": ["STD NR"] 
     }
 ]

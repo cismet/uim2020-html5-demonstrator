@@ -43,7 +43,7 @@ angular.module(
                     var reader = new FileReader();
 
                     localDatasource.name = file.name.split(".").slice(0, 1).pop();
-                    localDatasource.fileName = file.name;
+                    localDatasource.filename = file.name;
 
                     reader.onloadstart = function () {
                         if (reader.error) {
@@ -52,12 +52,12 @@ angular.module(
                             importController.importCompleted = false;
                             importController.importError = true;
                             importController.status.type = 'danger';
-                            importController.status.message = 'Die Datei "' + localDatasource.fileName + '" konnte nicht geladen werden: ' + reader.error;
+                            importController.status.message = 'Die Datei "' + localDatasource.filename + '" konnte nicht geladen werden: ' + reader.error;
                         } else {
                             $scope.$apply(function () {
                                 importController.importInProgress = true;
                                 importController.status.type = 'info';
-                                importController.status.message = 'Die Datei "' + localDatasource.fileName + '" wird geladen.';
+                                importController.status.message = 'Die Datei "' + localDatasource.filename + '" wird geladen.';
                             });
                         }
                     };
@@ -103,7 +103,7 @@ angular.module(
                                 importController.importError = true;
                                 importController.importCompleted = false;
                                 importController.status.type = 'danger';
-                                importController.status.message = 'Die Datei "' + localDatasource.fileName + '" konnte nicht geladen werden: ' + reader.error;
+                                importController.status.message = 'Die Datei "' + localDatasource.filename + '" konnte nicht geladen werden: ' + reader.error;
                             });
                         } else {
                             $scope.$apply(function () {
@@ -118,7 +118,7 @@ angular.module(
                             $timeout(function () {
                                 importController.importProgress = 100;
                                 importController.status.type = 'info';
-                                importController.status.message = 'Die Datei "' + localDatasource.fileName + '" wird verarbeitet.';
+                                importController.status.message = 'Die Datei "' + localDatasource.filename + '" wird verarbeitet.';
 
                                 convertToLayer(arrayBuffer, file.name);
                             }, 500);
@@ -157,7 +157,7 @@ angular.module(
                             importController.importInProgress = false;
                             importController.importCompleted = true;
                             importController.status.type = 'success';
-                            importController.status.message = 'Die Datei "' + localDatasource.fileName + '" wurde importiert.';
+                            importController.status.message = 'Die Datei "' + localDatasource.filename + '" wurde importiert.';
                         });
                     }
                 };
@@ -189,14 +189,14 @@ angular.module(
                                 }
                             }, function error(reason) {
                         console.error('importController::convertToLayer: could not process "' +
-                                localDatasource.fileName + '": ' + reason);
+                                localDatasource.filename + '": ' + reason);
 
                         importController.importProgress = 0;
                         importController.importInProgress = false;
                         importController.importError = true;
                         importController.importCompleted = false;
                         importController.status.type = 'danger';
-                        importController.status.message = 'Die Datei "' + localDatasource.fileName + '" konnte nicht verarbeitet werden: ' + reason;
+                        importController.status.message = 'Die Datei "' + localDatasource.filename + '" konnte nicht verarbeitet werden: ' + reason;
                     });
 
                     promise.then(
@@ -213,7 +213,7 @@ angular.module(
                                     importController.importCompleted = true;
                                     importController.status.type = 'success';
                                     importController.status.message = overlayLayer.getLayers().length +
-                                            ' Features aus der Datei "' + localDatasource.fileName + '" wurden der Karte hinzugefügt';
+                                            ' Features aus der Datei "' + localDatasource.filename + '" wurden der Karte hinzugefügt';
                                 }, 500);
                             },
                             function error(reason) {
@@ -224,7 +224,7 @@ angular.module(
                                     importController.importError = true;
                                     importController.importCompleted = false;
                                     importController.status.type = 'danger';
-                                    importController.status.message = 'Die Datei "' + localDatasource.fileName + '" konnte nicht verarbeitet werden: ' + reason;
+                                    importController.status.message = 'Die Datei "' + localDatasource.filename + '" konnte nicht verarbeitet werden: ' + reason;
                                 }, 100);
                             });
                 };

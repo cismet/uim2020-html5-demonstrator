@@ -195,7 +195,7 @@ angular.module(
                 /**
                  * 
                  * @param {type} buffer
-                 * @param {type} fileName
+                 * @param {type} filename
                  * @returns {undefined}
                  * 
                  */
@@ -209,7 +209,7 @@ angular.module(
 
                     //$timeout(function () {
 
-                    geojson.fileName = localDatasource.fileName;
+                    geojson.filename = localDatasource.filename;
 
                     // onEachFeature: Helper Method for GeoJson Features to open a popup dialog for each Feature
                     geoJsonLayer = L.geoJson(geojson, {
@@ -253,7 +253,7 @@ angular.module(
                     }
 
                     overlayLayer.$name = localDatasource.name;
-                    overlayLayer.$key = localDatasource.fileName;
+                    overlayLayer.$key = localDatasource.filename;
                     overlayLayer.$selected = true;
 
                     // SyledLayerControlProperties

@@ -8,10 +8,11 @@
  * ***************************************************
  */
 
+/*global angular*/
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.types'
         ).factory('ExportDatasource',
-        [,
+        [
             function () {
                 'use strict';
 
@@ -19,7 +20,7 @@ angular.module(
                     var _this = this;
 
                     this.name = externalDatasource.name;
-                    this.fileName = externalDatasource.fileName;
+                    this.filename = externalDatasource.filename;
                     this.groupName = '';
                     this.selected = false;
                     this.setGlobal(externalDatasource.global);

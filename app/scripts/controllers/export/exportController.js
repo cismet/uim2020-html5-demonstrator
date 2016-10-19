@@ -104,9 +104,13 @@ angular.module(
                         });
                     }
                 };
-
-                loadMockNodes(dataService.getMockNodes());
+                
+                if(sharedDatamodel.analysisNodes.length === 0) {
+                    loadMockNodes(dataService.getMockNodes());
+                };
                 // </editor-fold>
+                
+                console.log('exportController instance created');
             }
         ]
         );

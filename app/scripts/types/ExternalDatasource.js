@@ -19,7 +19,7 @@ angular.module(
                     var _this = this;
 
                     this.name = null;
-                    this.fileName = null;
+                    this.filename = null;
                     this.global = false;
                     this.parameters = [];
 
@@ -51,7 +51,7 @@ angular.module(
                         this.$layer.$selected = selected;
                     } else {
                         console.warn('ExternalDatasource::setSelected -> cannot set selected property of datasource "' +
-                                fileName + '", $layer property is null');
+                                filename + '", $layer property is null');
                     }
                 };
 

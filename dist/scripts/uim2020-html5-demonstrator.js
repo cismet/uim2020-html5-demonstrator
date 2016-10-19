@@ -672,12 +672,12 @@ angular.module(
                     sharedDatamodel.analysisNodes.length = 0;
                     sharedControllers.analysisMapController.clearNodes();
                 };
-                
+
                 analysisController.gotoNodes = function () {
                     sharedControllers.analysisMapController.gotoNodes();
                 };
-                
-                analysisController.hasNodes = function() {
+
+                analysisController.hasNodes = function () {
                     return sharedDatamodel.analysisNodes.length > 0;
                 };
 
@@ -709,6 +709,21 @@ angular.module(
                         }
                     }
                 });
+                
+                // <editor-fold defaultstate="collapsed" desc="[!!!!] MOCK DATA (DISABLED) ----------------">        
+                /*var loadMockNodes = function (mockNodes) {
+                    if (mockNodes.$resolved) {
+                        sharedDatamodel.analysisNodes.length = 0;
+                        sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, mockNodes);
+                    } else {
+                        mockNodes.$promise.then(function (resolvedMockNodes) {
+                            loadMockNodes(resolvedMockNodes);
+                        });
+                    }
+                };
+
+                loadMockNodes(dataService.getMockNodes());*/
+                // </editor-fold>
             }
         ]
         );
@@ -956,13 +971,13 @@ angular.module(
             function ($scope, sharedDatamodel) {
                 'use strict';
 
-                $scope.options.isMergeExternalDatasource = false;
-                $scope.options.isMergeExternalDatasourceEnabled = sharedDatamodel.localDatasources.length > 0;
-                $scope.options.exportFormat = null;
+                $scope.options.isMergeExternalDatasource = true;
+                $scope.options.isMergeExternalDatasourceEnabled = true; //sharedDatamodel.localDatasources.length > 0 || sharedDatamodel.globalDatasources.length > 0;
+                $scope.options.exportFormat = 'shp';
 
+                // ENTER VALIDATION --------------------------------------------
                 $scope.wizard.enterValidators['Konfiguration'] = function (context) {
                     if (context.valid === true) {
-
                         $scope.status.message = 'Bitte wählen Sie ein Exportformat aus';
                         $scope.status.type = 'info';
                     }
@@ -970,6 +985,7 @@ angular.module(
                     return context.valid;
                 };
 
+                // EXIT VALIDATION ---------------------------------------------
                 $scope.wizard.exitValidators['Konfiguration'] = function (context) {
                     context.valid = true;
 
@@ -986,6 +1002,8 @@ angular.module(
 
                     return context.valid;
                 };
+                
+                console.log('exportConfigurationController instance created');
             }
         ]
         );
@@ -1006,17 +1024,19 @@ angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'exportController', [
-            '$scope', '$state', '$uibModalInstance', 'sharedDatamodel',
-            function ($scope, $state, $uibModalInstance, sharedDatamodel) {
+            '$scope', '$state', '$uibModalInstance', 'sharedDatamodel', 'dataService',
+            'exportService', 'ExportThemeCollection',
+            function ($scope, $state, $uibModalInstance, sharedDatamodel, dataService,
+                    exportService, ExportThemeCollection) {
                 'use strict';
 
                 var exportController;
                 exportController = this;
-                
+
                 $scope.status = sharedDatamodel.status;
                 $scope.status.message = 'Bitte wählen Sie ein Exportformat aus';
                 $scope.status.type = 'info';
-                
+
                 // scope-soup options for wizard panels
                 $scope.options = {};
 
@@ -1032,10 +1052,10 @@ angular.module(
                 $scope.wizard.canGoBack = false;
                 $scope.wizard.hasError = false;
                 $scope.wizard.proceedButtonText = 'Weiter';
-                
+
                 // scope soup madness -> available as wzData.status in wizard-step.tpl.html
                 $scope.wizard.status = sharedDatamodel.status;
-                
+
                 $scope.wizard.isFinishStep = function () {
                     return $scope.wizard.currentStep === 'Export';
                 };
@@ -1064,10 +1084,10 @@ angular.module(
 
                 $uibModalInstance.result.catch(
                         function cancel(reason) {
-                        $scope.status.message = 'Export abgebrochen';
-                        $scope.status.type = 'info';
-                    
-                }).finally(function () {
+                            $scope.status.message = 'Export abgebrochen';
+                            $scope.status.type = 'info';
+
+                        }).finally(function () {
                     $state.go('main.analysis.map');
                 });
 
@@ -1083,6 +1103,172 @@ angular.module(
                         console.log('exportController::$stateChangeStart: ignore ' + toState);
                     }
                 });
+
+                // <editor-fold defaultstate="collapsed" desc="[!!!!] MOCK DATA (DISABLED) ----------------">        
+                var loadMockNodes = function (mockNodes) {
+                    if (mockNodes.$resolved) {
+                        sharedDatamodel.analysisNodes.length = 0;
+                        sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, mockNodes);
+                    } else {
+                        mockNodes.$promise.then(function (resolvedMockNodes) {
+                            loadMockNodes(resolvedMockNodes);
+                        });
+                    }
+                };
+                
+                if(sharedDatamodel.analysisNodes.length === 0) {
+                    loadMockNodes(dataService.getMockNodes());
+                };
+                // </editor-fold>
+                
+                console.log('exportController instance created');
+            }
+        ]
+        );
+
+
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+/*global angular*/
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.controllers'
+        ).controller(
+        'exportDatasourcesController', [
+            '$scope', 'filterFilter', 'ExportDatasource', 'ExportThemeCollection', 'sharedDatamodel', 'dataService',
+            function ($scope, filterFilter, ExportDatasource, ExportThemeCollection, sharedDatamodel, dataService) {
+                'use strict';
+
+                var datasourcesController;
+
+                datasourcesController = this;
+
+                // init global datasources list
+                datasourcesController.exportDatasources = [];
+                if (!sharedDatamodel.globalDatasources ||
+                        sharedDatamodel.globalDatasources.length === 0) {
+
+                    var globalDatasources = dataService.getGlobalDatasources();
+
+                    if (typeof globalDatasources.$resolved !== 'undefined' &&
+                            globalDatasources.$resolved === true) {
+                        sharedDatamodel.globalDatasources = globalDatasources;
+                        sharedDatamodel.globalDatasources.forEach(function (globalDatasource) {
+                            datasourcesController.exportDatasources.push(new ExportDatasource(globalDatasource));
+                        });
+                    } else {
+                        var resolve = function (externalDatasources) {
+                            sharedDatamodel.globalDatasources = externalDatasources;
+                            sharedDatamodel.globalDatasources.$resolved = true;
+                            sharedDatamodel.globalDatasources.forEach(function (globalDatasource) {
+                                datasourcesController.exportDatasources.push(new ExportDatasource(globalDatasource));
+                            });
+                        };
+
+                        if (globalDatasources.$promise) {
+                            globalDatasources.$promise.then(resolve);
+                        } else {
+                            globalDatasources.then(resolve);
+                        }
+                    }
+                } else {
+                    sharedDatamodel.globalDatasources.forEach(function (globalDatasource) {
+                        datasourcesController.exportDatasources.push(new ExportDatasource(globalDatasource));
+                    });
+                }
+
+                // bind wizard panel local variables to controller only
+                datasourcesController.exportThemes = new ExportThemeCollection(sharedDatamodel.analysisNodes);
+
+                sharedDatamodel.localDatasources.forEach(function (localDatasource) {
+                    //if (localDatasource.isSelected()) {
+                    datasourcesController.exportDatasources.push(new ExportDatasource(localDatasource));
+                    //}
+                });
+
+                $scope.options.selectedExportDatasource = null;
+                $scope.options.selectedExportThemes = [];
+
+                $scope.wizard.enterValidators['Datenquellen'] = function (context) {
+                    if (context.valid === true) {
+
+                        if (datasourcesController.exportThemes === null ||
+                                datasourcesController.exportThemes.size() === 0) {
+                            $scope.status.message = 'Es sind keine Messstellen zum Exportieren in der Merkliste vorhanden.';
+                            $scope.status.type = 'warning';
+                            context.valid = false;
+                            return context.valid;
+                        }
+
+                        // select 1st ext. datasurce by default
+                        if ($scope.options.isMergeExternalDatasource) {
+                            if (datasourcesController.exportDatasources.length > 0) {
+                                datasourcesController.exportDatasources[0].setSelected(true);
+                                $scope.options.selectedExportDatasource = datasourcesController.exportDatasources[0];
+                            } else {
+                                $scope.status.message = 'Es sind keine externen Datenquellen zum Verschneiden verfügbar.';
+                                $scope.status.type = 'warning';
+                                context.valid = false;
+                                return context.valid;
+                            }
+                        } else {
+                            $scope.options.selectedExportDatasource = null;
+                        }
+
+                        $scope.status.type = 'info';
+                        if ($scope.options.isMergeExternalDatasource === true) {
+                            $scope.status.message = 'Bitte wählen Sie mindestens ein Thema und eine externen Datenquellen zum Verschneiden aus.';
+                        } else {
+                            $scope.status.message = 'Bitte wählen Sie mindestens ein Thema für den Export aus.';
+                        }
+                    }
+
+                    return context.valid;
+                };
+
+                $scope.wizard.exitValidators['Datenquellen'] = function (context) {
+                    context.valid = true;
+
+                    if ($scope.options.isMergeExternalDatasource === true &&
+                            $scope.options.selectedExportDatasource === null) {
+                        $scope.status.message = 'Bitte wählen Sie eine Datenquelle zum Verschneiden aus.';
+                        $scope.status.type = 'warning';
+                        context.valid = false;
+                        return context.valid;
+                    }
+
+                    $scope.options.selectedExportThemes = datasourcesController.exportThemes.getSelectedExportEntitiesCollections();
+                    if ($scope.options.selectedExportThemes.length === 0) {
+                        $scope.status.message = 'Bitte wählen Sie mindestens ein Thema für den Export aus.';
+                        $scope.status.type = 'warning';
+                        context.valid = false;
+                        return context.valid;
+                    }
+
+                    return context.valid;
+                };
+
+                // watch selectedExportDatasources for changes
+                /*$scope.$watch('datasourcesController.exportDatasources|filter:{selected:true}',
+                 function (selectedExportDatasource) {
+                 $scope.options.selectedExportDatasource = selectedExportDatasource;
+                 }, true);
+                 
+                 // watch selectedExportThemes for changes
+                 $scope.$watch('datasourcesController.exportThemes.exportEntitiesCollections|filter:{selected:true}',
+                 function (selectedExportThemes) {
+                 $scope.options.selectedExportThemes = selectedExportThemes;
+                 }, true);
+                 */
+
+                console.log('exportDatasourcesController instance created');
             }
         ]
         );
@@ -1094,7 +1280,9 @@ angular.module(
         ).controller(
         'externalDatasourcesController', [
             '$scope', '$uibModal', 'dataService', 'sharedDatamodel', 'sharedControllers',
-            function ($scope, $uibModal, dataService, sharedDatamodel, sharedControllers) {
+            'ExternalDatasource',
+            function ($scope, $uibModal, dataService, sharedDatamodel, sharedControllers,
+                    ExternalDatasource) {
                 'use strict';
 
                 var externalDatasourcesController, mapController;
@@ -1105,16 +1293,31 @@ angular.module(
                 // init global datasources list
                 if (!sharedDatamodel.globalDatasources ||
                         sharedDatamodel.globalDatasources.length === 0) {
-                    if (dataService.getGlobalDatasources().$resolved) {
-                        externalDatasourcesController.globalDatasources =
-                                dataService.getGlobalDatasources();
+
+                    var globalDatasources = dataService.getGlobalDatasources();
+
+                    if (typeof globalDatasources.$resolved !== 'undefined' &&
+                            globalDatasources.$resolved === true) {
+                        sharedDatamodel.globalDatasources = globalDatasources;
+
+                        externalDatasourcesController.globalDatasources = sharedDatamodel.globalDatasources;
                     } else {
-                        dataService.getGlobalDatasources().$promise.then(
-                                function (externalDatasources) {
-                                    externalDatasourcesController.globalDatasources = externalDatasources;
-                                    externalDatasourcesController.globalDatasources.$resolved = true;
-                                });
+                        var resolve = function (externalDatasources) {
+                            sharedDatamodel.globalDatasources = externalDatasources;
+                            sharedDatamodel.globalDatasources.$resolved = true;
+
+                            externalDatasourcesController.globalDatasources = sharedDatamodel.globalDatasources;
+                        };
+
+                        if (globalDatasources.$promise) {
+                            globalDatasources.$promise.then(resolve);
+                        } else {
+                            globalDatasources.then(resolve);
+                        }
                     }
+                } else {
+                    // already resolved ....
+                    externalDatasourcesController.globalDatasources = sharedDatamodel.globalDatasources;
                 }
 
                 // init local datasources list
@@ -1167,9 +1370,7 @@ angular.module(
                                 //size: size,
                                 //appendTo:elem,
                                 resolve: {
-                                    localDatasource: function () {
-                                        return {};
-                                    }
+                                    localDatasource: new ExternalDatasource()
                                 }
                             });
 
@@ -1197,7 +1398,7 @@ angular.module(
                                 // remove from map and styled layer control
                                 mapController.removeOverlay(localDatasource.$layer);
 
-                                // remove list
+                                // remove list and also from shared datamodel
                                 externalDatasourcesController.localDatasources.splice(idx, 1);
                             } else {
                                 console.warn("externalDatasourcesController::removeLocalDatasource: unkwon datasource?!");
@@ -1213,11 +1414,11 @@ angular.module(
                 externalDatasourcesController.toggleLocalDatasourceSelection =
                         function (localDatasource) {
 
-                            if (localDatasource.$layer.$selected === true) {
-                                localDatasource.$layer.$selected = false;
+                            if (localDatasource.isSelected() === true) {
+                                localDatasource.setSelected(false);
                                 mapController.unSelectOverlay(localDatasource.$layer);
                             } else {
-                                localDatasource.$layer.$selected = true;
+                                localDatasource.setSelected(true);
                                 mapController.selectOverlay(localDatasource.$layer);
                             }
 
@@ -1280,7 +1481,7 @@ angular.module(
                     var reader = new FileReader();
 
                     localDatasource.name = file.name.split(".").slice(0, 1).pop();
-                    localDatasource.fileName = file.name;
+                    localDatasource.filename = file.name;
 
                     reader.onloadstart = function () {
                         if (reader.error) {
@@ -1289,12 +1490,12 @@ angular.module(
                             importController.importCompleted = false;
                             importController.importError = true;
                             importController.status.type = 'danger';
-                            importController.status.message = 'Die Datei "' + localDatasource.fileName + '" konnte nicht geladen werden: ' + reader.error;
+                            importController.status.message = 'Die Datei "' + localDatasource.filename + '" konnte nicht geladen werden: ' + reader.error;
                         } else {
                             $scope.$apply(function () {
                                 importController.importInProgress = true;
                                 importController.status.type = 'info';
-                                importController.status.message = 'Die Datei "' + localDatasource.fileName + '" wird geladen.';
+                                importController.status.message = 'Die Datei "' + localDatasource.filename + '" wird geladen.';
                             });
                         }
                     };
@@ -1340,7 +1541,7 @@ angular.module(
                                 importController.importError = true;
                                 importController.importCompleted = false;
                                 importController.status.type = 'danger';
-                                importController.status.message = 'Die Datei "' + localDatasource.fileName + '" konnte nicht geladen werden: ' + reader.error;
+                                importController.status.message = 'Die Datei "' + localDatasource.filename + '" konnte nicht geladen werden: ' + reader.error;
                             });
                         } else {
                             $scope.$apply(function () {
@@ -1355,7 +1556,7 @@ angular.module(
                             $timeout(function () {
                                 importController.importProgress = 100;
                                 importController.status.type = 'info';
-                                importController.status.message = 'Die Datei "' + localDatasource.fileName + '" wird verarbeitet.';
+                                importController.status.message = 'Die Datei "' + localDatasource.filename + '" wird verarbeitet.';
 
                                 convertToLayer(arrayBuffer, file.name);
                             }, 500);
@@ -1394,7 +1595,7 @@ angular.module(
                             importController.importInProgress = false;
                             importController.importCompleted = true;
                             importController.status.type = 'success';
-                            importController.status.message = 'Die Datei "' + localDatasource.fileName + '" wurde importiert.';
+                            importController.status.message = 'Die Datei "' + localDatasource.filename + '" wurde importiert.';
                         });
                     }
                 };
@@ -1426,14 +1627,14 @@ angular.module(
                                 }
                             }, function error(reason) {
                         console.error('importController::convertToLayer: could not process "' +
-                                localDatasource.fileName + '": ' + reason);
+                                localDatasource.filename + '": ' + reason);
 
                         importController.importProgress = 0;
                         importController.importInProgress = false;
                         importController.importError = true;
                         importController.importCompleted = false;
                         importController.status.type = 'danger';
-                        importController.status.message = 'Die Datei "' + localDatasource.fileName + '" konnte nicht verarbeitet werden: ' + reason;
+                        importController.status.message = 'Die Datei "' + localDatasource.filename + '" konnte nicht verarbeitet werden: ' + reason;
                     });
 
                     promise.then(
@@ -1450,7 +1651,7 @@ angular.module(
                                     importController.importCompleted = true;
                                     importController.status.type = 'success';
                                     importController.status.message = overlayLayer.getLayers().length +
-                                            ' Features aus der Datei "' + localDatasource.fileName + '" wurden der Karte hinzugefügt';
+                                            ' Features aus der Datei "' + localDatasource.filename + '" wurden der Karte hinzugefügt';
                                 }, 500);
                             },
                             function error(reason) {
@@ -1461,7 +1662,7 @@ angular.module(
                                     importController.importError = true;
                                     importController.importCompleted = false;
                                     importController.status.type = 'danger';
-                                    importController.status.message = 'Die Datei "' + localDatasource.fileName + '" konnte nicht verarbeitet werden: ' + reason;
+                                    importController.status.message = 'Die Datei "' + localDatasource.filename + '" konnte nicht verarbeitet werden: ' + reason;
                                 }, 100);
                             });
                 };
@@ -4196,6 +4397,13 @@ angular.module(
                 // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="=== EXPORT ===========================">
                 configurationService.export = {};
+                configurationService.export.exportPKs = {};
+                configurationService.export.exportPKs.MOSS = 'sampleid';
+                configurationService.export.exportPKs.EPRTR_INSTALLATION = 'erasId';
+                configurationService.export.exportPKs.WAOW_STATION = 'pk';
+                configurationService.export.exportPKs.WAGW_STATION = 'pk';
+                configurationService.export.exportPKs.BORIS_SITE = 'pk';
+                
                 // </editor-fold>
             }]);
 /* 
@@ -4212,12 +4420,13 @@ angular.module(
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.services'
         ).factory('dataService',
-        ['$resource',
-            function ($resource) {
+        ['$q', '$resource', 'ExternalDatasource', 'configurationService',
+            function ($q, $resource, ExternalDatasource, configurationService) {
                 'use strict';
 
                 var staticResourceFiles, cachedResources,
-                        lazyLoadResource, shuffleArray, searchLocations;
+                        lazyLoadResource, shuffleArray, searchLocations,
+                        extendNode;
 
                 searchLocations = [
                     {
@@ -4265,7 +4474,33 @@ angular.module(
                             }
                         });
 
-                        cachedResources[resourceName] = resource.query();
+                        if (resourceName === 'globalDatasources') {
+                            cachedResources[resourceName] = resource.query().$promise.then(function success(datasources) {
+                                var globalDatasources = [];
+                                globalDatasources.$promise = $q.when(globalDatasources);
+                                globalDatasources.$resolved = true;
+                                datasources.forEach(function (datasource) {
+                                    //invoke  constructor
+                                    var externalDatasource = new ExternalDatasource(datasource);
+                                    externalDatasource.global = true;
+                                    globalDatasources.push(externalDatasource);
+                                });
+                                globalDatasources.$resolved = true;
+
+                                return globalDatasources;
+                            });
+                        } else {
+                            cachedResources[resourceName] = resource.query();
+                        }
+                        
+                        if (resourceName === 'mockNodes') {
+                            cachedResources[resourceName].$promise.then(function success(mockNodes) {
+                                mockNodes.forEach(function (mockNode) {
+                                    mockNode = extendNode(mockNode);
+                                });
+                            });
+                        }
+
                         return cachedResources[resourceName];
                     } else {
                         console.warn('unknown static resource:' + resourceName);
@@ -4290,6 +4525,63 @@ angular.module(
                     }
 
                     return array;
+                };
+
+                extendNode = function (currentNode) {
+                    var dataObject, className;
+                    className = currentNode.classKey.split(".").slice(1, 2).pop();
+
+                    // ----------------------------------------------------------
+                    // Extend the resolved object by local properties
+                    // ----------------------------------------------------------
+
+                    /**
+                     * filtered node flag!
+                     */
+                    currentNode.$filtered = false;
+
+                    currentNode.$className = className;
+
+                    if (configurationService.featureRenderer.icons[className]) {
+                        currentNode.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
+                    }
+
+                    // FIXME: extract class name from CS_CLASS description (server-side)
+                    if (configurationService.featureRenderer.layergroupNames[className]) {
+                        currentNode.$classTitle = configurationService.featureRenderer.layergroupNames[className];
+                    } else {
+                        currentNode.$classTitle = className;
+                    }
+
+                    if (currentNode.lightweightJson) {
+                        try {
+                            dataObject = angular.fromJson(currentNode.lightweightJson);
+                            currentNode.$data = dataObject;
+                            delete currentNode.lightweightJson;
+                            // FIXME: extract class name from CS_CLASS description (server-side)
+                            /*currentNode.$classTitle = dataObject.classTitle ?
+                             dataObject.classTitle : classTitle;*/
+
+                            // extract PKs for Oracle DWH Export
+                            /* jshint loopfunc:true */
+                            Object.keys(configurationService.export.exportPKs).forEach(function (key, index) {
+                                if (currentNode.$className === key && 
+                                        typeof dataObject[configurationService.export.exportPKs[key]] !== 'undefined' &&
+                                        dataObject[configurationService.export.exportPKs[key]] !== null) {
+                                    currentNode.$exportPK = dataObject[configurationService.export.exportPKs[key]];
+                                }
+                            });
+
+                            if (typeof currentNode.$exportPK === 'undefined' || currentNode.$exportPK === null) {
+                                console.warn('searchService::extractExportPKs -> no export PK found for node ' + currentNode.objectKey);
+                            }
+
+                        } catch (err) {
+                            console.error(err.message);
+                        }
+                    }
+                    
+                    return currentNode;
                 };
 
                 //lazyLoadResource('searchPollutants', true);
@@ -4317,7 +4609,8 @@ angular.module(
                         }
 
                         return mockNodes;
-                    }
+                    },
+                    extendNode: extendNode
                 };
             }]
         );
@@ -4369,6 +4662,53 @@ angular.module(
                 };
             }]
         );
+
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+/* global angular */
+
+angular.module('de.cismet.uim2020-html5-demonstrator.services')
+        .factory('exportService',
+                ['$q', 'sharedDatamodel', 'ExportEntitiesCollection',
+                    function ($q, sharedDatamodel, ExportEntitiesCollection) {
+                        'use strict';
+                        var getExportParametersMap;
+
+                        getExportParametersMap = function (analysisNodes) {
+                            var exportParametersMap, ExportEntitiesCollection;
+
+                            exportParametersMap = {};
+                            exportParametersMap.$size = 0;
+
+                            analysisNodes.forEach(function (node) {
+                                if (typeof exportParametersMap[node.$className] === 'undefined' ||
+                                        exportParametersMap[node.$className] === null) {
+                                    exportParametersMap[node.$className] =
+                                            new ExportEntitiesCollection(node.$className, node.$classTitle);
+                                    exportParametersMap.$size++;
+                                }
+
+                                ExportEntitiesCollection = exportParametersMap[node.$className];
+                                ExportEntitiesCollection.addAllFromNode(node);
+                            });
+
+                            return exportParametersMap;
+                        };
+
+                        return {
+                            getExportParametersMap: getExportParametersMap
+                        };
+                    }]);
+
+
 
 /* 
  * ***************************************************
@@ -4567,20 +4907,21 @@ angular.module(
                 /**
                  * 
                  * @param {type} buffer
-                 * @param {type} fileName
+                 * @param {type} filename
                  * @returns {undefined}
                  * 
                  */
                 createOverlayLayer = function (localDatasource, geojson, progressCallBack) {
-                    var geoJsonLayer, overlayLayer, i, deferred, isPointLayer;
+                    var geoJsonLayer, overlayLayer, i, deferred, isPointLayer, parameters;
 
                     i = 0;
+                    parameters = [];
                     isPointLayer = true;
                     deferred = $q.defer();
 
                     //$timeout(function () {
 
-                    geojson.fileName = localDatasource.fileName;
+                    geojson.filename = localDatasource.filename;
 
                     // onEachFeature: Helper Method for GeoJson Features to open a popup dialog for each Feature
                     geoJsonLayer = L.geoJson(geojson, {
@@ -4588,6 +4929,17 @@ angular.module(
 
                             // set to false on first non-point feature
                             isPointLayer = isPointLayer === false ? false : (feature.geometry.type === 'Point');
+                            
+                            // set export parameters from 1st feature
+                            if(parameters.length === 0) {
+                                Object.keys(feature.properties).forEach(function(parameterName){
+                                    parameters.push({
+                                        parameterpk:parameterName,
+                                        parametername:parameterName,
+                                        selected:false
+                                    });
+                                });
+                            }
 
                             if (feature.properties) {
                                 layer.bindPopup(Object.keys(feature.properties).map(function (k) {
@@ -4613,7 +4965,7 @@ angular.module(
                     }
 
                     overlayLayer.$name = localDatasource.name;
-                    overlayLayer.$key = localDatasource.fileName;
+                    overlayLayer.$key = localDatasource.filename;
                     overlayLayer.$selected = true;
 
                     // SyledLayerControlProperties
@@ -4622,7 +4974,8 @@ angular.module(
                         visible: false
                     };
 
-                    localDatasource.$layer = overlayLayer;
+                    localDatasource.setParameters(parameters);
+                    localDatasource.setLayer(overlayLayer);
 
                     console.log('featureRendererService::createOverlayLayer -> resolve(overlayLayer)');
                     if (progressCallBack) {
@@ -4990,8 +5343,8 @@ angular.module('de.cismet.uim2020-html5-demonstrator.services')
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.services'
         ).factory('searchService',
-        ['$resource', '$q', '$interval', 'configurationService', 'authenticationService',
-            function ($resource, $q, $interval, configurationService, authenticationService) {
+        ['$resource', '$q', '$interval', 'configurationService', 'authenticationService', 'dataService',
+            function ($resource, $q, $interval, configurationService, authenticationService, dataService) {
                 'use strict';
 
                 var cidsRestApiConfig, defaultSearchFunction;
@@ -5098,7 +5451,7 @@ angular.module(
                     defaultRestApiSearchResult.$promise.then(
                             function success(searchResult) {
                                 //console.log('searchService::defaultSearchFunction()->success()');
-                                var key, i, length, currentNode, dataObject, className, classTitle;
+                                var key, i, length;
                                 // doing the same as ngResource: copying the results in the already returned obj (shallow)
                                 for (key in searchResult) {
                                     if (searchResult.hasOwnProperty(key) &&
@@ -5108,45 +5461,7 @@ angular.module(
                                         if (key === '$collection' && angular.isArray(defaultSearchResult.$collection)) {
                                             length = defaultSearchResult.$collection.length;
                                             for (i = 0; i < length; i++) {
-                                                currentNode = defaultSearchResult.$collection[i];
-
-                                                className = currentNode.classKey.split(".").slice(1, 2).pop();
-
-                                                // ----------------------------------------------------------
-                                                // Extend the resolved object by local properties
-                                                // ----------------------------------------------------------
-
-                                                /**
-                                                 * filtered node flag!
-                                                 */
-                                                currentNode.$filtered = false;
-
-                                                currentNode.$className = className;
-
-                                                if (configurationService.featureRenderer.icons[className]) {
-                                                    currentNode.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
-                                                }
-
-                                                // FIXME: extract class name from CS_CLASS description (server-side)
-                                                if (configurationService.featureRenderer.layergroupNames[className]) {
-                                                    currentNode.$classTitle = configurationService.featureRenderer.layergroupNames[className];
-                                                } else {
-                                                    currentNode.$classTitle = className;
-                                                }
-
-                                                if (currentNode.lightweightJson) {
-                                                    try {
-                                                        dataObject = angular.fromJson(currentNode.lightweightJson);
-                                                        currentNode.$data = dataObject;
-                                                        delete currentNode.lightweightJson;
-                                                        // FIXME: extract class name from CS_CLASS description (server-side)
-                                                        /*currentNode.$classTitle = dataObject.classTitle ?
-                                                         dataObject.classTitle : classTitle;*/
-                                                    } catch (err) {
-                                                        console.error(err.message);
-                                                    }
-                                                }
-                                                // ----------------------------------------------------------
+                                                dataService.extendNode(defaultSearchResult.$collection[i]);
                                             }
                                         }
                                     }
@@ -5249,9 +5564,8 @@ angular.module(
                 this.filteredResultNodes = [];
 
                 // data import
-                this.selectedGlobalDatasources = [];
+                this.globalDatasources = [];
                 this.localDatasources = [];
-                this.selectedLocalDatasources = [];
 
                 this.status = {};
                 this.status.type = 'success';
@@ -5270,18 +5584,94 @@ angular.module(
  * ***************************************************
  */
 
+/*global angular*/
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.types'
-        ).factory('ExportParameterCollection',
+        ).factory('ExportDatasource',
         [
             function () {
                 'use strict';
 
-                function ExportParameterCollection(className, title) {
+                function ExportDatasource(externalDatasource) {
+                    var _this = this;
+
+                    this.name = externalDatasource.name;
+                    this.filename = externalDatasource.filename;
+                    this.groupName = '';
+                    this.selected = false;
+                    this.setGlobal(externalDatasource.global);
+                    this.parameters = [];
+
+                    externalDatasource.parameters.forEach(function (parameter) {
+                        _this.parameters.push(angular.extend(
+                                {}, parameter));
+                    });
+                }
+
+                ExportDatasource.prototype.setGlobal = function (global) {
+                    this.global = global;
+
+                    if (global === true) {
+                        this.groupName = 'Eigene lokale Datenquellen';
+                    } else {
+                        this.groupName = 'Vorkonfigurierte globale Datenquellen';
+                    }
+                };
+
+                ExportDatasource.prototype.isGlobal = function () {
+                    return this.global;
+                };
+
+                ExportDatasource.prototype.isSelected = function () {
+                    return this.selected;
+                };
+
+                ExportDatasource.prototype.setSelected = function (selected) {
+                    this.selected = selected;
+                };
+
+                ExportDatasource.prototype.toggleSelection = function () {
+                    this.selected = !this.selected;
+                    return this.selected;
+                };
+
+                ExportDatasource.prototype.setParameters = function (parameters) {
+                    this.parameters.length = 0;
+                    parameters.forEach(function (parameter) {
+                        this.parameters.push(angular.extend(
+                                {}, parameter));
+                    });
+                };
+
+                return ExportDatasource;
+            }]
+        );
+
+
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.types'
+        ).factory('ExportEntitiesCollection',
+        [
+            function () {
+                'use strict';
+
+                function ExportEntitiesCollection(className, title) {
                     this.className = className;
                     this.title = title;
                     this.parameters = [];
                     this.parametersKeys = [];
+                    this.exportPKs = [];
+                    this.selected = false;
 
                     /**
                      * Parameters not available for filtering
@@ -5289,9 +5679,10 @@ angular.module(
                     this.forbiddenParameters = [];
                 }
 
-                ExportParameterCollection.prototype.clear = function () {
+                ExportEntitiesCollection.prototype.clear = function () {
                     this.parametersKeys.length = 0;
                     this.parameters.length = 0;
+                    this.exportPKs.length = 0;
                 };
 
                 /**
@@ -5301,30 +5692,30 @@ angular.module(
                  * @param {type} parameter
                  * @returns {Boolean}
                  */
-                ExportParameterCollection.prototype.addParameter = function (parameter) {
+                ExportEntitiesCollection.prototype.addParameter = function (parameter) {
                     // only add parameters not yet in list 
                     if (parameter && parameter.parameterpk &&
                             this.forbiddenParameters.indexOf(parameter.parameterpk === -1) &&
                             this.parametersKeys.indexOf(parameter.parameterpk) === -1)
                     {
                         this.parametersKeys.push(parameter.parameterpk);
-                        // push a shallow copy and extend by selected property
-                        this.parameters.push(parameter);
+                        // push a shallow copy
+                        this.parameters.push(angular.extend({}, parameter));
                         return true;
                     }
 
                     return false;
                 };
 
-                ExportParameterCollection.prototype.removeParameter = function (key) {
+                ExportEntitiesCollection.prototype.removeParameter = function (key) {
                     return delete this.parameters[key];
                 };
 
-                ExportParameterCollection.prototype.isEmpty = function () {
+                ExportEntitiesCollection.prototype.isEmpty = function () {
                     return this.parameters.length === 0;
                 };
 
-                ExportParameterCollection.prototype.length = function () {
+                ExportEntitiesCollection.prototype.size = function () {
                     return  this.parameters.length;
                 };
 
@@ -5337,24 +5728,39 @@ angular.module(
                  * @param {type} sort
                  * @return {undefined}
                  */
-                ExportParameterCollection.prototype.addAllFromNodes = function (nodes, clear, sort) {
+                ExportEntitiesCollection.prototype.addAllParametersFromNodes = function (nodes, clear, sort) {
                     var i, node, parameters;
                     if (nodes !== null && nodes.length > 0) {
                         for (i = 0; i < nodes.length; ++i) {
                             node = nodes[i];
-                            // Attention: collects also parameters of filtered nodes! (node.$filtered)
-                            if (node.$data && node.$data.parameters &&
-                                    (this.className === 'ALL' || this.className === node.$className)) {
-                                parameters = node.$data.parameters;
-                                this.addAll(parameters, clear, sort);
-                            }
+                            this.addAllParametersFromNode(node);
                         }
                     }
 
                     return this.parameters;
                 };
 
-                ExportParameterCollection.prototype.addAll = function (parameters, clear, sort) {
+                ExportEntitiesCollection.prototype.addAllParametersFromNode = function (node, clear, sort) {
+                    var parameters;
+
+                    if (typeof node.$exportPK !== 'undefined' && node.$exportPK !== null &&
+                            this.exportPKs.indexOf(node.$exportPK) === -1 &&
+                            node.$data !== 'undefined' && node.$data !== null &&
+                            node.$data.probenparameter !== 'undefined' && node.$data.probenparameter !== null &&
+                            (this.className === 'ALL' || this.className === node.$className)) {
+
+                        // add the export PK!
+                        this.exportPKs.push(node.$exportPK);
+
+                        // Attention: collects also parameters of filtered nodes! (node.$filtered)
+                        parameters = node.$data.probenparameter;
+
+                        // add the parameters
+                        this.addAllParameters(parameters, clear, sort);
+                    }
+                };
+
+                ExportEntitiesCollection.prototype.addAllParameters = function (parameters, clear, sort) {
                     var i;
                     if (clear === true) {
                         this.clear();
@@ -5380,26 +5786,26 @@ angular.module(
                     return this.parameters;
                 };
 
-                ExportParameterCollection.prototype.selectAll = function () {
+                ExportEntitiesCollection.prototype.selectAllParameters = function () {
                     this.parameters.forEach(function (parameter) {
                         parameter.selected = true;
                     });
                 };
 
 
-                ExportParameterCollection.prototype.deselectAll = function () {
+                ExportEntitiesCollection.prototype.deselectAllParameters = function () {
                     this.parameters.forEach(function (parameter) {
                         parameter.selected = false;
                     });
                 };
 
-                ExportParameterCollection.prototype.invertSelection = function () {
+                ExportEntitiesCollection.prototype.invertParameterSelection = function () {
                     this.parameters.forEach(function (parameter) {
                         parameter.selected = !parameter.selected;
                     });
                 };
 
-                ExportParameterCollection.prototype.allSelected = function () {
+                ExportEntitiesCollection.prototype.allParametersSelected = function () {
                     this.parameters.every(function (parameter, index, array) {
                         if (!parameter.selected) {
                             return false;
@@ -5409,7 +5815,7 @@ angular.module(
                     return true;
                 };
 
-                ExportParameterCollection.prototype.allDeselected = function () {
+                ExportEntitiesCollection.prototype.allParametersDeselected = function () {
                     this.parameters.every(function (parameter, index, array) {
                         if (parameter.selected) {
                             return false;
@@ -5419,7 +5825,7 @@ angular.module(
                     return true;
                 };
 
-                ExportParameterCollection.prototype.getSelectedParameters = function () {
+                ExportEntitiesCollection.prototype.getSelectedParameters = function () {
                     var selectedParameters = [];
 
                     this.parameters.forEach(function (parameter) {
@@ -5431,7 +5837,7 @@ angular.module(
                     return selectedParameters;
                 };
 
-                ExportParameterCollection.prototype.getDeselectedParameters = function () {
+                ExportEntitiesCollection.prototype.getDeselectedParameters = function () {
                     var deselectedParameters = [];
 
                     this.parameters.forEach(function (parameter) {
@@ -5443,7 +5849,7 @@ angular.module(
                     return deselectedParameters;
                 };
 
-                ExportParameterCollection.prototype.getSelectedKeys = function () {
+                ExportEntitiesCollection.prototype.getSelectedParameterKeys = function () {
                     var selectedKeys = [];
 
                     this.parameters.forEach(function (parameter) {
@@ -5455,7 +5861,7 @@ angular.module(
                     return selectedKeys;
                 };
 
-                ExportParameterCollection.prototype.getDeselectedKeys = function () {
+                ExportEntitiesCollection.prototype.getDeselectedParameterKeys = function () {
                     var deselectedKeys = [];
 
                     this.parameters.forEach(function (parameter) {
@@ -5467,7 +5873,175 @@ angular.module(
                     return deselectedKeys;
                 };
 
-                return ExportParameterCollection;
+                ExportEntitiesCollection.prototype.isSelected = function () {
+                    return this.selected;
+                };
+
+                ExportEntitiesCollection.prototype.setSelected = function (selected) {
+                    this.selected = selected;
+                };
+
+                ExportEntitiesCollection.prototype.toggleSelection = function () {
+                    this.selected = !this.selected;
+                    return this.selected;
+                };
+
+                return ExportEntitiesCollection;
+            }]
+        );
+
+
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+/*global angular*/
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.types'
+        ).factory('ExportThemeCollection',
+        ['ExportEntitiesCollection',
+            function (ExportEntitiesCollection) {
+                'use strict';
+
+                function ExportThemeCollection(analysisNodes) {
+                    var _this = this;
+                    _this.exportEntitiesCollections = [];
+
+                    if (typeof analysisNodes !== 'undefined' && analysisNodes !== null && 
+                            analysisNodes.length > 0) {
+
+                        analysisNodes.forEach(function (node) {
+                            var exportEntitiesCollection;
+                            if (typeof _this.exportEntitiesCollections[node.$className] === 'undefined' ||
+                                    _this.exportEntitiesCollections[node.$className] === null) {
+                                
+                                var newExportEntitiesCollection = new ExportEntitiesCollection(node.$className, node.$classTitle);
+                                
+                                _this.exportEntitiesCollections[node.$className] = newExportEntitiesCollection;
+                                // necessary because ngRepeat does not work with associative arrays!        
+                                _this.exportEntitiesCollections.push(newExportEntitiesCollection);
+                            }
+
+                            exportEntitiesCollection = _this.exportEntitiesCollections[node.$className];
+                            exportEntitiesCollection.addAllParametersFromNode(node);
+                        });
+                    } else {
+                        console.warn("ExportThemeCollection::constructor -> no analysis nodes available!");
+                    }
+                }
+
+                ExportThemeCollection.prototype.size = function () {
+                    var _this = this;
+                    return Object.keys(
+                            _this.exportEntitiesCollections).map(function (key)
+                    {
+                        return _this.exportEntitiesCollections.hasOwnProperty(key);
+                    }).length;
+                };
+
+                ExportThemeCollection.prototype.getExportEntitiesCollection = function (className) {
+                    return this.exportEntitiesCollections[className];
+                };
+
+                ExportThemeCollection.prototype.getSelectedExportEntitiesCollections = function () {
+                    var selectedExportEntitiesCollections = [];
+                    this.exportEntitiesCollections.forEach(function (exportEntitiesCollection) {
+                        if (exportEntitiesCollection.isSelected()) {
+                            selectedExportEntitiesCollections.push(exportEntitiesCollection);
+                        }
+
+                    });
+
+                    return selectedExportEntitiesCollections;
+                };
+
+                ExportThemeCollection.prototype.setExportEntitiesCollectionSelected = function (className, selected) {
+                    var exportEntitiesCollection = this.getExportEntitiesCollection(className);
+                    if (typeof exportEntitiesCollection !== 'undefined' && exportEntitiesCollection !== null) {
+                        exportEntitiesCollection.setSelected(selected);
+                    } else {
+                        console.warn('ExportThemeCollection::setExportEntitiesCollectionSelected -> unknow theme "' + className + '"');
+                    }
+                };
+
+                return ExportThemeCollection;
+            }]
+        );
+
+
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.types'
+        ).factory('ExternalDatasource',
+        [
+            function () {
+                'use strict';
+
+                function ExternalDatasource(externalDatasource) {
+                    var _this = this;
+
+                    this.name = null;
+                    this.filename = null;
+                    this.global = false;
+                    this.parameters = [];
+
+                    // copy properties from externalDatasource object (angular resource)
+                    // and ignore $resolved and $promise
+                    if (externalDatasource) {
+                        for (var key in externalDatasource) {
+                            if (externalDatasource.hasOwnProperty(key) && _this.hasOwnProperty(key) &&
+                                    key !== '$resolved' && key !== '$promise') {
+                                _this[key] = externalDatasource[key];
+                            }
+                        }
+                    }
+                }
+
+                ExternalDatasource.prototype.isSelected = function () {
+                    if (typeof this.$layer !== 'undefined' &&
+                            this.$layer !== null &&
+                            typeof this.$layer.$selected !== 'undefined' &&
+                            this.$layer.$selected === true) {
+                        return true;
+                    }
+
+                    return false;
+                };
+
+                ExternalDatasource.prototype.setSelected = function (selected) {
+                    if (typeof this.$layer !== 'undefined' && this.$layer !== null) {
+                        this.$layer.$selected = selected;
+                    } else {
+                        console.warn('ExternalDatasource::setSelected -> cannot set selected property of datasource "' +
+                                filename + '", $layer property is null');
+                    }
+                };
+
+                ExternalDatasource.prototype.setLayer = function (layer) {
+                    this.$layer = layer;
+                };
+
+                ExternalDatasource.prototype.setParameters = function (parameters) {
+                    this.parameters.length = 0;
+                    this.parameters.push.apply(this.parameters, parameters);
+                };
+
+                return ExternalDatasource;
             }]
         );
 

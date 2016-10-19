@@ -69,13 +69,14 @@ angular.module(
                         if (resourceName === 'globalDatasources') {
                             cachedResources[resourceName] = resource.query().$promise.then(function success(datasources) {
                                 var globalDatasources = [];
+                                globalDatasources.$promise = $q.when(globalDatasources);
+                                globalDatasources.$resolved = true;
                                 datasources.forEach(function (datasource) {
                                     //invoke  constructor
                                     var externalDatasource = new ExternalDatasource(datasource);
                                     externalDatasource.global = true;
                                     globalDatasources.push(externalDatasource);
                                 });
-                                globalDatasources.$promise = $q.when(globalDatasources);
                                 globalDatasources.$resolved = true;
 
                                 return globalDatasources;
@@ -164,7 +165,7 @@ angular.module(
                             });
 
                             if (typeof currentNode.$exportPK === 'undefined' || currentNode.$exportPK === null) {
-                                console.warn('searchService::extracrExportPKs -> no export PK found for node ' + currentNode.objectKey);
+                                console.warn('searchService::extractExportPKs -> no export PK found for node ' + currentNode.objectKey);
                             }
 
                         } catch (err) {

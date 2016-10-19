@@ -223,15 +223,15 @@ angular.module(
                     return deselectedKeys;
                 };
 
-                ExportEntitiesCollection.isSelected = function () {
+                ExportEntitiesCollection.prototype.isSelected = function () {
                     return this.selected;
                 };
 
-                ExportEntitiesCollection.setSelected = function (selected) {
+                ExportEntitiesCollection.prototype.setSelected = function (selected) {
                     this.selected = selected;
                 };
 
-                ExportEntitiesCollection.toggleSelection = function () {
+                ExportEntitiesCollection.prototype.toggleSelection = function () {
                     this.selected = !this.selected;
                     return this.selected;
                 };

@@ -393,7 +393,7 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "                            name=\"{{globalDatasource.name}}\"\r" +
     "\n" +
-    "                            ng-checked=\"globalDatasource.$layer && globalDatasource.$layer.$selected\"\r" +
+    "                            ng-checked=\"globalDatasource.isSelected()\"\r" +
     "\n" +
     "                            ng-click=\"externalDatasourcesController.toggleGlobalDatasourceSelection(globalDatasource)\"\r" +
     "\n" +

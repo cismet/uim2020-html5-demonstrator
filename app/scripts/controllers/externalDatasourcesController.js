@@ -20,13 +20,16 @@ angular.module(
 
                     var globalDatasources = dataService.getGlobalDatasources();
 
-                    if (globalDatasources.$resolved) {
+                    if (typeof globalDatasources.$resolved !== 'undefined' &&
+                            globalDatasources.$resolved === true) {
                         sharedDatamodel.globalDatasources = globalDatasources;
+
                         externalDatasourcesController.globalDatasources = sharedDatamodel.globalDatasources;
                     } else {
                         var resolve = function (externalDatasources) {
                             sharedDatamodel.globalDatasources = externalDatasources;
                             sharedDatamodel.globalDatasources.$resolved = true;
+
                             externalDatasourcesController.globalDatasources = sharedDatamodel.globalDatasources;
                         };
 
@@ -36,6 +39,9 @@ angular.module(
                             globalDatasources.then(resolve);
                         }
                     }
+                } else {
+                    // already resolved ....
+                    externalDatasourcesController.globalDatasources = sharedDatamodel.globalDatasources;
                 }
 
                 // init local datasources list

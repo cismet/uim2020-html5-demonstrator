@@ -8,6 +8,7 @@
  * ***************************************************
  */
 
+/*global angular*/
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.types'
         ).factory('ExportThemeCollection',
@@ -15,30 +16,34 @@ angular.module(
             function (ExportEntitiesCollection) {
                 'use strict';
 
-                function ExportThemesCollection(analysisNodes) {
+                function ExportThemeCollection(analysisNodes) {
                     var _this = this;
                     _this.exportEntitiesCollections = [];
 
-                    if (typeof analysisNodes !== 'undefined' && analysisNodes !== null
-                            && analysisNodes.length > 0) {
+                    if (typeof analysisNodes !== 'undefined' && analysisNodes !== null && 
+                            analysisNodes.length > 0) {
 
                         analysisNodes.forEach(function (node) {
                             var exportEntitiesCollection;
                             if (typeof _this.exportEntitiesCollections[node.$className] === 'undefined' ||
                                     _this.exportEntitiesCollections[node.$className] === null) {
-                                _this.exportEntitiesCollections[node.$className] =
-                                        new ExportEntitiesCollection(node.$className, node.$classTitle);
+                                
+                                var newExportEntitiesCollection = new ExportEntitiesCollection(node.$className, node.$classTitle);
+                                
+                                _this.exportEntitiesCollections[node.$className] = newExportEntitiesCollection;
+                                // necessary because ngRepeat does not work with associative arrays!        
+                                _this.exportEntitiesCollections.push(newExportEntitiesCollection);
                             }
 
                             exportEntitiesCollection = _this.exportEntitiesCollections[node.$className];
                             exportEntitiesCollection.addAllParametersFromNode(node);
                         });
                     } else {
-                        console.warn("ExportThemesCollection::constructor -> no analysis nodes available!");
+                        console.warn("ExportThemeCollection::constructor -> no analysis nodes available!");
                     }
                 }
 
-                ExportThemesCollection.prototype.size = function () {
+                ExportThemeCollection.prototype.size = function () {
                     var _this = this;
                     return Object.keys(
                             _this.exportEntitiesCollections).map(function (key)
@@ -47,11 +52,11 @@ angular.module(
                     }).length;
                 };
 
-                ExportThemesCollection.prototype.getExportEntitiesCollection = function (className) {
+                ExportThemeCollection.prototype.getExportEntitiesCollection = function (className) {
                     return this.exportEntitiesCollections[className];
                 };
 
-                ExportThemesCollection.prototype.getSelectedExportEntitiesCollections = function () {
+                ExportThemeCollection.prototype.getSelectedExportEntitiesCollections = function () {
                     var selectedExportEntitiesCollections = [];
                     this.exportEntitiesCollections.forEach(function (exportEntitiesCollection) {
                         if (exportEntitiesCollection.isSelected()) {
@@ -63,16 +68,16 @@ angular.module(
                     return selectedExportEntitiesCollections;
                 };
 
-                ExportThemesCollection.prototype.setExportEntitiesCollectionSelected = function (className, selected) {
+                ExportThemeCollection.prototype.setExportEntitiesCollectionSelected = function (className, selected) {
                     var exportEntitiesCollection = this.getExportEntitiesCollection(className);
                     if (typeof exportEntitiesCollection !== 'undefined' && exportEntitiesCollection !== null) {
                         exportEntitiesCollection.setSelected(selected);
                     } else {
-                        console.warn('ExportThemesCollection::setExportEntitiesCollectionSelected -> unknow theme "' + className + '"');
+                        console.warn('ExportThemeCollection::setExportEntitiesCollectionSelected -> unknow theme "' + className + '"');
                     }
                 };
 
-                return ExportThemesCollection;
+                return ExportThemeCollection;
             }]
         );
 

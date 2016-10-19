@@ -17,10 +17,11 @@ angular.module(
             function ($scope, sharedDatamodel) {
                 'use strict';
 
-                $scope.options.isMergeExternalDatasource = false;
-                $scope.options.isMergeExternalDatasourceEnabled = true //sharedDatamodel.localDatasources.length > 0 || sharedDatamodel.globalDatasources.length > 0;
+                $scope.options.isMergeExternalDatasource = true;
+                $scope.options.isMergeExternalDatasourceEnabled = true; //sharedDatamodel.localDatasources.length > 0 || sharedDatamodel.globalDatasources.length > 0;
                 $scope.options.exportFormat = 'shp';
 
+                // ENTER VALIDATION --------------------------------------------
                 $scope.wizard.enterValidators['Konfiguration'] = function (context) {
                     if (context.valid === true) {
                         $scope.status.message = 'Bitte wählen Sie ein Exportformat aus';
@@ -30,6 +31,7 @@ angular.module(
                     return context.valid;
                 };
 
+                // EXIT VALIDATION ---------------------------------------------
                 $scope.wizard.exitValidators['Konfiguration'] = function (context) {
                     context.valid = true;
 
@@ -46,6 +48,8 @@ angular.module(
 
                     return context.valid;
                 };
+                
+                console.log('exportConfigurationController instance created');
             }
         ]
         );
