@@ -1057,7 +1057,7 @@ angular.module(
                 $scope.wizard.status = sharedDatamodel.status;
 
                 $scope.wizard.isFinishStep = function () {
-                    return $scope.wizard.currentStep === 'Export';
+                    return $scope.wizard.currentStep === 'Parameter';
                 };
                 $scope.wizard.isFirstStep = function () {
                     return $scope.wizard.currentStep === 'Konfiguration';
@@ -1079,7 +1079,16 @@ angular.module(
                 });
 
                 exportController.finishedWizard = function () {
-                    $uibModalInstance.dismiss('close');
+                    // this is madness:
+                    // manually call exit validator on finish step exit
+                    if ($scope.wizard.exitValidators['Parameter']({}) === true)
+                    {
+                        console.log('exportController::finishedWizard()');
+                        console.log(JSON.stringify($scope.options));
+                        $uibModalInstance.dismiss('close');
+
+                        // TODO: DO EXPORT!
+                    }
                 };
 
                 $uibModalInstance.result.catch(
@@ -1115,12 +1124,13 @@ angular.module(
                         });
                     }
                 };
-                
-                if(sharedDatamodel.analysisNodes.length === 0) {
+
+                if (sharedDatamodel.analysisNodes.length === 0) {
                     loadMockNodes(dataService.getMockNodes());
-                };
+                }
+                ;
                 // </editor-fold>
-                
+
                 console.log('exportController instance created');
             }
         ]
@@ -1196,6 +1206,7 @@ angular.module(
                 $scope.options.selectedExportDatasource = null;
                 $scope.options.selectedExportThemes = [];
 
+                // ENTER VALIDATION --------------------------------------------
                 $scope.wizard.enterValidators['Datenquellen'] = function (context) {
                     if (context.valid === true) {
 
@@ -1207,11 +1218,13 @@ angular.module(
                             return context.valid;
                         }
 
-                        // select 1st ext. datasurce by default
                         if ($scope.options.isMergeExternalDatasource) {
                             if (datasourcesController.exportDatasources.length > 0) {
-                                datasourcesController.exportDatasources[0].setSelected(true);
-                                $scope.options.selectedExportDatasource = datasourcesController.exportDatasources[0];
+                                // select 1st ext. datasource by default
+                                if ($scope.options.selectedExportDatasource === null) {
+                                    datasourcesController.exportDatasources[0].setSelected(true);
+                                    $scope.options.selectedExportDatasource = datasourcesController.exportDatasources[0];
+                                }
                             } else {
                                 $scope.status.message = 'Es sind keine externen Datenquellen zum Verschneiden verfügbar.';
                                 $scope.status.type = 'warning';
@@ -1233,16 +1246,9 @@ angular.module(
                     return context.valid;
                 };
 
+                // EXIT VALIDATION ---------------------------------------------
                 $scope.wizard.exitValidators['Datenquellen'] = function (context) {
                     context.valid = true;
-
-                    if ($scope.options.isMergeExternalDatasource === true &&
-                            $scope.options.selectedExportDatasource === null) {
-                        $scope.status.message = 'Bitte wählen Sie eine Datenquelle zum Verschneiden aus.';
-                        $scope.status.type = 'warning';
-                        context.valid = false;
-                        return context.valid;
-                    }
 
                     $scope.options.selectedExportThemes = datasourcesController.exportThemes.getSelectedExportEntitiesCollections();
                     if ($scope.options.selectedExportThemes.length === 0) {
@@ -1250,6 +1256,26 @@ angular.module(
                         $scope.status.type = 'warning';
                         context.valid = false;
                         return context.valid;
+                    }
+
+                    if ($scope.options.isMergeExternalDatasource === true) {
+                        if ($scope.options.selectedExportDatasource === null) {
+                            $scope.status.message = 'Bitte wählen Sie eine Datenquelle zum Verschneiden aus.';
+                            $scope.status.type = 'warning';
+                            context.valid = false;
+                            return context.valid;
+                        } else {
+                            $scope.options.selectedExportThemes.forEach(function (exportEntitiesCollection) {
+                                if (exportEntitiesCollection.hasExportDatasource($scope.options.selectedExportDatasource) === false) {
+                                    exportEntitiesCollection.exportDatasource = angular.copy($scope.options.selectedExportDatasource);
+                                }
+                            });
+                        }
+                    } else {
+                        $scope.options.selectedExportDatasource = null;
+                        $scope.options.selectedExportThemes.forEach(function (exportEntitiesCollection) {
+                            exportEntitiesCollection.exportDatasource = null;
+                        });
                     }
 
                     return context.valid;
@@ -1269,6 +1295,92 @@ angular.module(
                  */
 
                 console.log('exportDatasourcesController instance created');
+            }
+        ]
+        );
+
+
+/* 
+ * ***************************************************
+ * 
+ * cismet GmbH, Saarbruecken, Germany
+ * 
+ *               ... and it just works.
+ * 
+ * ***************************************************
+ */
+
+/*global angular*/
+angular.module(
+        'de.cismet.uim2020-html5-demonstrator.controllers'
+        ).controller(
+        'exportParametersController', [
+            '$scope',
+            function ($scope) {
+                'use strict';
+
+                // ENTER VALIDATION --------------------------------------------
+                $scope.wizard.enterValidators['Parameter'] = function (context) {
+                    if ($scope.options.isMergeExternalDatasource === true) {
+                        $scope.options.selectedExportThemes.forEach(function (exportEntitiesCollection) {
+                            if (typeof exportEntitiesCollection.exportDatasource === 'undefined' ||
+                                    exportEntitiesCollection.exportDatasource === null) {
+                                $scope.status.type = 'warning';
+                                $scope.status.message = 'Bitte wählen Sie eine Datenquelle zum Verschneiden mit dem Thema "' +
+                                        exportEntitiesCollection.title + '" aus';
+                            }
+                        });
+                    }
+
+                    if (context.valid === true) {
+                        $scope.status.type = 'info';
+                        if ($scope.options.isMergeExternalDatasource === true) {
+                            $scope.status.message = 'Bitte wählen Sie die Parameter für den Export aus.';
+                        } else {
+                            $scope.status.message = 'Bitte wählen Sie die Parameter für den Export und zum Verschneiden aus.';
+                        }
+                    }
+
+                    return context.valid;
+                };
+
+                // EXIT VALIDATION ---------------------------------------------
+                $scope.wizard.exitValidators['Parameter'] = function (context) {
+                    context.valid = true;
+
+                    if ($scope.options.selectedExportThemes.length === 0) {
+                        $scope.status.message = 'Bitte wählen Sie mindestens ein Thema für den Export aus.';
+                        $scope.status.type = 'warning';
+                        context.valid = false;
+                        return context.valid;
+                    }
+
+                    $scope.options.selectedExportThemes.forEach(function (exportEntitiesCollection) {
+                        if (exportEntitiesCollection.getSelectedParameters().length === 0) {
+                            $scope.status.type = 'warning';
+                            $scope.status.message = 'Bitte wählen Sie mindestens einen Parameter des Themas "' +
+                                    exportEntitiesCollection.title + '" für den Export aus.';
+                            context.valid = false;
+                            return context.valid;
+
+                        } else if ($scope.options.isMergeExternalDatasource === true &&
+                                typeof exportEntitiesCollection.exportDatasource !== 'undefined' &&
+                                exportEntitiesCollection.exportDatasource !== null &&
+                                exportEntitiesCollection.exportDatasource.getSelectedParameters().length === 0) {
+
+                            $scope.status.type = 'warning';
+                            $scope.status.message = 'Bitte wählen Sie mindestens einen Parameter der Datenquelle "' +
+                                    exportEntitiesCollection.exportDatasource.name + '" zum Verschneiden mit dem Thema "' +
+                                    exportEntitiesCollection.title + '" aus.';
+                            context.valid = false;
+                            return context.valid;
+                        }
+                    });
+
+                    return context.valid;
+                };
+
+                console.log('exportParametersController instance created');
             }
         ]
         );
@@ -5603,8 +5715,7 @@ angular.module(
                     this.parameters = [];
 
                     externalDatasource.parameters.forEach(function (parameter) {
-                        _this.parameters.push(angular.extend(
-                                {}, parameter));
+                        _this.parameters.push(angular.copy(parameter));
                     });
                 }
 
@@ -5631,7 +5742,7 @@ angular.module(
                 };
 
                 ExportDatasource.prototype.toggleSelection = function () {
-                    this.selected = !this.selected;
+                    this.selected = !this.selected ? true : false;
                     return this.selected;
                 };
 
@@ -5641,6 +5752,30 @@ angular.module(
                         this.parameters.push(angular.extend(
                                 {}, parameter));
                     });
+                };
+
+                ExportDatasource.prototype.equals = function (exportDatasource) {
+                    if (typeof exportDatasource !== 'undefined' &&
+                            exportDatasource !== null &&
+                            exportDatasource.name === this.name &&
+                            exportDatasource.filename === this.filename &&
+                            exportDatasource.parameters.length === this.parameters.length) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                };
+
+                ExportDatasource.prototype.getSelectedParameters = function () {
+                    var selectedParameters = [];
+
+                    this.parameters.forEach(function (parameter) {
+                        if (parameter.selected === true) {
+                            selectedParameters.push(parameter);
+                        }
+                    });
+
+                    return selectedParameters;
                 };
 
                 return ExportDatasource;
@@ -5672,6 +5807,7 @@ angular.module(
                     this.parametersKeys = [];
                     this.exportPKs = [];
                     this.selected = false;
+                    this.exportDatasource = null;
 
                     /**
                      * Parameters not available for filtering
@@ -5884,6 +6020,15 @@ angular.module(
                 ExportEntitiesCollection.prototype.toggleSelection = function () {
                     this.selected = !this.selected;
                     return this.selected;
+                };
+
+                ExportEntitiesCollection.prototype.hasExportDatasource = function (exportDatasource) {
+                    if (this.exportDatasource !== null &&
+                            this.exportDatasource.equals(exportDatasource)) {
+                        return true;
+                    } else {
+                        return false;
+                    }
                 };
 
                 return ExportEntitiesCollection;

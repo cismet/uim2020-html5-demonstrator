@@ -27,8 +27,7 @@ angular.module(
                     this.parameters = [];
 
                     externalDatasource.parameters.forEach(function (parameter) {
-                        _this.parameters.push(angular.extend(
-                                {}, parameter));
+                        _this.parameters.push(angular.copy(parameter));
                     });
                 }
 
@@ -55,7 +54,7 @@ angular.module(
                 };
 
                 ExportDatasource.prototype.toggleSelection = function () {
-                    this.selected = !this.selected;
+                    this.selected = !this.selected ? true : false;
                     return this.selected;
                 };
 
@@ -65,6 +64,30 @@ angular.module(
                         this.parameters.push(angular.extend(
                                 {}, parameter));
                     });
+                };
+
+                ExportDatasource.prototype.equals = function (exportDatasource) {
+                    if (typeof exportDatasource !== 'undefined' &&
+                            exportDatasource !== null &&
+                            exportDatasource.name === this.name &&
+                            exportDatasource.filename === this.filename &&
+                            exportDatasource.parameters.length === this.parameters.length) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                };
+
+                ExportDatasource.prototype.getSelectedParameters = function () {
+                    var selectedParameters = [];
+
+                    this.parameters.forEach(function (parameter) {
+                        if (parameter.selected === true) {
+                            selectedParameters.push(parameter);
+                        }
+                    });
+
+                    return selectedParameters;
                 };
 
                 return ExportDatasource;

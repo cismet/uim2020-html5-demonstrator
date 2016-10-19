@@ -46,7 +46,7 @@ angular.module(
                 $scope.wizard.status = sharedDatamodel.status;
 
                 $scope.wizard.isFinishStep = function () {
-                    return $scope.wizard.currentStep === 'Export';
+                    return $scope.wizard.currentStep === 'Parameter';
                 };
                 $scope.wizard.isFirstStep = function () {
                     return $scope.wizard.currentStep === 'Konfiguration';
@@ -68,7 +68,16 @@ angular.module(
                 });
 
                 exportController.finishedWizard = function () {
-                    $uibModalInstance.dismiss('close');
+                    // this is madness:
+                    // manually call exit validator on finish step exit
+                    if ($scope.wizard.exitValidators['Parameter']({}) === true)
+                    {
+                        console.log('exportController::finishedWizard()');
+                        console.log(JSON.stringify($scope.options));
+                        $uibModalInstance.dismiss('close');
+
+                        // TODO: DO EXPORT!
+                    }
                 };
 
                 $uibModalInstance.result.catch(
@@ -104,12 +113,13 @@ angular.module(
                         });
                     }
                 };
-                
-                if(sharedDatamodel.analysisNodes.length === 0) {
+
+                if (sharedDatamodel.analysisNodes.length === 0) {
                     loadMockNodes(dataService.getMockNodes());
-                };
+                }
+                ;
                 // </editor-fold>
-                
+
                 console.log('exportController instance created');
             }
         ]

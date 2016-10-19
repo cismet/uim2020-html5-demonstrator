@@ -1,10 +1,10 @@
-<div id="exportConfiguration"
+<div id="exportDatasources"
      ng-controller="exportDatasourcesController as datasourcesController">
 
     <uib-accordion close-others="false">
         <!-- Themen-->
         <div uib-accordion-group  
-             ng-init="exportThemesOpen = false" 
+             ng-init="exportThemesOpen = true" 
              is-open="exportThemesOpen"
              ng-class="{'text-muted': isDisabled}">
 
@@ -17,14 +17,9 @@
                     </i>
                 </div>
             </uib-accordion-heading>
-            
-            <span class="text-muted" 
-                  ng-repeat="exportTheme in datasourcesController.exportThemes.exportEntitiesCollections">
-                {{exportTheme.name}}
-            </span>
 
             <div class="checkbox" style="width:100%;clear:right"
-                 ng-repeat="exportTheme in datasourcesController.exportThemes.exportEntitiesCollections track by exportTheme.className">
+                 ng-repeat="exportTheme in datasourcesController.exportThemes.exportEntitiesCollections | orderBy:'title' track by exportTheme.className">
                 <label class="form-check-label">
                     <input 
                         class="form-check-input"
@@ -34,12 +29,12 @@
                         ng-model="exportTheme.selected">
                     {{exportTheme.title}}
                 </label>
-            </div>
+            </div>
         </div>
 
         <!-- Externe Datenquellen -->
         <div uib-accordion-group  
-             ng-init="exportDatasourcesOpen = true" 
+             ng-init="exportDatasourcesOpen = false" 
              is-open="exportDatasourcesOpen"
              ng-if="options.isMergeExternalDatasource">
 
@@ -52,15 +47,17 @@
                     </i>
                 </div>
             </uib-accordion-heading>
-            
-            
+
             <form class="form-horizontal"
                   id="exportFormatForm"
                   name="exportDatasourcesForm">
                 <div class="form-group row" 
-                     ng-class="{'has-error':wizard.hasError === 'exportDatasources'}">
+                     ng-class="{'has-error':wizard.hasError === 'exportDatasources'}"
+                     ng-repeat="(group, exportDatasources) in datasourcesController.exportDatasources | groupBy:'groupName'">
+                    <div class="col-md-12">
+                        <span style="display:inline-block; min-width: 400px;"><strong>{{group}}</strong></span>
                         <div class="radio" style="width:100%;clear:right"
-                             ng-repeat="exportDatasource in datasourcesController.exportDatasources track by exportDatasource.name">
+                             ng-repeat="exportDatasource in exportDatasources | orderBy:'name' track by exportDatasource.name">
                             <label class="form-check-label">
                                 <input 
                                     class="form-check-input"
@@ -72,33 +69,9 @@
                                 {{exportDatasource.name}}
                             </label>
                         </div>
-                </div>
-            </form>
-
-            <!--
-            <form class="form-horizontal"
-                  id="exportFormatForm"
-                  name="exportDatasourcesForm">
-                <div class="form-group row" 
-                     ng-class="{'has-error':wizard.hasError === 'exportDatasources'}"
-                     ng-repeat="(group, exportDatasources) in datasourcesController.exportDatasources | groupBy:'groupName'">
-                    <div class="col-md-12"><span style="display:inline-block; min-width: 400px;"><strong>{{group}}</strong></span>
-                        <div class="radio" style="width:100%;clear:right"
-                             ng-repeat="exportDatasource in exportDatasources track by exportDatasource.name">
-                            <label class="form-check-label">
-                                <input 
-                                    class="form-check-input"
-                                    type="radio"
-                                    name="{{exportDatasource.name}}"
-                                    value="exportDatasource.name"
-                                    ng-model="exportDatasource.selected"> 
-                                {{exportDatasource.name}}
-                            </label>
-                        </div>
                     </div>
                 </div>
             </form>
-            -->
         </div>
     </uib-accordion>
 </div>

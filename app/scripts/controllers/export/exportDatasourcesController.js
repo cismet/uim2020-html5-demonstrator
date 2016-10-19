@@ -67,6 +67,7 @@ angular.module(
                 $scope.options.selectedExportDatasource = null;
                 $scope.options.selectedExportThemes = [];
 
+                // ENTER VALIDATION --------------------------------------------
                 $scope.wizard.enterValidators['Datenquellen'] = function (context) {
                     if (context.valid === true) {
 
@@ -78,11 +79,13 @@ angular.module(
                             return context.valid;
                         }
 
-                        // select 1st ext. datasurce by default
                         if ($scope.options.isMergeExternalDatasource) {
                             if (datasourcesController.exportDatasources.length > 0) {
-                                datasourcesController.exportDatasources[0].setSelected(true);
-                                $scope.options.selectedExportDatasource = datasourcesController.exportDatasources[0];
+                                // select 1st ext. datasource by default
+                                if ($scope.options.selectedExportDatasource === null) {
+                                    datasourcesController.exportDatasources[0].setSelected(true);
+                                    $scope.options.selectedExportDatasource = datasourcesController.exportDatasources[0];
+                                }
                             } else {
                                 $scope.status.message = 'Es sind keine externen Datenquellen zum Verschneiden verfügbar.';
                                 $scope.status.type = 'warning';
@@ -104,16 +107,9 @@ angular.module(
                     return context.valid;
                 };
 
+                // EXIT VALIDATION ---------------------------------------------
                 $scope.wizard.exitValidators['Datenquellen'] = function (context) {
                     context.valid = true;
-
-                    if ($scope.options.isMergeExternalDatasource === true &&
-                            $scope.options.selectedExportDatasource === null) {
-                        $scope.status.message = 'Bitte wählen Sie eine Datenquelle zum Verschneiden aus.';
-                        $scope.status.type = 'warning';
-                        context.valid = false;
-                        return context.valid;
-                    }
 
                     $scope.options.selectedExportThemes = datasourcesController.exportThemes.getSelectedExportEntitiesCollections();
                     if ($scope.options.selectedExportThemes.length === 0) {
@@ -121,6 +117,26 @@ angular.module(
                         $scope.status.type = 'warning';
                         context.valid = false;
                         return context.valid;
+                    }
+
+                    if ($scope.options.isMergeExternalDatasource === true) {
+                        if ($scope.options.selectedExportDatasource === null) {
+                            $scope.status.message = 'Bitte wählen Sie eine Datenquelle zum Verschneiden aus.';
+                            $scope.status.type = 'warning';
+                            context.valid = false;
+                            return context.valid;
+                        } else {
+                            $scope.options.selectedExportThemes.forEach(function (exportEntitiesCollection) {
+                                if (exportEntitiesCollection.hasExportDatasource($scope.options.selectedExportDatasource) === false) {
+                                    exportEntitiesCollection.exportDatasource = angular.copy($scope.options.selectedExportDatasource);
+                                }
+                            });
+                        }
+                    } else {
+                        $scope.options.selectedExportDatasource = null;
+                        $scope.options.selectedExportThemes.forEach(function (exportEntitiesCollection) {
+                            exportEntitiesCollection.exportDatasource = null;
+                        });
                     }
 
                     return context.valid;

@@ -22,6 +22,7 @@ angular.module(
                     this.parametersKeys = [];
                     this.exportPKs = [];
                     this.selected = false;
+                    this.exportDatasource = null;
 
                     /**
                      * Parameters not available for filtering
@@ -234,6 +235,15 @@ angular.module(
                 ExportEntitiesCollection.prototype.toggleSelection = function () {
                     this.selected = !this.selected;
                     return this.selected;
+                };
+
+                ExportEntitiesCollection.prototype.hasExportDatasource = function (exportDatasource) {
+                    if (this.exportDatasource !== null &&
+                            this.exportDatasource.equals(exportDatasource)) {
+                        return true;
+                    } else {
+                        return false;
+                    }
                 };
 
                 return ExportEntitiesCollection;
