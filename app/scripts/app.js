@@ -264,7 +264,7 @@ app.config(
                 $stateProvider.state('main.authentication', {
                     url: '/login',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     views: {
                         'authentication@main': {
@@ -278,7 +278,7 @@ app.config(
                 $stateProvider.state('main.search', {
                     url: '/search',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     sticky: true,
                     deepStateRedirect: {
@@ -310,7 +310,7 @@ app.config(
                 $stateProvider.state('main.search.map', {
                     url: '/map?{center:int}&{zoom:int}',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     sticky: true,
                     views: {
@@ -325,7 +325,7 @@ app.config(
                 $stateProvider.state('main.search.list', {
                     url: '/list',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     sticky: true,
                     views: {
@@ -340,7 +340,7 @@ app.config(
                 $stateProvider.state('main.analysis', {
                     url: '/analysis',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     sticky: true,
                     deepStateRedirect: {
@@ -372,7 +372,7 @@ app.config(
                 $stateProvider.state('main.analysis.map', {
                     url: '/map?{center:int}&{zoom:int}',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     views: {
                         'analysis-map@main.analysis': {
@@ -392,7 +392,7 @@ app.config(
                 $stateProvider.state('main.protocol', {
                     url: '/protocol',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     sticky: true,
                     deepStateRedirect: true,
@@ -418,7 +418,7 @@ app.config(
                 $stateProvider.state('modal.entity', {
                     url: '/entity/{class:string}/{id:int}',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     sticky: false,
                     backdrop: 'static',
@@ -458,7 +458,7 @@ app.config(
                 $stateProvider.state('modal.export', {
                     url: '/analysis/export',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     sticky: false,
                     templateUrl: 'views/export/modal.html',

@@ -33,6 +33,7 @@ angular.module(
                 //configurationService.cidsRestApi.host = 'http://DEMO-NOTEBOOK:8890';
                 configurationService.cidsRestApi.domain = 'UDM2020-DI';
                 configurationService.cidsRestApi.defaultRestApiSearch = 'de.cismet.cids.custom.udm2020di.serversearch.DefaultRestApiSearch';
+                configurationService.cidsRestApi.restApiExportAction = 'restApiExportAction';
                 //configurationService.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
                 //configurationService.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
                 // </editor-fold>
@@ -553,6 +554,11 @@ angular.module(
                 configurationService.export.exportPKs.WAOW_STATION = 'pk';
                 configurationService.export.exportPKs.WAGW_STATION = 'pk';
                 configurationService.export.exportPKs.BORIS_SITE = 'pk';
+                
+                /**
+                 * Export Formats as specified in de.cismet.cids.custom.udm2020di.serveractions.AbstractExportAction!
+                 */
+                configurationService.export.exportFormats = ['CSV Datei', 'Excel Datei (XLSX)', 'ESRI Shape Datei'];
                 
                 // </editor-fold>
             }]);

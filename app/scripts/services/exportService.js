@@ -12,10 +12,12 @@
 
 angular.module('de.cismet.uim2020-html5-demonstrator.services')
         .factory('exportService',
-                ['$http', '$q', 'authenticationService', 'sharedDatamodel', 'ExportEntitiesCollection',
-                    function ($http, $q, authenticationService, sharedDatamodel, ExportEntitiesCollection) {
+                ['$http', '$q', 'authenticationService', 'configurationService', 'sharedDatamodel', 'ExportEntitiesCollection',
+                    function ($http, $q, authenticationService, configurationService, sharedDatamodel, ExportEntitiesCollection) {
                         'use strict';
-                        var getExportParametersMap;
+                        var getExportParametersMap, cidsRestApiConfig;
+                        
+                        cidsRestApiConfig = configurationService.cidsRestApi;
 
                         var taskparams = new Blob([JSON.stringify(
                                     {"actionKey": "restApiExportAction",
@@ -49,7 +51,14 @@ angular.module('de.cismet.uim2020-html5-demonstrator.services')
                          },*/
                         var httpRequest = $http({
                             method: 'POST',
-                            url: "http://127.0.0.1:8890/actions/UDM2020-DI.restApiExportAction/tasks?role=all&resultingInstanceType=result",
+                            url: cidsRestApiConfig.host + '/actions/' +
+                                    cidsRestApiConfig.domain + '.' +
+                                    cidsRestApiConfig.restApiExportAction + 
+                                    '/tasks',
+                            params: {
+                                'role': configurationService.authentication.role,
+                                'resultingInstanceType': 'result'
+                            },
                             //IMPORTANT!!! You might think this should be set to 'multipart/form-data' 
                             // but this is not true because when we are sending up files the request 
                             // needs to include a 'boundary' parameter which identifies the boundary 
@@ -57,7 +66,9 @@ angular.module('de.cismet.uim2020-html5-demonstrator.services')
                             // manually will not set this boundary parameter. For whatever reason, 
                             // setting the Content-type to 'false' will force the request to automatically
                             // populate the headers properly including the boundary parameter.
-                            headers: {'Content-Type': undefined,
+                            headers: {
+                                'Accept': 'application/zip',
+                                'Content-Type': undefined,
                                 'Authorization': authenticationService.getAuthorizationToken()},
                             //This method will allow us to change how the data is sent up to the server
                             // for which we'll need to encapsulate the model data in 'FormData'

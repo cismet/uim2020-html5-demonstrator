@@ -160,7 +160,8 @@ angular.module(
                                 if (currentNode.$className === key && 
                                         typeof dataObject[configurationService.export.exportPKs[key]] !== 'undefined' &&
                                         dataObject[configurationService.export.exportPKs[key]] !== null) {
-                                    currentNode.$exportPK = dataObject[configurationService.export.exportPKs[key]];
+                                    // cast to string as generic export action supports only String collection for PKs
+                                    currentNode.$exportPK = String(dataObject[configurationService.export.exportPKs[key]]);
                                 }
                             });
 

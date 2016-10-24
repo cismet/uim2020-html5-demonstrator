@@ -111,6 +111,7 @@ angular.module(
                 $scope.wizard.exitValidators['Datenquellen'] = function (context) {
                     context.valid = true;
 
+                    // check export themes
                     $scope.options.selectedExportThemes = datasourcesController.exportThemes.getSelectedExportEntitiesCollections();
                     if ($scope.options.selectedExportThemes.length === 0) {
                         $scope.status.message = 'Bitte wählen Sie mindestens ein Thema für den Export aus.';
@@ -118,7 +119,13 @@ angular.module(
                         context.valid = false;
                         return context.valid;
                     }
+                    
+                    // set export format to export themes
+                    $scope.options.selectedExportThemes.forEach(function (exportEntitiesCollection) {
+                        exportEntitiesCollection.exportFortmat = $scope.options.exportFormat;
+                    });
 
+                    // set export database to export themes
                     if ($scope.options.isMergeExternalDatasource === true) {
                         if ($scope.options.selectedExportDatasource === null) {
                             $scope.status.message = 'Bitte wählen Sie eine Datenquelle zum Verschneiden aus.';
@@ -128,6 +135,7 @@ angular.module(
                         } else {
                             $scope.options.selectedExportThemes.forEach(function (exportEntitiesCollection) {
                                 if (exportEntitiesCollection.hasExportDatasource($scope.options.selectedExportDatasource) === false) {
+                                    // make a copy because selected parameters can change for each selected theme
                                     exportEntitiesCollection.exportDatasource = angular.copy($scope.options.selectedExportDatasource);
                                 }
                             });

@@ -264,7 +264,7 @@ app.config(
                 $stateProvider.state('main.authentication', {
                     url: '/login',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     views: {
                         'authentication@main': {
@@ -278,7 +278,7 @@ app.config(
                 $stateProvider.state('main.search', {
                     url: '/search',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     sticky: true,
                     deepStateRedirect: {
@@ -310,7 +310,7 @@ app.config(
                 $stateProvider.state('main.search.map', {
                     url: '/map?{center:int}&{zoom:int}',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     sticky: true,
                     views: {
@@ -325,7 +325,7 @@ app.config(
                 $stateProvider.state('main.search.list', {
                     url: '/list',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     sticky: true,
                     views: {
@@ -340,7 +340,7 @@ app.config(
                 $stateProvider.state('main.analysis', {
                     url: '/analysis',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     sticky: true,
                     deepStateRedirect: {
@@ -372,7 +372,7 @@ app.config(
                 $stateProvider.state('main.analysis.map', {
                     url: '/map?{center:int}&{zoom:int}',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     views: {
                         'analysis-map@main.analysis': {
@@ -392,7 +392,7 @@ app.config(
                 $stateProvider.state('main.protocol', {
                     url: '/protocol',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     sticky: true,
                     deepStateRedirect: true,
@@ -418,7 +418,7 @@ app.config(
                 $stateProvider.state('modal.entity', {
                     url: '/entity/{class:string}/{id:int}',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     sticky: false,
                     backdrop: 'static',
@@ -458,7 +458,7 @@ app.config(
                 $stateProvider.state('modal.export', {
                     url: '/analysis/export',
                     data: {
-                        roles: ['User']
+                        roles: ['UDM2020']
                     },
                     sticky: false,
                     templateUrl: 'views/export/modal.html',
@@ -967,13 +967,16 @@ angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'exportConfigurationController', [
-            '$scope', 'sharedDatamodel',
-            function ($scope, sharedDatamodel) {
+            '$scope', 'configurationService',
+            function ($scope, configurationService) {
                 'use strict';
-
+                
+                var configurationController = this;
+                configurationController.exportFormats = configurationService.export.exportFormats;
+                
                 $scope.options.isMergeExternalDatasource = true;
                 $scope.options.isMergeExternalDatasourceEnabled = true; //sharedDatamodel.localDatasources.length > 0 || sharedDatamodel.globalDatasources.length > 0;
-                $scope.options.exportFormat = 'shp';
+                $scope.options.exportFormat = configurationController.exportFormats[0];
 
                 // ENTER VALIDATION --------------------------------------------
                 $scope.wizard.enterValidators['Konfiguration'] = function (context) {
@@ -1250,6 +1253,7 @@ angular.module(
                 $scope.wizard.exitValidators['Datenquellen'] = function (context) {
                     context.valid = true;
 
+                    // check export themes
                     $scope.options.selectedExportThemes = datasourcesController.exportThemes.getSelectedExportEntitiesCollections();
                     if ($scope.options.selectedExportThemes.length === 0) {
                         $scope.status.message = 'Bitte wählen Sie mindestens ein Thema für den Export aus.';
@@ -1257,7 +1261,13 @@ angular.module(
                         context.valid = false;
                         return context.valid;
                     }
+                    
+                    // set export format to export themes
+                    $scope.options.selectedExportThemes.forEach(function (exportEntitiesCollection) {
+                        exportEntitiesCollection.exportFortmat = $scope.options.exportFormat;
+                    });
 
+                    // set export database to export themes
                     if ($scope.options.isMergeExternalDatasource === true) {
                         if ($scope.options.selectedExportDatasource === null) {
                             $scope.status.message = 'Bitte wählen Sie eine Datenquelle zum Verschneiden aus.';
@@ -1267,6 +1277,7 @@ angular.module(
                         } else {
                             $scope.options.selectedExportThemes.forEach(function (exportEntitiesCollection) {
                                 if (exportEntitiesCollection.hasExportDatasource($scope.options.selectedExportDatasource) === false) {
+                                    // make a copy because selected parameters can change for each selected theme
                                     exportEntitiesCollection.exportDatasource = angular.copy($scope.options.selectedExportDatasource);
                                 }
                             });
@@ -3828,7 +3839,7 @@ angular.module(
                 getAuthorizationToken = function () {
                     return isAuthenticated() ? _identity.authorizationToken : null;
                 };
-
+                
                 clearIdentity = function () {
                     _identity = null;
                     $cookieStore.put(configurationService.authentication.cookie, null);
@@ -3991,10 +4002,11 @@ angular.module(
 
                 // <editor-fold defaultstate="collapsed" desc="=== cidsRestApi ===========================">
                 configurationService.cidsRestApi = {};
-                //configurationService.cidsRestApi.host = 'http://localhost:8890';
-                configurationService.cidsRestApi.host = 'http://DEMO-NOTEBOOK:8890';
+                configurationService.cidsRestApi.host = 'http://localhost:8890';
+                //configurationService.cidsRestApi.host = 'http://DEMO-NOTEBOOK:8890';
                 configurationService.cidsRestApi.domain = 'UDM2020-DI';
                 configurationService.cidsRestApi.defaultRestApiSearch = 'de.cismet.cids.custom.udm2020di.serversearch.DefaultRestApiSearch';
+                configurationService.cidsRestApi.restApiExportAction = 'restApiExportAction';
                 //configurationService.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
                 //configurationService.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
                 // </editor-fold>
@@ -4516,6 +4528,11 @@ angular.module(
                 configurationService.export.exportPKs.WAGW_STATION = 'pk';
                 configurationService.export.exportPKs.BORIS_SITE = 'pk';
                 
+                /**
+                 * Export Formats as specified in de.cismet.cids.custom.udm2020di.serveractions.AbstractExportAction!
+                 */
+                configurationService.export.exportFormats = ['CSV Datei', 'Excel Datei (XLSX)', 'ESRI Shape Datei'];
+                
                 // </editor-fold>
             }]);
 /* 
@@ -4680,7 +4697,8 @@ angular.module(
                                 if (currentNode.$className === key && 
                                         typeof dataObject[configurationService.export.exportPKs[key]] !== 'undefined' &&
                                         dataObject[configurationService.export.exportPKs[key]] !== null) {
-                                    currentNode.$exportPK = dataObject[configurationService.export.exportPKs[key]];
+                                    // cast to string as generic export action supports only String collection for PKs
+                                    currentNode.$exportPK = String(dataObject[configurationService.export.exportPKs[key]]);
                                 }
                             });
 
@@ -4785,14 +4803,110 @@ angular.module(
  * ***************************************************
  */
 
-/* global angular */
+/* global angular,URL */
 
 angular.module('de.cismet.uim2020-html5-demonstrator.services')
         .factory('exportService',
-                ['$q', 'sharedDatamodel', 'ExportEntitiesCollection',
-                    function ($q, sharedDatamodel, ExportEntitiesCollection) {
+                ['$http', '$q', 'authenticationService', 'configurationService', 'sharedDatamodel', 'ExportEntitiesCollection',
+                    function ($http, $q, authenticationService, configurationService, sharedDatamodel, ExportEntitiesCollection) {
                         'use strict';
-                        var getExportParametersMap;
+                        var getExportParametersMap, cidsRestApiConfig;
+                        
+                        cidsRestApiConfig = configurationService.cidsRestApi;
+
+                        var taskparams = new Blob([JSON.stringify(
+                                    {"actionKey": "restApiExportAction",
+                                        "description": "Export Meta-Data Repository to CSV",
+                                        "parameters":
+                                                {"aggregationValues": "egal"}
+                                    })], {type: 'application/json'});
+
+                        var file = new Blob([JSON.stringify(
+                                    {"actionKey": "restApiExportAction",
+                                        "description": "Export Meta-Data Repository to CSV",
+                                        "parameters":
+                                                {"aggregationValues": "egal"}
+                                    })], {type: 'application/json'});
+
+                        var formData = new FormData();
+                        formData.append('taskparams', taskparams);
+                        formData.append('file', file);
+
+                        /*$.ajax({
+                         url: 'http://127.0.0.1:8890/actions/UDM2020-DI.restApiExportAction/tasks?role=all&resultingInstanceType=result',
+                         data: formData,
+                         cache: false,
+                         contentType: false,
+                         processData: false,
+                         dataType: 'binary',
+                         type: 'POST',
+                         async: true,
+                         headers: { 
+                         'Authorization': authenticationService.getAuthorizationToken()
+                         },*/
+                        var httpRequest = $http({
+                            method: 'POST',
+                            url: cidsRestApiConfig.host + '/actions/' +
+                                    cidsRestApiConfig.domain + '.' +
+                                    cidsRestApiConfig.restApiExportAction + 
+                                    '/tasks',
+                            params: {
+                                'role': configurationService.authentication.role,
+                                'resultingInstanceType': 'result'
+                            },
+                            //IMPORTANT!!! You might think this should be set to 'multipart/form-data' 
+                            // but this is not true because when we are sending up files the request 
+                            // needs to include a 'boundary' parameter which identifies the boundary 
+                            // name between parts in this multi-part request and setting the Content-type 
+                            // manually will not set this boundary parameter. For whatever reason, 
+                            // setting the Content-type to 'false' will force the request to automatically
+                            // populate the headers properly including the boundary parameter.
+                            headers: {
+                                'Accept': 'application/zip',
+                                'Content-Type': undefined,
+                                'Authorization': authenticationService.getAuthorizationToken()},
+                            //This method will allow us to change how the data is sent up to the server
+                            // for which we'll need to encapsulate the model data in 'FormData'
+                            transformRequest: function (data) {
+                                var formData = new FormData();
+                                //need to convert our json object to a string version of json otherwise
+                                // the browser will do a 'toString()' on the object which will result 
+                                // in the value '[Object object]' on the server.
+                                formData.append("taskparams", new Blob([angular.toJson(data.taskparams)], {type: 'application/json'}));
+                                formData.append("file", new Blob([angular.toJson(data.file)], {type: 'application/json'}));
+                                return formData;
+                            },
+                            responseType: 'arraybuffer',
+                            //Create an object that contains the model and files which will be transformed
+                            // in the above transformRequest method
+                            data: {taskparams: {"actionKey": "restApiExportAction",
+                                    "description": "Export Meta-Data Repository to CSV",
+                                    "parameters":
+                                            {"aggregationValues": "egal"}
+                                }, file: {"actionKey": "restApiExportAction",
+                                    "description": "Export Meta-Data Repository to CSV",
+                                    "parameters":
+                                            {"aggregationValues": "egal"}
+                                }}
+                        });
+
+                        httpRequest.then(
+                                function successCallback(response) {
+                                    console.log(response.status);
+                                    var blob = new Blob([response.data], {type: 'application/octet-stream'});
+                                    //console.log(blob);
+                                    //console.log(new Blob([ response ]));
+                                    //var objectUrl = URL.createObjectURL(blob);
+                                    //window.open(objectUrl);  
+                                    //$window.open(objectUrl); 
+
+                                    saveAs(blob, "blob.zip");
+                                    //saveAs(new Blob([ response ], { type : 'application/octet-stream'}), 'blob2.zip');  
+                                },
+                                function errorCallback(response) {
+                                    console.log(response);
+                                });
+
 
                         getExportParametersMap = function (analysisNodes) {
                             var exportParametersMap, ExportEntitiesCollection;
@@ -5806,8 +5920,10 @@ angular.module(
                     this.parameters = [];
                     this.parametersKeys = [];
                     this.exportPKs = [];
+                    this.objectIds = [];
                     this.selected = false;
                     this.exportDatasource = null;
+                    this.exportFormat = null;
 
                     /**
                      * Parameters not available for filtering
@@ -5884,6 +6000,12 @@ angular.module(
                             node.$data !== 'undefined' && node.$data !== null &&
                             node.$data.probenparameter !== 'undefined' && node.$data.probenparameter !== null &&
                             (this.className === 'ALL' || this.className === node.$className)) {
+
+                        // add object id (needed for MOSS Export)
+                        if (typeof node.LEGACY_OBJECT_ID !== 'undefined' && node.LEGACY_OBJECT_ID !== null &&
+                                this.objectIds.indexOf(node.LEGACY_OBJECT_ID) === -1) {
+                            this.objectIds.push(node.LEGACY_OBJECT_ID);
+                        }
 
                         // add the export PK!
                         this.exportPKs.push(node.$exportPK);

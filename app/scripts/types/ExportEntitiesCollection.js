@@ -21,8 +21,10 @@ angular.module(
                     this.parameters = [];
                     this.parametersKeys = [];
                     this.exportPKs = [];
+                    this.objectIds = [];
                     this.selected = false;
                     this.exportDatasource = null;
+                    this.exportFormat = null;
 
                     /**
                      * Parameters not available for filtering
@@ -99,6 +101,12 @@ angular.module(
                             node.$data !== 'undefined' && node.$data !== null &&
                             node.$data.probenparameter !== 'undefined' && node.$data.probenparameter !== null &&
                             (this.className === 'ALL' || this.className === node.$className)) {
+
+                        // add object id (needed for MOSS Export)
+                        if (typeof node.LEGACY_OBJECT_ID !== 'undefined' && node.LEGACY_OBJECT_ID !== null &&
+                                this.objectIds.indexOf(node.LEGACY_OBJECT_ID) === -1) {
+                            this.objectIds.push(node.LEGACY_OBJECT_ID);
+                        }
 
                         // add the export PK!
                         this.exportPKs.push(node.$exportPK);
