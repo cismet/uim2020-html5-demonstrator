@@ -535,7 +535,7 @@ app.run(
 //                                        !authenticationService.isAuthenticated()) {
 
 
-                                if (!configurationService.developmentMode && !authenticationService.isAuthenticated()) {
+                                if (!authenticationService.isAuthenticated()) {
                                     console.warn('user not logged in, toState:' + toState.name + ', fromState:' + fromState.name);
                                     event.preventDefault();
                                     $previousState.memo('authentication');
@@ -970,13 +970,13 @@ angular.module(
             '$scope', 'configurationService',
             function ($scope, configurationService) {
                 'use strict';
-                
+
                 var configurationController = this;
                 configurationController.exportFormats = configurationService.export.exportFormats;
-                
-                $scope.options.isMergeExternalDatasource = true;
-                $scope.options.isMergeExternalDatasourceEnabled = true; //sharedDatamodel.localDatasources.length > 0 || sharedDatamodel.globalDatasources.length > 0;
-                $scope.options.exportFormat = configurationController.exportFormats[0];
+
+                $scope.options.isMergeExternalDatasource = false;
+                $scope.options.isMergeExternalDatasourceEnabled = false; //sharedDatamodel.localDatasources.length > 0 || sharedDatamodel.globalDatasources.length > 0;
+                $scope.options.exportFormat = 'xlsx'; //configurationController.exportFormats[0];
 
                 // ENTER VALIDATION --------------------------------------------
                 $scope.wizard.enterValidators['Konfiguration'] = function (context) {
@@ -999,13 +999,13 @@ angular.module(
                     }
 
                     if (context.valid === true) {
-                        $scope.wizard.hasError = null;
+                        $scope.wizard.hasError = false;
                     }
                     // no error? -> reset
 
                     return context.valid;
                 };
-                
+
                 console.log('exportConfigurationController instance created');
             }
         ]
@@ -1027,15 +1027,16 @@ angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'exportController', [
-            '$scope', '$state', '$uibModalInstance', 'sharedDatamodel', 'dataService',
-            'exportService', 'ExportThemeCollection',
-            function ($scope, $state, $uibModalInstance, sharedDatamodel, dataService,
-                    exportService, ExportThemeCollection) {
+            '$scope', '$rootScope', '$timeout', '$uibModal', '$state', '$uibModalInstance',
+            'configurationService', 'sharedDatamodel', 'exportService',
+            function ($scope, $rootScope, $timeout, $uibModal, $state, $uibModalInstance,
+                    configurationService, sharedDatamodel, exportService) {
                 'use strict';
 
-                var exportController;
+                var exportController, progressModal, showProgressModal, exportProcessCallback;
                 exportController = this;
 
+                // <editor-fold defaultstate="collapsed" desc="=== $scope Initialisation and functions ================">
                 $scope.status = sharedDatamodel.status;
                 $scope.status.message = 'Bitte wählen Sie ein Exportformat aus';
                 $scope.status.type = 'info';
@@ -1081,28 +1082,6 @@ angular.module(
                     }
                 });
 
-                exportController.finishedWizard = function () {
-                    // this is madness:
-                    // manually call exit validator on finish step exit
-                    if ($scope.wizard.exitValidators['Parameter']({}) === true)
-                    {
-                        console.log('exportController::finishedWizard()');
-                        console.log(JSON.stringify($scope.options));
-                        $uibModalInstance.dismiss('close');
-
-                        // TODO: DO EXPORT!
-                    }
-                };
-
-                $uibModalInstance.result.catch(
-                        function cancel(reason) {
-                            $scope.status.message = 'Export abgebrochen';
-                            $scope.status.type = 'info';
-
-                        }).finally(function () {
-                    $state.go('main.analysis.map');
-                });
-
                 $scope.close = function () {
                     $uibModalInstance.dismiss('close');
                 };
@@ -1115,9 +1094,156 @@ angular.module(
                         console.log('exportController::$stateChangeStart: ignore ' + toState);
                     }
                 });
+                // </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="=== Local Helper Functions ====================================">
+                showProgressModal = function () {
+                    var modalScope;
+                    modalScope = $rootScope.$new(true);
+                    modalScope.status = $scope.status;
+                    progressModal = $uibModal.open({
+                        templateUrl: 'templates/export-progress-modal.html',
+                        scope: modalScope,
+                        size: 'lg',
+                        backdrop: 'static'
+                    });
+                    // check if the eror occurred before the dialog has actually been shown
+                    progressModal.opened.then(function () {
+                        if ($scope.status.type === 'error') {
+                            progressModal.close();
+                        }
+                    });
+                };
+
+                exportProcessCallback = function (current, max, type) {
+                    //console.log('searchProcess: type=' + type + ', current=' + current + ", max=" + max)
+                    // the maximum object count
+                    $scope.status.progress.max = 300;
+
+                    // start of search (indeterminate)
+                    if (max === -1 && type === 'success') {
+                        // count up fake progress to 100
+                        $scope.status.progress.current = current;
+                        if (current < 210) {
+                            $scope.status.message = 'Der Export der ausgewählten Themen wird durchgeführt.';
+                            $scope.status.type = 'success';
+                        } else {
+                            $scope.status.message = 'Die UIM2020-DI Server sind z.Z. ausgelastet, bitte warten Sie einen Augenblick.';
+                            $scope.status.type = 'warning';
+                        }
+
+                        // search completed
+                    } else if (current === max && type === 'success') {
+                        $scope.status.progress.current = 300;
+                        $scope.status.message = 'Export erfolgreich in Datei "' +
+                                configurationService.export.exportFile + '" durchgeführt.';
+                        $scope.status.type = 'success';
+
+                        if (progressModal) {
+                            $timeout(function () {
+                                progressModal.close();
+                            }, 500);
+                        }
+                        // search error ...
+                    } else if (type === 'error') {
+                        $scope.status.progress.current = 300;
+                        $scope.status.message = 'Der Export konnte aufgrund eines Server-Fehlers nicht durchgeführt werden.';
+                        $scope.status.type = 'danger';
+                        $timeout(function () {
+                            if (progressModal) {
+                                progressModal.close($scope.status.message);
+                            }
+                        }, 2000);
+                    }
+                };
+                // </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
+                exportController.finishedWizard = function () {
+                    // this is madness:
+                    // manually call exit validator on finish step exit
+                    if ($scope.wizard.exitValidators['Parameter']({}) === true)
+                    {
+                        var exportOptions, promise;
+
+                        $scope.status.type = 'info';
+                        if ($scope.options.selectedExportThemes.length > 1) {
+                            $scope.status.message = 'Der Datenexport für das Thema "' +
+                                    $scope.options.selectedExportThemes[0].title +
+                                    '" wird durchgeführt, bitte haben Sie einen Augeblick Geduld.';
+                        } else {
+                            $scope.status.message = 'Der Datenexport für ' +
+                                    $scope.options.selectedExportThemes.length +
+                                    ' Themen wird durchgeführt, bitte haben Sie einen Augeblick Geduld.';
+                        }
+
+                        showProgressModal();
+
+                        exportOptions = angular.copy($scope.options);
+
+                        // clean ExportOptions from obsolete properties before submitting to REST API ------
+                        // See de.cismet.cids.custom.udm2020di.types.rest.ExportOptions for required properties
+                        delete exportOptions.selectedExportDatasource;
+
+                        exportOptions.selectedExportThemes.forEach(function (exportEntitiesCollection) {
+                            delete exportEntitiesCollection.parametersKeys;
+                            delete exportEntitiesCollection.forbiddenParameters;
+                            for (var i = exportEntitiesCollection.parameters.length - 1; i >= 0; i--) {
+                                // keep only selected parameters
+                                if (!exportEntitiesCollection.parameters[i].selected) {
+                                    exportEntitiesCollection.parameters.splice(i, 1);
+                                }
+                            }
+                            if (typeof exportEntitiesCollection.exportDatasource !== 'undefined' &&
+                                    exportEntitiesCollection.exportDatasource !== null) {
+                                for (var i = exportEntitiesCollection.exportDatasource.parameters.length - 1; i >= 0; i--) {
+                                    // keep only selected parameters
+                                    if (!exportEntitiesCollection.exportDatasource.parameters[i].selected) {
+                                        exportEntitiesCollection.exportDatasource.parameters.splice(i, 1);
+                                    }
+                                }
+                            }
+                        });
+                        // -----------------------------------------------------
+
+                        promise = exportService.export(exportOptions, exportOptions, exportProcessCallback);
+                        promise.then(
+                                function  successCallback(response) {
+
+                                    $timeout(function () {
+                                        $uibModalInstance.dismiss('close');
+                                    }, 600);
+
+                                },
+                                function  errorCallback(response) {
+                                    $timeout(function () {
+                                        $uibModalInstance.dismiss('close');
+                                    }, 2200);
+                                });
+
+
+
+
+                        //console.log(JSON.stringify($scope.options));
+
+
+                        // TODO: DO EXPORT!
+                    }
+                };
+                // </editor-fold>
+
+                $uibModalInstance.result.catch(
+                        function cancel(reason) {
+                            if (reason !== 'close') {
+                                $scope.status.message = 'Export abgebrochen';
+                                $scope.status.type = 'info';
+                            }
+                        }).finally(function () {
+                    $state.go('main.analysis.map');
+                });
+
+
 
                 // <editor-fold defaultstate="collapsed" desc="[!!!!] MOCK DATA (DISABLED) ----------------">        
-                var loadMockNodes = function (mockNodes) {
+                /*var loadMockNodes = function (mockNodes) {
                     if (mockNodes.$resolved) {
                         sharedDatamodel.analysisNodes.length = 0;
                         sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, mockNodes);
@@ -1130,8 +1256,7 @@ angular.module(
 
                 if (sharedDatamodel.analysisNodes.length === 0) {
                     loadMockNodes(dataService.getMockNodes());
-                }
-                ;
+                }*/
                 // </editor-fold>
 
                 console.log('exportController instance created');
@@ -1261,10 +1386,10 @@ angular.module(
                         context.valid = false;
                         return context.valid;
                     }
-                    
+
                     // set export format to export themes
                     $scope.options.selectedExportThemes.forEach(function (exportEntitiesCollection) {
-                        exportEntitiesCollection.exportFortmat = $scope.options.exportFormat;
+                        exportEntitiesCollection.exportFormat = $scope.options.exportFormat;
                     });
 
                     // set export database to export themes
@@ -3998,14 +4123,13 @@ angular.module(
                         wagwClusterGroupOptions, waowClusterGroupOptions;
 
                 configurationService = this;
-                configurationService.developmentMode = true;
 
                 // <editor-fold defaultstate="collapsed" desc="=== cidsRestApi ===========================">
                 configurationService.cidsRestApi = {};
                 configurationService.cidsRestApi.host = 'http://localhost:8890';
                 //configurationService.cidsRestApi.host = 'http://DEMO-NOTEBOOK:8890';
                 configurationService.cidsRestApi.domain = 'UDM2020-DI';
-                configurationService.cidsRestApi.defaultRestApiSearch = 'de.cismet.cids.custom.udm2020di.serversearch.DefaultRestApiSearch';
+                configurationService.cidsRestApi.defaultRestApiSearch = 'de.cismet.cids.custom.udm2020di.serversearch.rest.DefaultRestApiSearch';
                 configurationService.cidsRestApi.restApiExportAction = 'restApiExportAction';
                 //configurationService.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
                 //configurationService.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
@@ -4523,16 +4647,17 @@ angular.module(
                 configurationService.export = {};
                 configurationService.export.exportPKs = {};
                 configurationService.export.exportPKs.MOSS = 'sampleid';
-                configurationService.export.exportPKs.EPRTR_INSTALLATION = 'erasId';
+                configurationService.export.exportPKs.EPRTR_INSTALLATION = 'erasid';
                 configurationService.export.exportPKs.WAOW_STATION = 'pk';
                 configurationService.export.exportPKs.WAGW_STATION = 'pk';
                 configurationService.export.exportPKs.BORIS_SITE = 'pk';
-                
+                configurationService.export.exportFileBase = 'uim2020-di-export';
+
                 /**
                  * Export Formats as specified in de.cismet.cids.custom.udm2020di.serveractions.AbstractExportAction!
                  */
                 configurationService.export.exportFormats = ['CSV Datei', 'Excel Datei (XLSX)', 'ESRI Shape Datei'];
-                
+
                 // </editor-fold>
             }]);
 /* 
@@ -4807,108 +4932,143 @@ angular.module(
 
 angular.module('de.cismet.uim2020-html5-demonstrator.services')
         .factory('exportService',
-                ['$http', '$q', 'authenticationService', 'configurationService', 'sharedDatamodel', 'ExportEntitiesCollection',
-                    function ($http, $q, authenticationService, configurationService, sharedDatamodel, ExportEntitiesCollection) {
+                ['$http', '$interval', 'authenticationService', 'configurationService',
+                    function ($http, $interval, authenticationService, configurationService) {
                         'use strict';
-                        var getExportParametersMap, cidsRestApiConfig;
-                        
+                        var cidsRestApiConfig, exportFunction, getExportParametersMapFunction;
+
                         cidsRestApiConfig = configurationService.cidsRestApi;
 
-                        var taskparams = new Blob([JSON.stringify(
-                                    {"actionKey": "restApiExportAction",
-                                        "description": "Export Meta-Data Repository to CSV",
-                                        "parameters":
-                                                {"aggregationValues": "egal"}
-                                    })], {type: 'application/json'});
+                        /**
+                         * 
+                         * @param {type} exportOptions
+                         * @param {type} externalDatasource
+                         * @param {type} progressCallback
+                         * @returns {undefined}
+                         */
+                        exportFunction = function (exportOptions, externalDatasource, progressCallback) {
 
-                        var file = new Blob([JSON.stringify(
-                                    {"actionKey": "restApiExportAction",
-                                        "description": "Export Meta-Data Repository to CSV",
-                                        "parameters":
-                                                {"aggregationValues": "egal"}
-                                    })], {type: 'application/json'});
+                            var noop, timer, fakeProgress, httpRequest, promise;
 
-                        var formData = new FormData();
-                        formData.append('taskparams', taskparams);
-                        formData.append('file', file);
+                            // FIXME: get rid of this noop stuff -> makes code unreadable
+                            noop = angular.noop;
+                            // current value, max value, type, max = -1 indicates indeterminate
+                            (progressCallback || noop)(0, -1, 'success');
+                            fakeProgress = 0;
 
-                        /*$.ajax({
-                         url: 'http://127.0.0.1:8890/actions/UDM2020-DI.restApiExportAction/tasks?role=all&resultingInstanceType=result',
-                         data: formData,
-                         cache: false,
-                         contentType: false,
-                         processData: false,
-                         dataType: 'binary',
-                         type: 'POST',
-                         async: true,
-                         headers: { 
-                         'Authorization': authenticationService.getAuthorizationToken()
-                         },*/
-                        var httpRequest = $http({
-                            method: 'POST',
-                            url: cidsRestApiConfig.host + '/actions/' +
-                                    cidsRestApiConfig.domain + '.' +
-                                    cidsRestApiConfig.restApiExportAction + 
-                                    '/tasks',
-                            params: {
-                                'role': configurationService.authentication.role,
-                                'resultingInstanceType': 'result'
-                            },
-                            //IMPORTANT!!! You might think this should be set to 'multipart/form-data' 
-                            // but this is not true because when we are sending up files the request 
-                            // needs to include a 'boundary' parameter which identifies the boundary 
-                            // name between parts in this multi-part request and setting the Content-type 
-                            // manually will not set this boundary parameter. For whatever reason, 
-                            // setting the Content-type to 'false' will force the request to automatically
-                            // populate the headers properly including the boundary parameter.
-                            headers: {
-                                'Accept': 'application/zip',
-                                'Content-Type': undefined,
-                                'Authorization': authenticationService.getAuthorizationToken()},
-                            //This method will allow us to change how the data is sent up to the server
-                            // for which we'll need to encapsulate the model data in 'FormData'
-                            transformRequest: function (data) {
-                                var formData = new FormData();
-                                //need to convert our json object to a string version of json otherwise
-                                // the browser will do a 'toString()' on the object which will result 
-                                // in the value '[Object object]' on the server.
-                                formData.append("taskparams", new Blob([angular.toJson(data.taskparams)], {type: 'application/json'}));
-                                formData.append("file", new Blob([angular.toJson(data.file)], {type: 'application/json'}));
-                                return formData;
-                            },
-                            responseType: 'arraybuffer',
-                            //Create an object that contains the model and files which will be transformed
-                            // in the above transformRequest method
-                            data: {taskparams: {"actionKey": "restApiExportAction",
-                                    "description": "Export Meta-Data Repository to CSV",
-                                    "parameters":
-                                            {"aggregationValues": "egal"}
-                                }, file: {"actionKey": "restApiExportAction",
-                                    "description": "Export Meta-Data Repository to CSV",
-                                    "parameters":
-                                            {"aggregationValues": "egal"}
-                                }}
-                        });
+                            /**
+                             * Runs 30.000ms (500*60), after 1500 ms progress 
+                             */
+                            timer = $interval(function () {
+                                (progressCallback || noop)(fakeProgress, -1, 'success');
 
-                        httpRequest.then(
-                                function successCallback(response) {
-                                    console.log(response.status);
-                                    var blob = new Blob([response.data], {type: 'application/octet-stream'});
-                                    //console.log(blob);
-                                    //console.log(new Blob([ response ]));
-                                    //var objectUrl = URL.createObjectURL(blob);
-                                    //window.open(objectUrl);  
-                                    //$window.open(objectUrl); 
+                                //-> max 300 ticks, update every 0,5 second
 
-                                    saveAs(blob, "blob.zip");
-                                    //saveAs(new Blob([ response ], { type : 'application/octet-stream'}), 'blob2.zip');  
+                                // after 30 intervals (15sec) already 70% (7*30=210) of max ticks (300) used
+                                if (fakeProgress < 270) {
+                                    fakeProgress += 7;
+                                } else {
+                                    fakeProgress += 3; // next 50% of timer count last 30% of ticks!
+                                }
+
+                                fakeProgress++;
+                                // Number of milliseconds between each function call.
+                                // Number of times to repeat. If not set, or 0, will repeat indefinitely.    
+                            }, 500, 60); //  30.000ms (500*60)
+
+                            httpRequest = $http({
+                                method: 'POST',
+                                url: cidsRestApiConfig.host + '/actions/' +
+                                        cidsRestApiConfig.domain + '.' +
+                                        cidsRestApiConfig.restApiExportAction +
+                                        '/tasks',
+                                params: {
+                                    'role': configurationService.authentication.role,
+                                    'resultingInstanceType': 'result'
                                 },
-                                function errorCallback(response) {
-                                    console.log(response);
-                                });
+                                //IMPORTANT!!! You might think this should be set to 'multipart/form-data' 
+                                // but this is not true because when we are sending up files the request 
+                                // needs to include a 'boundary' parameter which identifies the boundary 
+                                // name between parts in this multi-part request and setting the Content-type 
+                                // manually will not set this boundary parameter. For whatever reason, 
+                                // setting the Content-type to 'false' will force the request to automatically
+                                // populate the headers properly including the boundary parameter.
+                                headers: {
+                                    'Accept': 'application/zip,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,application/vnd.ms-excel,text/csv; charset=UTF-8',
+                                    'Content-Type': undefined,
+                                    'Authorization': authenticationService.getAuthorizationToken()},
+                                //This method will allow us to change how the data is sent up to the server
+                                // for which we'll need to encapsulate the model data in 'FormData'
+                                transformRequest: function (data) {
+                                    var formData = new FormData();
+                                    //need to convert our json object to a string version of json otherwise
+                                    // the browser will do a 'toString()' on the object which will result 
+                                    // in the value '[Object object]' on the server.
+                                    formData.append("taskparams", new Blob([angular.toJson(data.taskparams)], {type: 'application/json'}));
+                                    formData.append("file", new Blob([angular.toJson(data.file)], {type: 'application/json'}));
+                                    return formData;
+                                },
+                                // set responseType to blob!
+                                responseType: 'blob',
+                                //Create an object that contains the model and files which will be transformed
+                                // in the above transformRequest method
+                                // Important:  transfer exportOptions as quoted JSON String, otherwise Jersey will deserilaize Json to LinkedHashMap!
+                                data: {
+                                    taskparams: {'actionKey': 'restApiExportAction',
+                                        'description': 'Export Meta-Data Repository to CSV',
+                                        'parameters':
+                                                {'exportOptions': angular.toJson(exportOptions)}
+                                    },
+                                    file: externalDatasource
+                                }
+                            });
 
+                            promise = httpRequest.then(
+                                    function successCallback(response) {
+                                        //var blob = new Blob([response.data], {type: 'application/octet-stream'});
+                                        var blob, extension, exportFile;
+                                        blob = response.data;
 
-                        getExportParametersMap = function (analysisNodes) {
+                                        if (blob.type && blob.type.includes('csv')) {
+                                            extension = 'csv';
+                                        } else if (blob.type && blob.type.includes('vnd.ms-excel')) {
+                                            extension = 'xls';
+                                        } else if (blob.type && blob.type.includes('vnd.openxmlformats-officedocument.spreadsheetml.sheet')) {
+                                            extension = 'xlsx';
+                                        } else {
+                                            extension = 'zip';
+                                        }
+
+                                        exportFile = configurationService.export.exportFileBase + '.' + extension;
+
+                                        console.debug('exportService::export -> success, saving export to "' +
+                                                exportFile + '" (' + blob.type + ')');
+
+                                        saveAs(blob, exportFile);
+
+                                        $interval.cancel(timer);
+                                        // set current AND max to node count -> signalise search completed
+                                        (progressCallback || noop)(300, 300, 'success');
+
+                                        return true;
+                                    },
+                                    function errorCallback(response) {
+                                        $interval.cancel(timer);
+                                        (progressCallback || noop)(1, 1, 'error');
+                                        console.error('exportService::export -> error during export: ' +
+                                                response.statusText + ' (' + response.status + '):\n' + angular.toJson(response.data));
+                                        return false;
+                                    });
+
+                            return promise;
+                        };
+
+                        /**
+                         * 
+                         * @param {type} analysisNodes
+                         * @returns {exportService_L16.getExportParametersMap.exportParametersMap}
+                         */
+                        getExportParametersMapFunction = function (analysisNodes) {
                             var exportParametersMap, ExportEntitiesCollection;
 
                             exportParametersMap = {};
@@ -4930,12 +5090,10 @@ angular.module('de.cismet.uim2020-html5-demonstrator.services')
                         };
 
                         return {
-                            getExportParametersMap: getExportParametersMap
+                            export: exportFunction,
+                            getExportParametersMap: getExportParametersMapFunction
                         };
                     }]);
-
-
-
 /* 
  * ***************************************************
  * 
@@ -6011,7 +6169,11 @@ angular.module(
                         this.exportPKs.push(node.$exportPK);
 
                         // Attention: collects also parameters of filtered nodes! (node.$filtered)
-                        parameters = node.$data.probenparameter;
+                        if (node.$className === 'EPRTR_INSTALLATION') {
+                            parameters = node.$data.releaseparameters;
+                        } else {
+                            parameters = node.$data.probenparameter;
+                        }
 
                         // add the parameters
                         this.addAllParameters(parameters, clear, sort);
@@ -6180,16 +6342,16 @@ angular.module(
                     var _this = this;
                     _this.exportEntitiesCollections = [];
 
-                    if (typeof analysisNodes !== 'undefined' && analysisNodes !== null && 
+                    if (typeof analysisNodes !== 'undefined' && analysisNodes !== null &&
                             analysisNodes.length > 0) {
 
                         analysisNodes.forEach(function (node) {
                             var exportEntitiesCollection;
                             if (typeof _this.exportEntitiesCollections[node.$className] === 'undefined' ||
                                     _this.exportEntitiesCollections[node.$className] === null) {
-                                
+
                                 var newExportEntitiesCollection = new ExportEntitiesCollection(node.$className, node.$classTitle);
-                                
+
                                 _this.exportEntitiesCollections[node.$className] = newExportEntitiesCollection;
                                 // necessary because ngRepeat does not work with associative arrays!        
                                 _this.exportEntitiesCollections.push(newExportEntitiesCollection);

@@ -20,16 +20,16 @@ angular.module(
                     var _this = this;
                     _this.exportEntitiesCollections = [];
 
-                    if (typeof analysisNodes !== 'undefined' && analysisNodes !== null && 
+                    if (typeof analysisNodes !== 'undefined' && analysisNodes !== null &&
                             analysisNodes.length > 0) {
 
                         analysisNodes.forEach(function (node) {
                             var exportEntitiesCollection;
                             if (typeof _this.exportEntitiesCollections[node.$className] === 'undefined' ||
                                     _this.exportEntitiesCollections[node.$className] === null) {
-                                
+
                                 var newExportEntitiesCollection = new ExportEntitiesCollection(node.$className, node.$classTitle);
-                                
+
                                 _this.exportEntitiesCollections[node.$className] = newExportEntitiesCollection;
                                 // necessary because ngRepeat does not work with associative arrays!        
                                 _this.exportEntitiesCollections.push(newExportEntitiesCollection);

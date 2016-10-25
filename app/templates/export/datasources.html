@@ -18,7 +18,8 @@
                 </div>
             </uib-accordion-heading>
 
-            <div class="checkbox" style="width:100%;clear:right"
+            <div class="checkbox" 
+                 style="width:100%;clear:right"
                  ng-repeat="exportTheme in datasourcesController.exportThemes.exportEntitiesCollections | orderBy:'title' track by exportTheme.className">
                 <label class="form-check-label">
                     <input 
@@ -26,9 +27,14 @@
                         type="checkbox"
                         name="{{exportTheme.className}}"
                         value="{{exportTheme.title}}"
-                        ng-model="exportTheme.selected">
+                        ng-model="exportTheme.selected"
+                        ng-disabled="options.exportFormat === 'shp' && (exportTheme.className === 'BORIS_SITE' || exportTheme.className === 'WAGW_STATION')">
                     {{exportTheme.title}}
                 </label>
+                <span class="text-muted"
+                    ng-if="options.exportFormat === 'shp' && (exportTheme.className === 'BORIS_SITE' || exportTheme.className === 'WAGW_STATION')">
+                    (Kein Export nach ESRI Shapefile erlaubt!)
+                </span>
             </div>
         </div>
 

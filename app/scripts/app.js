@@ -535,7 +535,7 @@ app.run(
 //                                        !authenticationService.isAuthenticated()) {
 
 
-                                if (!configurationService.developmentMode && !authenticationService.isAuthenticated()) {
+                                if (!authenticationService.isAuthenticated()) {
                                     console.warn('user not logged in, toState:' + toState.name + ', fromState:' + fromState.name);
                                     event.preventDefault();
                                     $previousState.memo('authentication');

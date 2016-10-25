@@ -16,13 +16,13 @@ angular.module(
             '$scope', 'configurationService',
             function ($scope, configurationService) {
                 'use strict';
-                
+
                 var configurationController = this;
                 configurationController.exportFormats = configurationService.export.exportFormats;
-                
-                $scope.options.isMergeExternalDatasource = true;
-                $scope.options.isMergeExternalDatasourceEnabled = true; //sharedDatamodel.localDatasources.length > 0 || sharedDatamodel.globalDatasources.length > 0;
-                $scope.options.exportFormat = configurationController.exportFormats[0];
+
+                $scope.options.isMergeExternalDatasource = false;
+                $scope.options.isMergeExternalDatasourceEnabled = false; //sharedDatamodel.localDatasources.length > 0 || sharedDatamodel.globalDatasources.length > 0;
+                $scope.options.exportFormat = 'xlsx'; //configurationController.exportFormats[0];
 
                 // ENTER VALIDATION --------------------------------------------
                 $scope.wizard.enterValidators['Konfiguration'] = function (context) {
@@ -45,13 +45,13 @@ angular.module(
                     }
 
                     if (context.valid === true) {
-                        $scope.wizard.hasError = null;
+                        $scope.wizard.hasError = false;
                     }
                     // no error? -> reset
 
                     return context.valid;
                 };
-                
+
                 console.log('exportConfigurationController instance created');
             }
         ]

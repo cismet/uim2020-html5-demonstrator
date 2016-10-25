@@ -4,7 +4,7 @@
     <uib-accordion close-others="true">
 
         <div uib-accordion-group  
-             ng-init="exportParametersOpen = false" 
+             ng-init="exportParametersOpen = ($index === 0) ? true : false" 
              is-open="exportParametersOpen"
              ng-class="{'text-muted': isDisabled}"
              ng-repeat="exportTheme in options.selectedExportThemes| orderBy:'title' track by exportTheme.className">

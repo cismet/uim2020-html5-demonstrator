@@ -119,10 +119,10 @@ angular.module(
                         context.valid = false;
                         return context.valid;
                     }
-                    
+
                     // set export format to export themes
                     $scope.options.selectedExportThemes.forEach(function (exportEntitiesCollection) {
-                        exportEntitiesCollection.exportFortmat = $scope.options.exportFormat;
+                        exportEntitiesCollection.exportFormat = $scope.options.exportFormat;
                     });
 
                     // set export database to export themes

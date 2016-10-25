@@ -112,7 +112,11 @@ angular.module(
                         this.exportPKs.push(node.$exportPK);
 
                         // Attention: collects also parameters of filtered nodes! (node.$filtered)
-                        parameters = node.$data.probenparameter;
+                        if (node.$className === 'EPRTR_INSTALLATION') {
+                            parameters = node.$data.releaseparameters;
+                        } else {
+                            parameters = node.$data.probenparameter;
+                        }
 
                         // add the parameters
                         this.addAllParameters(parameters, clear, sort);
