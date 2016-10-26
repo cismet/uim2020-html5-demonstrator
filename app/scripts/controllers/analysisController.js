@@ -14,9 +14,9 @@ angular.module(
         ).controller(
         'analysisController',
         [
-            '$timeout', '$scope', '$state', 'dataService', 'sharedDatamodel', 'sharedControllers',
+            '$timeout', '$scope', '$state', 'sharedDatamodel', 'sharedControllers',
             'leafletData',
-            function ($timeout, $scope, $state, dataService, sharedDatamodel,
+            function ($timeout, $scope, $state, sharedDatamodel,
                     sharedControllers, leafletData) {
                 'use strict';
 

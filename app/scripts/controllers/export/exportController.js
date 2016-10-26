@@ -53,6 +53,10 @@ angular.module(
                     return $scope.wizard.currentStep === 'Konfiguration';
                 };
 
+                $scope.wizard.close = function () {
+                    $uibModalInstance.dismiss('close');
+                };
+
                 $scope.$watch('wizard.currentStep', function (n) {
                     if (n) {
                         if ($scope.wizard.isFinishStep()) {
@@ -68,16 +72,12 @@ angular.module(
                     }
                 });
 
-                $scope.close = function () {
-                    $uibModalInstance.dismiss('close');
-                };
-
                 $scope.$on("$stateChangeStart", function (evt, toState) {
                     if (!toState.$$state().includes['modal.export']) {
-                        console.log('exportController::$stateChangeStart: $uibModalInstance.close');
+                        //console.log('exportController::$stateChangeStart: $uibModalInstance.close');
                         $uibModalInstance.dismiss('close');
                     } else {
-                        console.log('exportController::$stateChangeStart: ignore ' + toState);
+                        //console.log('exportController::$stateChangeStart: ignore ' + toState);
                     }
                 });
                 // </editor-fold>
@@ -110,8 +110,8 @@ angular.module(
                         // count up fake progress to 100
                         $scope.status.progress.current = current;
                         if (current < 210) {
-                            $scope.status.message = 'Der Export der ausgewählten Themen wird durchgeführt.';
-                            $scope.status.type = 'success';
+                            //$scope.status.message = 'Der Export der ausgewählten Themen wird durchgeführt.';
+                            //$scope.status.type = 'success';
                         } else {
                             $scope.status.message = 'Die UIM2020-DI Server sind z.Z. ausgelastet, bitte warten Sie einen Augenblick.';
                             $scope.status.type = 'warning';
@@ -120,8 +120,7 @@ angular.module(
                         // search completed
                     } else if (current === max && type === 'success') {
                         $scope.status.progress.current = 300;
-                        $scope.status.message = 'Export erfolgreich in Datei "' +
-                                configurationService.export.exportFile + '" durchgeführt.';
+                        $scope.status.message = 'Der Datenexport wurde erfolgreich durchgeführt.';
                         $scope.status.type = 'success';
 
                         if (progressModal) {
@@ -132,7 +131,7 @@ angular.module(
                         // search error ...
                     } else if (type === 'error') {
                         $scope.status.progress.current = 300;
-                        $scope.status.message = 'Der Export konnte aufgrund eines Server-Fehlers nicht durchgeführt werden.';
+                        $scope.status.message = 'Der Datenexport konnte aufgrund eines Server-Fehlers nicht durchgeführt werden.';
                         $scope.status.type = 'danger';
                         $timeout(function () {
                             if (progressModal) {
@@ -151,7 +150,7 @@ angular.module(
                         var exportOptions, promise;
 
                         $scope.status.type = 'info';
-                        if ($scope.options.selectedExportThemes.length > 1) {
+                        if ($scope.options.selectedExportThemes.length === 1) {
                             $scope.status.message = 'Der Datenexport für das Thema "' +
                                     $scope.options.selectedExportThemes[0].title +
                                     '" wird durchgeführt, bitte haben Sie einen Augeblick Geduld.';
@@ -192,57 +191,46 @@ angular.module(
 
                         promise = exportService.export(exportOptions, exportOptions, exportProcessCallback);
                         promise.then(
-                                function  successCallback(response) {
-
-                                    $timeout(function () {
-                                        $uibModalInstance.dismiss('close');
-                                    }, 600);
-
-                                },
-                                function  errorCallback(response) {
-                                    $timeout(function () {
-                                        $uibModalInstance.dismiss('close');
-                                    }, 2200);
+                                function  callback(success) {
+                                    if (success === true) {
+                                        $timeout(function () {
+                                            $uibModalInstance.dismiss('success');
+                                        }, 600);
+                                    } else {
+                                        $timeout(function () {
+                                            $uibModalInstance.dismiss('error');
+                                        }, 2200);
+                                    }
                                 });
-
-
-
-
-                        //console.log(JSON.stringify($scope.options));
-
-
-                        // TODO: DO EXPORT!
                     }
                 };
                 // </editor-fold>
 
                 $uibModalInstance.result.catch(
                         function cancel(reason) {
-                            if (reason !== 'close') {
-                                $scope.status.message = 'Export abgebrochen';
+                            if (reason !== 'success' && reason !== 'error') {
+                                $scope.status.message = 'Datenexport abgebrochen.';
                                 $scope.status.type = 'info';
                             }
                         }).finally(function () {
                     $state.go('main.analysis.map');
                 });
 
-
-
                 // <editor-fold defaultstate="collapsed" desc="[!!!!] MOCK DATA (DISABLED) ----------------">        
                 /*var loadMockNodes = function (mockNodes) {
-                    if (mockNodes.$resolved) {
-                        sharedDatamodel.analysisNodes.length = 0;
-                        sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, mockNodes);
-                    } else {
-                        mockNodes.$promise.then(function (resolvedMockNodes) {
-                            loadMockNodes(resolvedMockNodes);
-                        });
-                    }
-                };
-
-                if (sharedDatamodel.analysisNodes.length === 0) {
-                    loadMockNodes(dataService.getMockNodes());
-                }*/
+                 if (mockNodes.$resolved) {
+                 sharedDatamodel.analysisNodes.length = 0;
+                 sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, mockNodes);
+                 } else {
+                 mockNodes.$promise.then(function (resolvedMockNodes) {
+                 loadMockNodes(resolvedMockNodes);
+                 });
+                 }
+                 };
+                 
+                 if (sharedDatamodel.analysisNodes.length === 0) {
+                 loadMockNodes(dataService.getMockNodes());
+                 }*/
                 // </editor-fold>
 
                 console.log('exportController instance created');

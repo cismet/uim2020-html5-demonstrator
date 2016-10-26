@@ -614,7 +614,17 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "        <div class=\"panel-heading\">\r" +
     "\n" +
-    "            <h1 class=\"panel-title\">{{wzTitle}}</h1>\r" +
+    "            <h1 class=\"panel-title\">{{wzTitle}}\r" +
+    "\n" +
+    "            <button type=\"button\" \r" +
+    "\n" +
+    "                    class=\"close pull-right\" \r" +
+    "\n" +
+    "                    ng-click=\"wzData.close()\">\r" +
+    "\n" +
+    "                <span class=\"fa fa-close\"></span>\r" +
+    "\n" +
+    "            </button></h1>\r" +
     "\n" +
     "        </div>\r" +
     "\n" +
@@ -638,7 +648,7 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "        </div>\r" +
     "\n" +
-    "        \r" +
+    "\r" +
     "\n" +
     "        <div class=\"panel-footer clearfix\">\r" +
     "\n" +

@@ -18,7 +18,7 @@
         </button>
         -->
     </div>
-    
+
     <!-- Auf Objekte zentrieren -->
     <form class="navbar-form navbar-left cs-toolbar-form">
         <button type="button" 
@@ -31,19 +31,23 @@
         </button>
     </form>
 
+    <!-- Merkliste importierten / exportieren 
     <form class="navbar-form navbar-left cs-toolbar-form">
         <button type="button" 
                 class="btn btn-default btn-success navbar-btn"
-                ng-disabled="true">
+                ng-disabled="true"
+                title="Merkliste exportieren">
             <span class="fa fa-download"></span>
         </button>
         <button type="button" 
                 class="btn btn-default btn-success navbar-btn"
-                ng-disabled="true">
+                ng-disabled="true"
+                title="Merkliste importieren">
             <span class="fa fa-upload"></span>
         </button>
     </form>
-
+    -->
+    
     <!-- Externe Datenquellen -->
     <form class="navbar-form navbar-left cs-toolbar-form">
         <button type="button" 
@@ -61,10 +65,11 @@
     <form class="navbar-form navbar-left cs-toolbar-form">
         <button type="button" 
                 class="btn btn-default btn-success navbar-btn"
-                ng-disabled="true">
+                data-ui-sref-active="active"
+                ng-disabled="!analysisController.hasNodes()"
+                data-ui-sref="modal.export"
+                title="Originaldatenexport">
             <span class="fa fa-floppy-o"></span>
         </button>
     </form>
-
-
 </div>

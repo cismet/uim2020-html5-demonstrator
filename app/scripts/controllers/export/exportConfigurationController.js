@@ -26,12 +26,13 @@ angular.module(
 
                 // ENTER VALIDATION --------------------------------------------
                 $scope.wizard.enterValidators['Konfiguration'] = function (context) {
+
                     if (context.valid === true) {
-                        $scope.status.message = 'Bitte wählen Sie ein Exportformat aus';
+                        $scope.status.message = 'Datenexport der Messstellen aus der Merkliste.';
                         $scope.status.type = 'info';
                     }
 
-                    return context.valid;
+                    return true;
                 };
 
                 // EXIT VALIDATION ---------------------------------------------
@@ -39,7 +40,7 @@ angular.module(
                     context.valid = true;
 
                     if (!$scope.options.exportFormat) {
-                        $scope.status.message = 'Bitte wählen Sie ein Exportformat aus';
+                        $scope.status.message = 'Bitte wählen Sie ein Exportformat aus!';
                         $scope.status.type = 'warning';
                         context.valid = false;
                     }
