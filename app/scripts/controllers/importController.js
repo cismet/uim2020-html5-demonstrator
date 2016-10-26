@@ -181,6 +181,19 @@ angular.module(
 
                                 if (isCreateOverlayLayer === true) {
                                     importController.status.message = geojson.features.length + ' Features werden verarbeitet.';
+
+                                    var zip = new JSZip();
+                                    zip.file(localDatasource.name + '.geojson', angular.toJson(geojson));
+                                    zip.generateAsync({type: "blob"})
+                                            .then(function success(blob) {
+                                                console.log('importController::convertToLayer -> zipping geoJson: ' + blob.type);
+                                                localDatasource.data = blob;
+                                                //saveAs(blob, localDatasource.filename + '.zip');
+                                            }, function error(error) {
+                                                console.error('importController::convertToLayer -> could not zip GeoJson of file "' +
+                                                        localDatasource.name + '": ' + angular.toJson(error));
+                                            });
+
                                     // return new promise
                                     return featureRendererService.createOverlayLayer(
                                             localDatasource, geojson, updateProgress);

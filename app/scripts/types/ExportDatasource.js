@@ -35,9 +35,9 @@ angular.module(
                     this.global = global;
 
                     if (global === true) {
-                        this.groupName = 'Eigene lokale Datenquellen';
-                    } else {
                         this.groupName = 'Vorkonfigurierte globale Datenquellen';
+                    } else {
+                        this.groupName = 'Eigene lokale Datenquellen';
                     }
                 };
 

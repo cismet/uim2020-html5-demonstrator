@@ -60,8 +60,10 @@
                 <div class="form-group row" 
                      ng-class="{'has-error':wizard.hasError === 'exportDatasources'}"
                      ng-repeat="(group, exportDatasources) in datasourcesController.exportDatasources | groupBy:'groupName'">
-                    <div class="col-md-12">
-                        <span style="display:inline-block; min-width: 400px;"><strong>{{group}}</strong></span>
+                    <div class="col-md-12" ng-if="group !== 'Vorkonfigurierte globale Datenquellen'">
+                        <span style="display:inline-block; min-width: 400px;">
+                            <strong>{{group}}</strong>
+                        </span>
                         <div class="radio" style="width:100%;clear:right"
                              ng-repeat="exportDatasource in exportDatasources | orderBy:'name' track by exportDatasource.name">
                             <label class="form-check-label">

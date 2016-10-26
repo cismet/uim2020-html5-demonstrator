@@ -22,6 +22,7 @@ angular.module(
                     this.filename = null;
                     this.global = false;
                     this.parameters = [];
+                    this.data = null;
 
                     // copy properties from externalDatasource object (angular resource)
                     // and ignore $resolved and $promise

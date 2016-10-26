@@ -26,7 +26,7 @@ angular.module('de.cismet.uim2020-html5-demonstrator.services')
                          * @param {type} progressCallback
                          * @returns {undefined}
                          */
-                        exportFunction = function (exportOptions, externalDatasource, progressCallback) {
+                        exportFunction = function (exportOptions, externalDatasourceData, progressCallback) {
 
                             var noop, timer, fakeProgress, httpRequest, promise;
 
@@ -85,7 +85,9 @@ angular.module('de.cismet.uim2020-html5-demonstrator.services')
                                     // the browser will do a 'toString()' on the object which will result 
                                     // in the value '[Object object]' on the server.
                                     formData.append("taskparams", new Blob([angular.toJson(data.taskparams)], {type: 'application/json'}));
-                                    formData.append("file", new Blob([angular.toJson(data.file)], {type: 'application/json'}));
+                                    if(typeof data.file !== 'undefined' && externalDatasourceData !== null) {
+                                        formData.append("file", data.file);
+                                    }
                                     return formData;
                                 },
                                 // set responseType to blob!
@@ -99,7 +101,7 @@ angular.module('de.cismet.uim2020-html5-demonstrator.services')
                                         'parameters':
                                                 {'exportOptions': angular.toJson(exportOptions)}
                                     },
-                                    file: externalDatasource
+                                    file: externalDatasourceData
                                 }
                             });
 

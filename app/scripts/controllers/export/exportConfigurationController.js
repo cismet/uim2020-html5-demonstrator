@@ -13,15 +13,16 @@ angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'exportConfigurationController', [
-            '$scope', 'configurationService',
-            function ($scope, configurationService) {
+            '$scope', 'configurationService', 'sharedDatamodel',
+            function ($scope, configurationService, sharedDatamodel) {
                 'use strict';
 
                 var configurationController = this;
                 configurationController.exportFormats = configurationService.export.exportFormats;
 
                 $scope.options.isMergeExternalDatasource = false;
-                $scope.options.isMergeExternalDatasourceEnabled = false; //sharedDatamodel.localDatasources.length > 0 || sharedDatamodel.globalDatasources.length > 0;
+                $scope.options.isMergeExternalDatasourceEnabled = sharedDatamodel.localDatasources.length > 0 ? true : false;
+                // || sharedDatamodel.globalDatasources.length > 0;
                 $scope.options.exportFormat = 'xlsx'; //configurationController.exportFormats[0];
 
                 // ENTER VALIDATION --------------------------------------------

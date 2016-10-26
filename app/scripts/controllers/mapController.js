@@ -157,7 +157,8 @@ angular.module(
                  */
                 selectNode = function (node) {
                     var icon;
-
+                    // FIXME: ->  Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+                    // when node has been removed from map!
                     // reset selection
                     if (selectedNode !== node && selectedNode !== null && selectedNode.$feature) {
                         icon = featureRendererService.getIconForNode(selectedNode);
@@ -442,6 +443,9 @@ angular.module(
                     var feature, featureGroupLayer, layerControlId;
                     if (mapController.mode === 'analysis') {
                         if (node && node.$feature && node.$feature.$groupKey) {
+                            if (node === selectedNode) {
+                                selectedNode = null;
+                            }
                             feature = node.$feature;
                             // feature belongs to feature layer -> $groupKey
                             layerControlId = layerControlMappings[feature.$groupKey];
@@ -469,6 +473,7 @@ angular.module(
                 mapController.clearNodes = function () {
                     var nodeLayerControlIds, featureGroupLayer;
 
+                    selectedNode = null;
                     nodeLayerControlIds = [
                         layerControlMappings.BORIS_SITE,
                         layerControlMappings.EPRTR_INSTALLATION,
@@ -847,15 +852,15 @@ angular.module(
 
                         if (removedLayer.StyledLayerControl &&
                                 layerControl._layers[L.stamp(removedLayer)]) {
-                            
-                            if(removedLayer.StyledLayerControl.removable) {
+
+                            if (removedLayer.StyledLayerControl.removable) {
                                 // bugfix-hack for StyledLayerControl.
                                 // FIXME: removes also layers from layercontrol that are just deselected!
                                 layerControl.removeLayer(removedLayer);
                             } else {
                                 // bugfix-hack for StyledLayerControl: layer deselected instead of removed ...
                                 removedLayer.$selected = false;
-                            } 
+                            }
                         }
 
                         /*console.log('mapController:: layer removed: ' + removedLayer.$name +

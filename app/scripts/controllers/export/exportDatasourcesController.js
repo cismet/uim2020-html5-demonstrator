@@ -105,7 +105,7 @@ angular.module(
                         }
                     }
 
-                    if ($scope.options.isMergeExternalDatasource) {
+                    if ($scope.options.isMergeExternalDatasource === true) {
                         if (datasourcesController.exportDatasources.length > 0) {
                             // select 1st ext. datasource by default
                             if ($scope.options.selectedExportDatasource === null) {
@@ -135,6 +135,22 @@ angular.module(
                 // EXIT VALIDATION ---------------------------------------------
                 $scope.wizard.exitValidators['Datenquellen'] = function (context) {
                     context.valid = true;
+                    
+                    // check external datasources
+                    if ($scope.options.isMergeExternalDatasource === true) {
+                        if($scope.options.selectedExportDatasource === null) {
+                            $scope.status.message = 'Bitte wählen Sie eine externe Datenquellen zum Verschneiden aus.';
+                            $scope.status.type = 'warning';
+                            context.valid = false;
+                            return context.valid;
+                        } else if ($scope.options.selectedExportDatasource.data === null) {
+                            $scope.status.message = 'Die externe Datenquelle "' + 
+                                    $scope.options.selectedExportDatasource.name + " enthält keine kompatiblen Daten zum Verschneiden!";
+                            $scope.status.type = 'danger';
+                            context.valid = false;
+                            return context.valid;
+                        }
+                    } 
 
                     // check export themes
                     $scope.options.selectedExportThemes = datasourcesController.exportThemes.getSelectedExportEntitiesCollections();
@@ -162,6 +178,7 @@ angular.module(
                                 if (exportEntitiesCollection.hasExportDatasource($scope.options.selectedExportDatasource) === false) {
                                     // make a copy because selected parameters can change for each selected theme
                                     exportEntitiesCollection.exportDatasource = angular.copy($scope.options.selectedExportDatasource);
+                                    exportEntitiesCollection.exportDatasource.data = null;
                                 }
                             });
                         }

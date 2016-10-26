@@ -14,9 +14,9 @@ angular.module(
         ).controller(
         'exportController', [
             '$scope', '$rootScope', '$timeout', '$uibModal', '$state', '$uibModalInstance',
-            'configurationService', 'sharedDatamodel', 'exportService',
+            'sharedDatamodel', 'exportService',
             function ($scope, $rootScope, $timeout, $uibModal, $state, $uibModalInstance,
-                    configurationService, sharedDatamodel, exportService) {
+                    sharedDatamodel, exportService) {
                 'use strict';
 
                 var exportController, progressModal, showProgressModal, exportProcessCallback;
@@ -147,7 +147,7 @@ angular.module(
                     // manually call exit validator on finish step exit
                     if ($scope.wizard.exitValidators['Parameter']({}) === true)
                     {
-                        var exportOptions, promise;
+                        var exportOptions, externalDatasourceData, promise;
 
                         $scope.status.type = 'info';
                         if ($scope.options.selectedExportThemes.length === 1) {
@@ -164,6 +164,19 @@ angular.module(
 
                         exportOptions = angular.copy($scope.options);
 
+
+                        if (exportOptions.isMergeExternalDatasource === true) {
+                            if ($scope.options.selectedExportDatasource !== null &&
+                                    $scope.options.selectedExportDatasource.data !== null) {
+                                externalDatasourceData = $scope.options.selectedExportDatasource.data;
+                            } else {
+                                console.error("exportController::finishedWizard -> isMergeExternalDatasource is true but external datasource's data (zipped geoJson) is null!");
+                                externalDatasourceData = null;
+                            }
+                        } else {
+                            externalDatasourceData = null;
+                        }
+
                         // clean ExportOptions from obsolete properties before submitting to REST API ------
                         // See de.cismet.cids.custom.udm2020di.types.rest.ExportOptions for required properties
                         delete exportOptions.selectedExportDatasource;
@@ -177,19 +190,24 @@ angular.module(
                                     exportEntitiesCollection.parameters.splice(i, 1);
                                 }
                             }
-                            if (typeof exportEntitiesCollection.exportDatasource !== 'undefined' &&
-                                    exportEntitiesCollection.exportDatasource !== null) {
-                                for (var i = exportEntitiesCollection.exportDatasource.parameters.length - 1; i >= 0; i--) {
-                                    // keep only selected parameters
-                                    if (!exportEntitiesCollection.exportDatasource.parameters[i].selected) {
-                                        exportEntitiesCollection.exportDatasource.parameters.splice(i, 1);
+
+                            if (exportOptions.isMergeExternalDatasource === true && externalDatasourceData !== null) {
+                                if (typeof exportEntitiesCollection.exportDatasource !== 'undefined' &&
+                                        exportEntitiesCollection.exportDatasource !== null) {
+                                    for (var i = exportEntitiesCollection.exportDatasource.parameters.length - 1; i >= 0; i--) {
+                                        // keep only selected parameters
+                                        if (!exportEntitiesCollection.exportDatasource.parameters[i].selected) {
+                                            exportEntitiesCollection.exportDatasource.parameters.splice(i, 1);
+                                        }
                                     }
                                 }
+                            } else {
+                                exportEntitiesCollection.exportDatasource = null;
                             }
                         });
                         // -----------------------------------------------------
 
-                        promise = exportService.export(exportOptions, exportOptions, exportProcessCallback);
+                        promise = exportService.export(exportOptions, externalDatasourceData, exportProcessCallback);
                         promise.then(
                                 function  callback(success) {
                                     if (success === true) {
