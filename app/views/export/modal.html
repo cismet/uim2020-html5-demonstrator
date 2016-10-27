@@ -5,46 +5,51 @@
                 template="templates/wizard-tpl.html"
                 current-step="wizard.currentStep"> 
 
-            <!-- Dataset Description -->
-            <wz-step wz-title="Dataset Description" 
+            <!-- Export Configuration -->
+            <wz-step wz-title="Konfiguration" 
                      template="templates/wizard-step-tpl.html"
                      wz-data="wizard"
-                     canenter="wizard.enterValidators['Dataset Description']"
-                     canexit="wizard.exitValidators['Dataset Description']">       
-                <ng-include src="'templates/openDataRegistration.html'"> 
+                     canenter="wizard.enterValidators['Konfiguration']"
+                     canexit="wizard.exitValidators['Konfiguration']">       
+                <ng-include src="'templates/export/configuration.html'"> 
                 </ng-include>
             </wz-step>
 
-            <!-- Geographic Location -->
-            <wz-step wz-title="Geographic Location"
+            <!-- Export Datasources -->
+            <wz-step wz-title="Datenquellen"
                      template="templates/wizard-step-tpl.html"
                      wz-data="wizard"
-                     canenter="wizard.enterValidators['Geographic Location']"
-                     canexit="wizard.exitValidators['Geographic Location']">
-                <ng-include src="'templates/geographicLocation.html'"> 
+                     canenter="wizard.enterValidators['Datenquellen']"
+                     canexit="wizard.exitValidators['Datenquellen']">
+                <ng-include src="'templates/export/datasources.html'"> 
                 </ng-include>
             </wz-step>
 
-            <!-- License and Conditions -->
-            <wz-step wz-title="License and Conditions"
+            <!-- Export Parameter -->
+            <wz-step wz-title="Parameter"
                      template="templates/wizard-step-tpl.html"
                      wz-data="wizard"
-                     canenter="wizard.enterValidators['License and Conditions']"
-                     canexit="wizard.exitValidators['License and Conditions']">
-                <ng-include src="'templates/licenseAndConditions.html'"> 
+                     canenter="wizard.enterValidators['Parameter']"
+                     canexit="wizard.exitValidators['Parameter']">
+                <ng-include src="'templates/export/parameters.html'"> 
                 </ng-include>
             </wz-step>
 
-            <!-- Summary -->
-            <wz-step wz-title="Summary"
+            <!-- Export Export -->
+            <!--
+            <wz-step wz-title="Export"
                      template="templates/wizard-step-tpl.html"
                      wz-data="wizard"
-                     canenter="wizard.enterValidators['Summary']"
-                     canexit="wizard.exitValidators['Summary']">
-                <ng-include src="'templates/summary.html'"> 
+                     canenter="wizard.enterValidators['Export']"
+                     canexit="wizard.exitValidators['Export']">
+                <ng-include src="'templates/export/export.html'"> 
                 </ng-include>
             </wz-step>
+            -->
         </wizard>
+    </div>
+    <div class="modal-body">
+        <!-- empty -->
     </div>
 </div>
 

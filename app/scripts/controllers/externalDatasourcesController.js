@@ -4,7 +4,9 @@ angular.module(
         ).controller(
         'externalDatasourcesController', [
             '$scope', '$uibModal', 'dataService', 'sharedDatamodel', 'sharedControllers',
-            function ($scope, $uibModal, dataService, sharedDatamodel, sharedControllers) {
+            'ExternalDatasource',
+            function ($scope, $uibModal, dataService, sharedDatamodel, sharedControllers,
+                    ExternalDatasource) {
                 'use strict';
 
                 var externalDatasourcesController, mapController;
@@ -15,16 +17,31 @@ angular.module(
                 // init global datasources list
                 if (!sharedDatamodel.globalDatasources ||
                         sharedDatamodel.globalDatasources.length === 0) {
-                    if (dataService.getGlobalDatasources().$resolved) {
-                        externalDatasourcesController.globalDatasources =
-                                dataService.getGlobalDatasources();
+
+                    var globalDatasources = dataService.getGlobalDatasources();
+
+                    if (typeof globalDatasources.$resolved !== 'undefined' &&
+                            globalDatasources.$resolved === true) {
+                        sharedDatamodel.globalDatasources = globalDatasources;
+
+                        externalDatasourcesController.globalDatasources = sharedDatamodel.globalDatasources;
                     } else {
-                        dataService.getGlobalDatasources().$promise.then(
-                                function (externalDatasources) {
-                                    externalDatasourcesController.globalDatasources = externalDatasources;
-                                    externalDatasourcesController.globalDatasources.$resolved = true;
-                                });
+                        var resolve = function (externalDatasources) {
+                            sharedDatamodel.globalDatasources = externalDatasources;
+                            sharedDatamodel.globalDatasources.$resolved = true;
+
+                            externalDatasourcesController.globalDatasources = sharedDatamodel.globalDatasources;
+                        };
+
+                        if (globalDatasources.$promise) {
+                            globalDatasources.$promise.then(resolve);
+                        } else {
+                            globalDatasources.then(resolve);
+                        }
                     }
+                } else {
+                    // already resolved ....
+                    externalDatasourcesController.globalDatasources = sharedDatamodel.globalDatasources;
                 }
 
                 // init local datasources list
@@ -77,9 +94,7 @@ angular.module(
                                 //size: size,
                                 //appendTo:elem,
                                 resolve: {
-                                    localDatasource: function () {
-                                        return {};
-                                    }
+                                    localDatasource: new ExternalDatasource()
                                 }
                             });
 
@@ -107,7 +122,7 @@ angular.module(
                                 // remove from map and styled layer control
                                 mapController.removeOverlay(localDatasource.$layer);
 
-                                // remove list
+                                // remove list and also from shared datamodel
                                 externalDatasourcesController.localDatasources.splice(idx, 1);
                             } else {
                                 console.warn("externalDatasourcesController::removeLocalDatasource: unkwon datasource?!");
@@ -123,11 +138,11 @@ angular.module(
                 externalDatasourcesController.toggleLocalDatasourceSelection =
                         function (localDatasource) {
 
-                            if (localDatasource.$layer.$selected === true) {
-                                localDatasource.$layer.$selected = false;
+                            if (localDatasource.isSelected() === true) {
+                                localDatasource.setSelected(false);
                                 mapController.unSelectOverlay(localDatasource.$layer);
                             } else {
-                                localDatasource.$layer.$selected = true;
+                                localDatasource.setSelected(true);
                                 mapController.selectOverlay(localDatasource.$layer);
                             }
 

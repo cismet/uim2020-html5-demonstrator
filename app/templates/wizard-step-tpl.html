@@ -1,11 +1,24 @@
 <section ng-show="selected" ng-class="{current: selected, done: completed}" class="step">
     <div class="panel panel-primary">
         <div class="panel-heading">
-            <h1 class="panel-title">{{wzTitle}}</h1>
+            <h1 class="panel-title">{{wzTitle}}
+            <button type="button" 
+                    class="close pull-right" 
+                    ng-click="wzData.close()">
+                <span class="fa fa-close"></span>
+            </button></h1>
         </div>
+
         <div class="panel-body">
             <div ng-transclude></div>
         </div>
+
+        <div uib-alert 
+             ng-class="'alert-' + (wzData.status.type || 'primary')"
+             style="margin: 0">
+            <span ng-bind-html="wzData.status.message" style="text-align:left"></span>
+        </div>
+
         <div class="panel-footer clearfix">
             <button type="button" 
                     class="btn btn-primary pull-right" 

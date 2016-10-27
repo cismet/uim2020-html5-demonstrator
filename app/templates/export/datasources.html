@@ -1,0 +1,85 @@
+<div id="exportDatasources"
+     ng-controller="exportDatasourcesController as datasourcesController">
+
+    <uib-accordion close-others="false">
+        <!-- Themen-->
+        <div uib-accordion-group  
+             ng-init="exportThemesOpen = true" 
+             is-open="exportThemesOpen"
+             ng-class="{'text-muted': isDisabled}">
+
+            <uib-accordion-heading>
+                <div uib-accordion-header 
+                     style="margin:0px;padding:8px;background-color:#c6e1ec;color:#3d7489">
+                    Themen
+                    <i class="pull-right glyphicon" 
+                       ng-class="{'glyphicon-chevron-down': exportThemesOpen, 'glyphicon-chevron-up': !exportThemesOpen}">
+                    </i>
+                </div>
+            </uib-accordion-heading>
+
+            <div class="checkbox" 
+                 style="width:100%;clear:right"
+                 ng-repeat="exportTheme in datasourcesController.exportThemes.exportEntitiesCollections | orderBy:'title' track by exportTheme.className">
+                <label class="form-check-label">
+                    <input 
+                        class="form-check-input"
+                        type="checkbox"
+                        name="{{exportTheme.className}}"
+                        value="{{exportTheme.title}}"
+                        ng-model="exportTheme.selected"
+                        ng-disabled="options.exportFormat === 'shp' && (exportTheme.className === 'BORIS_SITE' || exportTheme.className === 'WAGW_STATION')">
+                    {{exportTheme.title}}
+                </label>
+                <span class="text-muted"
+                    ng-if="options.exportFormat === 'shp' && (exportTheme.className === 'BORIS_SITE' || exportTheme.className === 'WAGW_STATION')">
+                    (Kein Export nach ESRI Shapefile erlaubt!)
+                </span>
+            </div>
+        </div>
+
+        <!-- Externe Datenquellen -->
+        <div uib-accordion-group  
+             ng-init="exportDatasourcesOpen = false" 
+             is-open="exportDatasourcesOpen"
+             ng-if="options.isMergeExternalDatasource">
+
+            <uib-accordion-heading>
+                <div uib-accordion-header 
+                     style="margin:0px;padding:8px;background-color:#c6e1ec;color:#3d7489">
+                    Externe Datenquellen (zum Verschneiden)
+                    <i class="pull-right glyphicon" 
+                       ng-class="{'glyphicon-chevron-down': exportThemesOpen, 'glyphicon-chevron-up': !exportThemesOpen}">
+                    </i>
+                </div>
+            </uib-accordion-heading>
+
+            <form class="form-horizontal"
+                  id="exportFormatForm"
+                  name="exportDatasourcesForm">
+                <div class="form-group row" 
+                     ng-class="{'has-error':wizard.hasError === 'exportDatasources'}"
+                     ng-repeat="(group, exportDatasources) in datasourcesController.exportDatasources | groupBy:'groupName'">
+                    <div class="col-md-12" ng-if="group !== 'Vorkonfigurierte globale Datenquellen'">
+                        <span style="display:inline-block; min-width: 400px;">
+                            <strong>{{group}}</strong>
+                        </span>
+                        <div class="radio" style="width:100%;clear:right"
+                             ng-repeat="exportDatasource in exportDatasources | orderBy:'name' track by exportDatasource.name">
+                            <label class="form-check-label">
+                                <input 
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="{{exportDatasource.name}}"
+                                    ng-value="exportDatasource"
+                                    ng-model="options.selectedExportDatasource"
+                                    ng-change="exportDatasource.toggleSelection()"> 
+                                {{exportDatasource.name}}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </uib-accordion>
+</div>

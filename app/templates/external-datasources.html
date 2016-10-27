@@ -46,7 +46,7 @@
                             class="form-check-input"
                             type="checkbox"
                             name="{{globalDatasource.name}}"
-                            ng-checked="globalDatasource.$layer && globalDatasource.$layer.$selected"
+                            ng-checked="globalDatasource.isSelected()"
                             ng-click="externalDatasourcesController.toggleGlobalDatasourceSelection(globalDatasource)"
                             ng-disabled="true"> 
                         {{globalDatasource.name}}

@@ -12,12 +12,13 @@
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.services'
         ).factory('dataService',
-        ['$resource',
-            function ($resource) {
+        ['$q', '$resource', 'ExternalDatasource', 'configurationService',
+            function ($q, $resource, ExternalDatasource, configurationService) {
                 'use strict';
 
                 var staticResourceFiles, cachedResources,
-                        lazyLoadResource, shuffleArray, searchLocations;
+                        lazyLoadResource, shuffleArray, searchLocations,
+                        extendNode;
 
                 searchLocations = [
                     {
@@ -65,7 +66,33 @@ angular.module(
                             }
                         });
 
-                        cachedResources[resourceName] = resource.query();
+                        if (resourceName === 'globalDatasources') {
+                            cachedResources[resourceName] = resource.query().$promise.then(function success(datasources) {
+                                var globalDatasources = [];
+                                globalDatasources.$promise = $q.when(globalDatasources);
+                                globalDatasources.$resolved = true;
+                                datasources.forEach(function (datasource) {
+                                    //invoke  constructor
+                                    var externalDatasource = new ExternalDatasource(datasource);
+                                    externalDatasource.global = true;
+                                    globalDatasources.push(externalDatasource);
+                                });
+                                globalDatasources.$resolved = true;
+
+                                return globalDatasources;
+                            });
+                        } else {
+                            cachedResources[resourceName] = resource.query();
+                        }
+                        
+                        if (resourceName === 'mockNodes') {
+                            cachedResources[resourceName].$promise.then(function success(mockNodes) {
+                                mockNodes.forEach(function (mockNode) {
+                                    mockNode = extendNode(mockNode);
+                                });
+                            });
+                        }
+
                         return cachedResources[resourceName];
                     } else {
                         console.warn('unknown static resource:' + resourceName);
@@ -90,6 +117,64 @@ angular.module(
                     }
 
                     return array;
+                };
+
+                extendNode = function (currentNode) {
+                    var dataObject, className;
+                    className = currentNode.classKey.split(".").slice(1, 2).pop();
+
+                    // ----------------------------------------------------------
+                    // Extend the resolved object by local properties
+                    // ----------------------------------------------------------
+
+                    /**
+                     * filtered node flag!
+                     */
+                    currentNode.$filtered = false;
+
+                    currentNode.$className = className;
+
+                    if (configurationService.featureRenderer.icons[className]) {
+                        currentNode.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
+                    }
+
+                    // FIXME: extract class name from CS_CLASS description (server-side)
+                    if (configurationService.featureRenderer.layergroupNames[className]) {
+                        currentNode.$classTitle = configurationService.featureRenderer.layergroupNames[className];
+                    } else {
+                        currentNode.$classTitle = className;
+                    }
+
+                    if (currentNode.lightweightJson) {
+                        try {
+                            dataObject = angular.fromJson(currentNode.lightweightJson);
+                            currentNode.$data = dataObject;
+                            delete currentNode.lightweightJson;
+                            // FIXME: extract class name from CS_CLASS description (server-side)
+                            /*currentNode.$classTitle = dataObject.classTitle ?
+                             dataObject.classTitle : classTitle;*/
+
+                            // extract PKs for Oracle DWH Export
+                            /* jshint loopfunc:true */
+                            Object.keys(configurationService.export.exportPKs).forEach(function (key, index) {
+                                if (currentNode.$className === key && 
+                                        typeof dataObject[configurationService.export.exportPKs[key]] !== 'undefined' &&
+                                        dataObject[configurationService.export.exportPKs[key]] !== null) {
+                                    // cast to string as generic export action supports only String collection for PKs
+                                    currentNode.$exportPK = String(dataObject[configurationService.export.exportPKs[key]]);
+                                }
+                            });
+
+                            if (typeof currentNode.$exportPK === 'undefined' || currentNode.$exportPK === null) {
+                                console.warn('searchService::extractExportPKs -> no export PK found for node ' + currentNode.objectKey);
+                            }
+
+                        } catch (err) {
+                            console.error(err.message);
+                        }
+                    }
+                    
+                    return currentNode;
                 };
 
                 //lazyLoadResource('searchPollutants', true);
@@ -117,7 +202,8 @@ angular.module(
                         }
 
                         return mockNodes;
-                    }
+                    },
+                    extendNode: extendNode
                 };
             }]
         );

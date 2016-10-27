@@ -195,20 +195,21 @@ angular.module(
                 /**
                  * 
                  * @param {type} buffer
-                 * @param {type} fileName
+                 * @param {type} filename
                  * @returns {undefined}
                  * 
                  */
                 createOverlayLayer = function (localDatasource, geojson, progressCallBack) {
-                    var geoJsonLayer, overlayLayer, i, deferred, isPointLayer;
+                    var geoJsonLayer, overlayLayer, i, deferred, isPointLayer, parameters;
 
                     i = 0;
+                    parameters = [];
                     isPointLayer = true;
                     deferred = $q.defer();
 
                     //$timeout(function () {
 
-                    geojson.fileName = localDatasource.fileName;
+                    geojson.filename = localDatasource.filename;
 
                     // onEachFeature: Helper Method for GeoJson Features to open a popup dialog for each Feature
                     geoJsonLayer = L.geoJson(geojson, {
@@ -216,6 +217,17 @@ angular.module(
 
                             // set to false on first non-point feature
                             isPointLayer = isPointLayer === false ? false : (feature.geometry.type === 'Point');
+
+                            // set export parameters from 1st feature
+                            if (parameters.length === 0) {
+                                Object.keys(feature.properties).forEach(function (parameterName) {
+                                    parameters.push({
+                                        parameterpk: parameterName,
+                                        parametername: parameterName,
+                                        selected: false
+                                    });
+                                });
+                            }
 
                             if (feature.properties) {
                                 layer.bindPopup(Object.keys(feature.properties).map(function (k) {
@@ -241,7 +253,7 @@ angular.module(
                     }
 
                     overlayLayer.$name = localDatasource.name;
-                    overlayLayer.$key = localDatasource.fileName;
+                    overlayLayer.$key = localDatasource.filename;
                     overlayLayer.$selected = true;
 
                     // SyledLayerControlProperties
@@ -250,9 +262,10 @@ angular.module(
                         visible: false
                     };
 
-                    localDatasource.$layer = overlayLayer;
+                    localDatasource.setParameters(parameters);
+                    localDatasource.setLayer(overlayLayer);
 
-                    console.log('featureRendererService::createOverlayLayer -> resolve(overlayLayer)');
+                    //console.log('featureRendererService::createOverlayLayer -> resolve(overlayLayer)');
                     if (progressCallBack) {
                         progressCallBack(geojson.features.length, geojson.features.length);
                     }

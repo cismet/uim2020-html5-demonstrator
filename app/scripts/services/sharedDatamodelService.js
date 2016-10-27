@@ -17,35 +17,34 @@ angular.module(
 
                 // auth token
                 this.identity = null;
-                
+
                 // resolved entity
                 this.resolvedEntity = null;
-                
+
                 // search selection
                 this.selectedSearchThemes = [];
                 this.selectedSearchPollutants = [];
                 this.selectedGazetteerLocation = {};
                 //this.selectedSearchGeometry = {};
                 this.selectedSearchLocation = {
-                    id:0
+                    id: 0
                 };
 
                 // search results
                 this.resultNodes = [];
                 this.analysisNodes = [];
-                
+
                 // postfilters
                 this.filteredResultNodes = [];
-                
+
                 // data import
-                this.selectedGlobalDatasources = [];
+                this.globalDatasources = [];
                 this.localDatasources = [];
-                this.selectedLocalDatasources = [];
-                
+
                 this.status = {};
                 this.status.type = 'success';
                 this.status.message = 'UIM-2020 Demonstrator Datenintegration';
                 this.status.progress = {};
                 this.status.progress.current = 0;
-                this.status.progress.max = 0;  
+                this.status.progress.max = 0;
             }]);

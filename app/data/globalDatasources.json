@@ -1,25 +1,174 @@
 [{
         "id": 0,
-        "name": "Bodenkarte aus dem Hydrologischen Atlas Österreichs"
+        "name": "Bodenkarte aus dem Hydrologischen Atlas Österreichs",
+        "filename": "bdk.zip",
+        "parameters": [{
+                "parameterpk": "A",
+                "parametername": "A",
+                "selected": false
+            }, {
+                "parameterpk": "B",
+                "parametername": "B",
+                "selected": false
+            }, {
+                "parameterpk": "C",
+                "parametername": "C",
+                "selected": false
+            }, {
+                "parameterpk": "D",
+                "parametername": "D",
+                "selected": false
+            }, {
+                "parameterpk": "E",
+                "parametername": "F",
+                "selected": false
+            }, {
+                "parameterpk": "G",
+                "parametername": "G",
+                "selected": false
+            }, {
+                "parameterpk": "H",
+                "parametername": "H",
+                "selected": false
+            },
+            {
+                "parameterpk": "I",
+                "parametername": "I",
+                "selected": false
+            }, {
+                "parameterpk": "J",
+                "parametername": "J",
+                "selected": false
+            }, {
+                "parameterpk": "K",
+                "parametername": "K",
+                "selected": false
+            }] 
     },
     {
-        "id": 0,
-        "name": "Einzugsgebiet 100km"
+        "id": 1,
+        "name": "Einzugsgebiet 100km",
+        "ezgb.zip": "bdk.zip",
+        "parameters": [{
+                "parameterpk": "C",
+                "parametername": "C",
+                "selected": false
+            }, {
+                "parameterpk": "D",
+                "parametername": "D",
+                "selected": false
+            }, {
+                "parameterpk": "H",
+                "parametername": "H",
+                "selected": false
+            }, {
+                "parameterpk": "J",
+                "parametername": "J",
+                "selected": false
+            }] 
     },
     {
-        "id": 0,
-        "name": "FAO Bodentypen"
+        "id": 2,
+        "name": "FAO Bodentypen",
+        "filename": "FAO.zip",
+        "parameters": [{
+                "parameterpk": "B",
+                "parametername": "B",
+                "selected": false
+            }, {
+                "parameterpk": "C",
+                "parametername": "C",
+                "selected": false
+            }, {
+                "parameterpk": "G",
+                "parametername": "G",
+                "selected": false
+            }, {
+                "parameterpk": "H",
+                "parametername": "H",
+                "selected": false
+            }] 
     },
     {
-        "id": 0,
-        "name": "Forstliche Wuchsgebiete Österreichs"
+        "id": 3,
+        "name": "Forstliche Wuchsgebiete Österreichs",
+        "filename": "WSGÖ.zip",
+        "parameters": [{
+                "parameterpk": "A",
+                "parametername": "A",
+                "selected": false
+            }, {
+                "parameterpk": "B",
+                "parametername": "B",
+                "selected": false
+            }, {
+                "parameterpk": "H",
+                "parametername": "H",
+                "selected": false
+            }, {
+                "parameterpk": "J",
+                "parametername": "J",
+                "selected": false
+            }, {
+                "parameterpk": "K",
+                "parametername": "K",
+                "selected": false
+            }] 
     },
     {
-        "id": 0,
-        "name": "Oberflächennahe GWK"
+        "id": 4,
+        "name": "Oberflächennahe GWK",
+        "filename": "GWK.zip",
+        "parameters": [{
+                "parameterpk": "D",
+                "parametername": "D",
+                "selected": false
+            }, {
+                "parameterpk": "E",
+                "parametername": "F",
+                "selected": false
+            }, {
+                "parameterpk": "G",
+                "parametername": "G",
+                "selected": false
+            }, {
+                "parameterpk": "H",
+                "parametername": "H",
+                "selected": false
+            }, {
+                "parameterpk": "J",
+                "parametername": "J",
+                "selected": false
+            }, {
+                "parameterpk": "K",
+                "parametername": "K",
+                "selected": false
+            }] 
     },
     {
-        "id": 0,
-        "name": "Standorte"
+        "id": 5,
+        "name": "Standorte",
+        "filename": "Standorte.zip",
+        "parameters": [{
+                "parameterpk": "C",
+                "parametername": "C",
+                "selected": false
+            }, {
+                "parameterpk": "D",
+                "parametername": "D",
+                "selected": false
+            }, {
+                "parameterpk": "E",
+                "parametername": "F",
+                "selected": false
+            }, {
+                "parameterpk": "J",
+                "parametername": "J",
+                "selected": false
+            }, {
+                "parameterpk": "K",
+                "parametername": "K",
+                "selected": false
+            }] 
     }
 ]

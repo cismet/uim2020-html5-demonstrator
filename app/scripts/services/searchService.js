@@ -12,8 +12,8 @@
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.services'
         ).factory('searchService',
-        ['$resource', '$q', '$interval', 'configurationService', 'authenticationService',
-            function ($resource, $q, $interval, configurationService, authenticationService) {
+        ['$resource', '$q', '$interval', 'configurationService', 'authenticationService', 'dataService',
+            function ($resource, $q, $interval, configurationService, authenticationService, dataService) {
                 'use strict';
 
                 var cidsRestApiConfig, defaultSearchFunction;
@@ -120,7 +120,7 @@ angular.module(
                     defaultRestApiSearchResult.$promise.then(
                             function success(searchResult) {
                                 //console.log('searchService::defaultSearchFunction()->success()');
-                                var key, i, length, currentNode, dataObject, className, classTitle;
+                                var key, i, length;
                                 // doing the same as ngResource: copying the results in the already returned obj (shallow)
                                 for (key in searchResult) {
                                     if (searchResult.hasOwnProperty(key) &&
@@ -130,45 +130,7 @@ angular.module(
                                         if (key === '$collection' && angular.isArray(defaultSearchResult.$collection)) {
                                             length = defaultSearchResult.$collection.length;
                                             for (i = 0; i < length; i++) {
-                                                currentNode = defaultSearchResult.$collection[i];
-
-                                                className = currentNode.classKey.split(".").slice(1, 2).pop();
-
-                                                // ----------------------------------------------------------
-                                                // Extend the resolved object by local properties
-                                                // ----------------------------------------------------------
-
-                                                /**
-                                                 * filtered node flag!
-                                                 */
-                                                currentNode.$filtered = false;
-
-                                                currentNode.$className = className;
-
-                                                if (configurationService.featureRenderer.icons[className]) {
-                                                    currentNode.$icon = configurationService.featureRenderer.icons[className].options.iconUrl;
-                                                }
-
-                                                // FIXME: extract class name from CS_CLASS description (server-side)
-                                                if (configurationService.featureRenderer.layergroupNames[className]) {
-                                                    currentNode.$classTitle = configurationService.featureRenderer.layergroupNames[className];
-                                                } else {
-                                                    currentNode.$classTitle = className;
-                                                }
-
-                                                if (currentNode.lightweightJson) {
-                                                    try {
-                                                        dataObject = angular.fromJson(currentNode.lightweightJson);
-                                                        currentNode.$data = dataObject;
-                                                        delete currentNode.lightweightJson;
-                                                        // FIXME: extract class name from CS_CLASS description (server-side)
-                                                        /*currentNode.$classTitle = dataObject.classTitle ?
-                                                         dataObject.classTitle : classTitle;*/
-                                                    } catch (err) {
-                                                        console.error(err.message);
-                                                    }
-                                                }
-                                                // ----------------------------------------------------------
+                                                dataService.extendNode(defaultSearchResult.$collection[i]);
                                             }
                                         }
                                     }

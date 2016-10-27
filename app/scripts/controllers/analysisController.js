@@ -14,9 +14,9 @@ angular.module(
         ).controller(
         'analysisController',
         [
-            '$timeout', '$scope', '$state', 'dataService', 'sharedDatamodel', 'sharedControllers',
+            '$timeout', '$scope', '$state', 'sharedDatamodel', 'sharedControllers',
             'leafletData',
-            function ($timeout, $scope, $state, dataService, sharedDatamodel,
+            function ($timeout, $scope, $state, sharedDatamodel,
                     sharedControllers, leafletData) {
                 'use strict';
 
@@ -33,12 +33,12 @@ angular.module(
                     sharedDatamodel.analysisNodes.length = 0;
                     sharedControllers.analysisMapController.clearNodes();
                 };
-                
+
                 analysisController.gotoNodes = function () {
                     sharedControllers.analysisMapController.gotoNodes();
                 };
-                
-                analysisController.hasNodes = function() {
+
+                analysisController.hasNodes = function () {
                     return sharedDatamodel.analysisNodes.length > 0;
                 };
 
@@ -70,6 +70,21 @@ angular.module(
                         }
                     }
                 });
+                
+                // <editor-fold defaultstate="collapsed" desc="[!!!!] MOCK DATA (DISABLED) ----------------">        
+                /*var loadMockNodes = function (mockNodes) {
+                    if (mockNodes.$resolved) {
+                        sharedDatamodel.analysisNodes.length = 0;
+                        sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, mockNodes);
+                    } else {
+                        mockNodes.$promise.then(function (resolvedMockNodes) {
+                            loadMockNodes(resolvedMockNodes);
+                        });
+                    }
+                };
+
+                loadMockNodes(dataService.getMockNodes());*/
+                // </editor-fold>
             }
         ]
         );

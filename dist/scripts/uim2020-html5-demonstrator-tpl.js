@@ -61,6 +61,49 @@ angular.module('').run(['$templateCache', function($templateCache) {
   );
 
 
+  $templateCache.put('templates/export-progress-modal.html',
+    "<div class=\"modal-header\">\r" +
+    "\n" +
+    "    <center><h4>Bitte warten Sie, der Datenexport wird durchgeführt.</h4></center>\r" +
+    "\n" +
+    "</div>\r" +
+    "\n" +
+    "<div class=\"modal-body\">\r" +
+    "\n" +
+    "    <div class=\"row\">\r" +
+    "\n" +
+    "        <div class=\"col-lg-12\">\r" +
+    "\n" +
+    "            <uib-progressbar class=\"progress-striped active\" \r" +
+    "\n" +
+    "                         max=\"300\" \r" +
+    "\n" +
+    "                         value=\"status.progress.current\" \r" +
+    "\n" +
+    "                         type=\"{{status.type}}\">\r" +
+    "\n" +
+    "            </uib-progressbar>\r" +
+    "\n" +
+    "        </div>\r" +
+    "\n" +
+    "    </div>\r" +
+    "\n" +
+    "    <div class=\"row\">\r" +
+    "\n" +
+    "        <div class=\"col-lg-12\">\r" +
+    "\n" +
+    "            <span><i>{{status.message}}</i></span>\r" +
+    "\n" +
+    "        </div>\r" +
+    "\n" +
+    "    </div>\r" +
+    "\n" +
+    "</div>\r" +
+    "\n" +
+    "<div class=\"modal-footer\"><!-- empty --></div>"
+  );
+
+
   $templateCache.put('templates/external-datasource-modal.html',
     "<div class=\"modal-header\">\r" +
     "\n" +
@@ -393,7 +436,7 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "                            name=\"{{globalDatasource.name}}\"\r" +
     "\n" +
-    "                            ng-checked=\"globalDatasource.$layer && globalDatasource.$layer.$selected\"\r" +
+    "                            ng-checked=\"globalDatasource.isSelected()\"\r" +
     "\n" +
     "                            ng-click=\"externalDatasourcesController.toggleGlobalDatasourceSelection(globalDatasource)\"\r" +
     "\n" +
@@ -571,15 +614,41 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "        <div class=\"panel-heading\">\r" +
     "\n" +
-    "            <h1 class=\"panel-title\">{{wzTitle}}</h1>\r" +
+    "            <h1 class=\"panel-title\">{{wzTitle}}\r" +
+    "\n" +
+    "            <button type=\"button\" \r" +
+    "\n" +
+    "                    class=\"close pull-right\" \r" +
+    "\n" +
+    "                    ng-click=\"wzData.close()\">\r" +
+    "\n" +
+    "                <span class=\"fa fa-close\"></span>\r" +
+    "\n" +
+    "            </button></h1>\r" +
     "\n" +
     "        </div>\r" +
+    "\n" +
+    "\r" +
     "\n" +
     "        <div class=\"panel-body\">\r" +
     "\n" +
     "            <div ng-transclude></div>\r" +
     "\n" +
     "        </div>\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "        <div uib-alert \r" +
+    "\n" +
+    "             ng-class=\"'alert-' + (wzData.status.type || 'primary')\"\r" +
+    "\n" +
+    "             style=\"margin: 0\">\r" +
+    "\n" +
+    "            <span ng-bind-html=\"wzData.status.message\" style=\"text-align:left\"></span>\r" +
+    "\n" +
+    "        </div>\r" +
+    "\n" +
+    "\r" +
     "\n" +
     "        <div class=\"panel-footer clearfix\">\r" +
     "\n" +

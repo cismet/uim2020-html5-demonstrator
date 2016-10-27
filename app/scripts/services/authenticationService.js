@@ -143,7 +143,7 @@ angular.module(
                 getAuthorizationToken = function () {
                     return isAuthenticated() ? _identity.authorizationToken : null;
                 };
-
+                
                 clearIdentity = function () {
                     _identity = null;
                     $cookieStore.put(configurationService.authentication.cookie, null);

@@ -25,14 +25,14 @@ angular.module(
                         wagwClusterGroupOptions, waowClusterGroupOptions;
 
                 configurationService = this;
-                configurationService.developmentMode = true;
 
                 // <editor-fold defaultstate="collapsed" desc="=== cidsRestApi ===========================">
                 configurationService.cidsRestApi = {};
-                //configurationService.cidsRestApi.host = 'http://localhost:8890';
-                configurationService.cidsRestApi.host = 'http://DEMO-NOTEBOOK:8890';
+                configurationService.cidsRestApi.host = 'http://localhost:8890';
+                //configurationService.cidsRestApi.host = 'http://DEMO-NOTEBOOK:8890';
                 configurationService.cidsRestApi.domain = 'UDM2020-DI';
-                configurationService.cidsRestApi.defaultRestApiSearch = 'de.cismet.cids.custom.udm2020di.serversearch.DefaultRestApiSearch';
+                configurationService.cidsRestApi.defaultRestApiSearch = 'de.cismet.cids.custom.udm2020di.serversearch.rest.DefaultRestApiSearch';
+                configurationService.cidsRestApi.restApiExportAction = 'restApiExportAction';
                 //configurationService.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
                 //configurationService.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
                 // </editor-fold>
@@ -547,5 +547,18 @@ angular.module(
                 // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="=== EXPORT ===========================">
                 configurationService.export = {};
+                configurationService.export.exportPKs = {};
+                configurationService.export.exportPKs.MOSS = 'sampleid';
+                configurationService.export.exportPKs.EPRTR_INSTALLATION = 'erasid';
+                configurationService.export.exportPKs.WAOW_STATION = 'pk';
+                configurationService.export.exportPKs.WAGW_STATION = 'pk';
+                configurationService.export.exportPKs.BORIS_SITE = 'pk';
+                configurationService.export.exportFileBase = 'uim2020-di-export';
+
+                /**
+                 * Export Formats as specified in de.cismet.cids.custom.udm2020di.serveractions.AbstractExportAction!
+                 */
+                configurationService.export.exportFormats = ['CSV Datei', 'Excel Datei (XLSX)', 'ESRI Shape Datei'];
+
                 // </editor-fold>
             }]);
