@@ -967,15 +967,16 @@ angular.module(
         'de.cismet.uim2020-html5-demonstrator.controllers'
         ).controller(
         'exportConfigurationController', [
-            '$scope', 'configurationService',
-            function ($scope, configurationService) {
+            '$scope', 'configurationService', 'sharedDatamodel',
+            function ($scope, configurationService, sharedDatamodel) {
                 'use strict';
 
                 var configurationController = this;
                 configurationController.exportFormats = configurationService.export.exportFormats;
 
                 $scope.options.isMergeExternalDatasource = false;
-                $scope.options.isMergeExternalDatasourceEnabled = false; //sharedDatamodel.localDatasources.length > 0 || sharedDatamodel.globalDatasources.length > 0;
+                $scope.options.isMergeExternalDatasourceEnabled = sharedDatamodel.localDatasources.length > 0 ? true : false;
+                // || sharedDatamodel.globalDatasources.length > 0;
                 $scope.options.exportFormat = 'xlsx'; //configurationController.exportFormats[0];
 
                 // ENTER VALIDATION --------------------------------------------
@@ -1029,9 +1030,9 @@ angular.module(
         ).controller(
         'exportController', [
             '$scope', '$rootScope', '$timeout', '$uibModal', '$state', '$uibModalInstance',
-            'configurationService', 'sharedDatamodel', 'exportService',
+            'sharedDatamodel', 'exportService',
             function ($scope, $rootScope, $timeout, $uibModal, $state, $uibModalInstance,
-                    configurationService, sharedDatamodel, exportService) {
+                    sharedDatamodel, exportService) {
                 'use strict';
 
                 var exportController, progressModal, showProgressModal, exportProcessCallback;
@@ -1152,7 +1153,7 @@ angular.module(
                             if (progressModal) {
                                 progressModal.close($scope.status.message);
                             }
-                        }, 2000);
+                        }, 500);
                     }
                 };
                 // </editor-fold>
@@ -1162,7 +1163,7 @@ angular.module(
                     // manually call exit validator on finish step exit
                     if ($scope.wizard.exitValidators['Parameter']({}) === true)
                     {
-                        var exportOptions, promise;
+                        var exportOptions, externalDatasourceData, promise;
 
                         $scope.status.type = 'info';
                         if ($scope.options.selectedExportThemes.length === 1) {
@@ -1179,6 +1180,22 @@ angular.module(
 
                         exportOptions = angular.copy($scope.options);
 
+                        if (exportOptions.isMergeExternalDatasource === true) {
+                            if (typeof $scope.options.selectedExportDatasource !== 'undefined' &&
+                                    $scope.options.selectedExportDatasource !== null &&
+                                    typeof $scope.options.selectedExportDatasource.data !== 'undefined' &&
+                                    $scope.options.selectedExportDatasource.data !== null) {
+                                externalDatasourceData = $scope.options.selectedExportDatasource.data;
+                                //console.debug('exportController::finishedWizard -> merge with external datasource: ');
+                            } else {
+                                console.error('exportController::finishedWizard -> isMergeExternalDatasource is true but external datasources data (zipped geoJson) is null!');
+                                externalDatasourceData = null;
+                            }
+                        } else {
+                            externalDatasourceData = null;
+                            //console.debug('exportController::finishedWizard -> do not merge with external datasource');
+                        }
+
                         // clean ExportOptions from obsolete properties before submitting to REST API ------
                         // See de.cismet.cids.custom.udm2020di.types.rest.ExportOptions for required properties
                         delete exportOptions.selectedExportDatasource;
@@ -1192,19 +1209,28 @@ angular.module(
                                     exportEntitiesCollection.parameters.splice(i, 1);
                                 }
                             }
-                            if (typeof exportEntitiesCollection.exportDatasource !== 'undefined' &&
-                                    exportEntitiesCollection.exportDatasource !== null) {
-                                for (var i = exportEntitiesCollection.exportDatasource.parameters.length - 1; i >= 0; i--) {
-                                    // keep only selected parameters
-                                    if (!exportEntitiesCollection.exportDatasource.parameters[i].selected) {
-                                        exportEntitiesCollection.exportDatasource.parameters.splice(i, 1);
+
+                            if (exportOptions.isMergeExternalDatasource === true && externalDatasourceData !== null) {
+                                if (typeof exportEntitiesCollection.exportDatasource !== 'undefined' &&
+                                        exportEntitiesCollection.exportDatasource !== null) {
+                                    exportEntitiesCollection.exportDatasource.data = null;
+                                    for (var i = exportEntitiesCollection.exportDatasource.parameters.length - 1; i >= 0; i--) {
+                                        // keep only selected parameters
+                                        if (!exportEntitiesCollection.exportDatasource.parameters[i].selected) {
+                                            exportEntitiesCollection.exportDatasource.parameters.splice(i, 1);
+                                        }
                                     }
+                                } else {
+                                    console.error('exportController::finishedWizard -> isMergeExternalDatasource is true but external datasources "' +
+                                            exportEntitiesCollection.title + '" data (zipped geoJson) is null!');
                                 }
+                            } else {
+                                exportEntitiesCollection.exportDatasource = null;
                             }
                         });
                         // -----------------------------------------------------
 
-                        promise = exportService.export(exportOptions, exportOptions, exportProcessCallback);
+                        promise = exportService.export(exportOptions, externalDatasourceData, exportProcessCallback);
                         promise.then(
                                 function  callback(success) {
                                     if (success === true) {
@@ -1214,7 +1240,7 @@ angular.module(
                                     } else {
                                         $timeout(function () {
                                             $uibModalInstance.dismiss('error');
-                                        }, 2200);
+                                        }, 600);
                                     }
                                 });
                     }
@@ -1228,6 +1254,7 @@ angular.module(
                                 $scope.status.type = 'info';
                             }
                         }).finally(function () {
+                    console.log('exportController::finishedWizard -> closing modal');
                     $state.go('main.analysis.map');
                 });
 
@@ -1346,7 +1373,7 @@ angular.module(
                                 if (numForbiddenDatasources > 0) {
                                     forbiddenDatasources += ', ';
                                 }
-                                
+
                                 numForbiddenDatasources++;
                                 forbiddenDatasources += exportEntitiesCollection.title;
                             }
@@ -1361,13 +1388,13 @@ angular.module(
                         }
                     }
 
-                    if ($scope.options.isMergeExternalDatasource) {
+                    if ($scope.options.isMergeExternalDatasource === true) {
                         if (datasourcesController.exportDatasources.length > 0) {
                             // select 1st ext. datasource by default
-                            if ($scope.options.selectedExportDatasource === null) {
-                                datasourcesController.exportDatasources[0].setSelected(true);
-                                $scope.options.selectedExportDatasource = datasourcesController.exportDatasources[0];
-                            }
+                            /*if ($scope.options.selectedExportDatasource === null) {
+                             datasourcesController.exportDatasources[0].setSelected(true);
+                             $scope.options.selectedExportDatasource = datasourcesController.exportDatasources[0];
+                             }*/
                         } else {
                             $scope.status.message = 'Es sind keine externen Datenquellen zum Verschneiden verfügbar.';
                             $scope.status.type = 'warning';
@@ -1391,6 +1418,22 @@ angular.module(
                 // EXIT VALIDATION ---------------------------------------------
                 $scope.wizard.exitValidators['Datenquellen'] = function (context) {
                     context.valid = true;
+
+                    // check external datasources
+                    if ($scope.options.isMergeExternalDatasource === true) {
+                        if ($scope.options.selectedExportDatasource === null) {
+                            $scope.status.message = 'Bitte wählen Sie eine externe Datenquellen zum Verschneiden aus.';
+                            $scope.status.type = 'warning';
+                            context.valid = false;
+                            return context.valid;
+                        } else if ($scope.options.selectedExportDatasource.data === null) {
+                            $scope.status.message = 'Die externe Datenquelle "' +
+                                    $scope.options.selectedExportDatasource.name + " enthält keine kompatiblen Daten zum Verschneiden!";
+                            $scope.status.type = 'danger';
+                            context.valid = false;
+                            return context.valid;
+                        }
+                    }
 
                     // check export themes
                     $scope.options.selectedExportThemes = datasourcesController.exportThemes.getSelectedExportEntitiesCollections();
@@ -1418,6 +1461,7 @@ angular.module(
                                 if (exportEntitiesCollection.hasExportDatasource($scope.options.selectedExportDatasource) === false) {
                                     // make a copy because selected parameters can change for each selected theme
                                     exportEntitiesCollection.exportDatasource = angular.copy($scope.options.selectedExportDatasource);
+                                    exportEntitiesCollection.exportDatasource.data = null;
                                 }
                             });
                         }
@@ -1806,6 +1850,9 @@ angular.module(
                                 importController.status.message = 'Die Datei "' + localDatasource.filename + '" konnte nicht geladen werden: ' + reader.error;
                             });
                         } else {
+                            // store zip file as blob
+                            localDatasource.data = new Blob([arrayBuffer], {type: 'application/zip'});
+                            
                             $scope.$apply(function () {
                                 importController.importProgress = 100;
                             });
@@ -1881,6 +1928,22 @@ angular.module(
 
                                 if (isCreateOverlayLayer === true) {
                                     importController.status.message = geojson.features.length + ' Features werden verarbeitet.';
+                                    
+                                    // disable zipping GeoJson -> send the original SHP.ZIP instead!
+                                    /*
+                                    var zip = new JSZip();
+                                    zip.file(localDatasource.name + '.geojson', angular.toJson(geojson));
+                                    zip.generateAsync({type: "blob"})
+                                            .then(function success(blob) {
+                                                console.log('importController::convertToLayer -> zipping geoJson: ' + blob.type);
+                                                localDatasource.data = blob;
+                                                //saveAs(blob, localDatasource.filename + '.zip');
+                                            }, function error(error) {
+                                                console.error('importController::convertToLayer -> could not zip GeoJson of file "' +
+                                                        localDatasource.name + '": ' + angular.toJson(error));
+                                            });
+                                    */
+
                                     // return new promise
                                     return featureRendererService.createOverlayLayer(
                                             localDatasource, geojson, updateProgress);
@@ -2482,7 +2545,8 @@ angular.module(
                  */
                 selectNode = function (node) {
                     var icon;
-
+                    // FIXME: ->  Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+                    // when node has been removed from map!
                     // reset selection
                     if (selectedNode !== node && selectedNode !== null && selectedNode.$feature) {
                         icon = featureRendererService.getIconForNode(selectedNode);
@@ -2767,6 +2831,9 @@ angular.module(
                     var feature, featureGroupLayer, layerControlId;
                     if (mapController.mode === 'analysis') {
                         if (node && node.$feature && node.$feature.$groupKey) {
+                            if (node === selectedNode) {
+                                selectedNode = null;
+                            }
                             feature = node.$feature;
                             // feature belongs to feature layer -> $groupKey
                             layerControlId = layerControlMappings[feature.$groupKey];
@@ -2794,6 +2861,7 @@ angular.module(
                 mapController.clearNodes = function () {
                     var nodeLayerControlIds, featureGroupLayer;
 
+                    selectedNode = null;
                     nodeLayerControlIds = [
                         layerControlMappings.BORIS_SITE,
                         layerControlMappings.EPRTR_INSTALLATION,
@@ -3172,15 +3240,15 @@ angular.module(
 
                         if (removedLayer.StyledLayerControl &&
                                 layerControl._layers[L.stamp(removedLayer)]) {
-                            
-                            if(removedLayer.StyledLayerControl.removable) {
+
+                            if (removedLayer.StyledLayerControl.removable) {
                                 // bugfix-hack for StyledLayerControl.
                                 // FIXME: removes also layers from layercontrol that are just deselected!
                                 layerControl.removeLayer(removedLayer);
                             } else {
                                 // bugfix-hack for StyledLayerControl: layer deselected instead of removed ...
                                 removedLayer.$selected = false;
-                            } 
+                            }
                         }
 
                         /*console.log('mapController:: layer removed: ' + removedLayer.$name +
@@ -4960,7 +5028,7 @@ angular.module('de.cismet.uim2020-html5-demonstrator.services')
                          * @param {type} progressCallback
                          * @returns {undefined}
                          */
-                        exportFunction = function (exportOptions, externalDatasource, progressCallback) {
+                        exportFunction = function (exportOptions, externalDatasourceData, progressCallback) {
 
                             var noop, timer, fakeProgress, httpRequest, promise;
 
@@ -5019,7 +5087,12 @@ angular.module('de.cismet.uim2020-html5-demonstrator.services')
                                     // the browser will do a 'toString()' on the object which will result 
                                     // in the value '[Object object]' on the server.
                                     formData.append("taskparams", new Blob([angular.toJson(data.taskparams)], {type: 'application/json'}));
-                                    formData.append("file", new Blob([angular.toJson(data.file)], {type: 'application/json'}));
+                                    if (typeof data.file !== 'undefined' && data.file !== null) {
+                                        formData.append("file", data.file);
+                                        console.log('exportService::export -> sending "' + data.file.type + '" file');
+                                    } else {
+                                        console.log('exportService::export -> do not sending body parameter (file is null)');
+                                    }
                                     return formData;
                                 },
                                 // set responseType to blob!
@@ -5030,10 +5103,8 @@ angular.module('de.cismet.uim2020-html5-demonstrator.services')
                                 data: {
                                     taskparams: {'actionKey': 'restApiExportAction',
                                         'description': 'Export Meta-Data Repository to CSV',
-                                        'parameters':
-                                                {'exportOptions': angular.toJson(exportOptions)}
-                                    },
-                                    file: externalDatasource
+                                        'parameters': {'\exportOptions': angular.toJson(exportOptions)}},
+                                    file: externalDatasourceData
                                 }
                             });
 
@@ -5327,14 +5398,14 @@ angular.module(
 
                             // set to false on first non-point feature
                             isPointLayer = isPointLayer === false ? false : (feature.geometry.type === 'Point');
-                            
+
                             // set export parameters from 1st feature
-                            if(parameters.length === 0) {
-                                Object.keys(feature.properties).forEach(function(parameterName){
+                            if (parameters.length === 0) {
+                                Object.keys(feature.properties).forEach(function (parameterName) {
                                     parameters.push({
-                                        parameterpk:parameterName,
-                                        parametername:parameterName,
-                                        selected:false
+                                        parameterpk: parameterName,
+                                        parametername: parameterName,
+                                        selected: false
                                     });
                                 });
                             }
@@ -5375,7 +5446,7 @@ angular.module(
                     localDatasource.setParameters(parameters);
                     localDatasource.setLayer(overlayLayer);
 
-                    console.log('featureRendererService::createOverlayLayer -> resolve(overlayLayer)');
+                    //console.log('featureRendererService::createOverlayLayer -> resolve(overlayLayer)');
                     if (progressCallBack) {
                         progressCallBack(geojson.features.length, geojson.features.length);
                     }
@@ -5997,6 +6068,7 @@ angular.module(
                     this.filename = externalDatasource.filename;
                     this.groupName = '';
                     this.selected = false;
+                    this.data = externalDatasource.data;
                     this.setGlobal(externalDatasource.global);
                     this.parameters = [];
 
@@ -6009,9 +6081,9 @@ angular.module(
                     this.global = global;
 
                     if (global === true) {
-                        this.groupName = 'Eigene lokale Datenquellen';
-                    } else {
                         this.groupName = 'Vorkonfigurierte globale Datenquellen';
+                    } else {
+                        this.groupName = 'Eigene lokale Datenquellen';
                     }
                 };
 
@@ -6442,6 +6514,7 @@ angular.module(
                     this.filename = null;
                     this.global = false;
                     this.parameters = [];
+                    this.data = null;
 
                     // copy properties from externalDatasource object (angular resource)
                     // and ignore $resolved and $promise

@@ -137,7 +137,7 @@ angular.module(
                             if (progressModal) {
                                 progressModal.close($scope.status.message);
                             }
-                        }, 2000);
+                        }, 500);
                     }
                 };
                 // </editor-fold>
@@ -164,17 +164,20 @@ angular.module(
 
                         exportOptions = angular.copy($scope.options);
 
-
                         if (exportOptions.isMergeExternalDatasource === true) {
-                            if ($scope.options.selectedExportDatasource !== null &&
+                            if (typeof $scope.options.selectedExportDatasource !== 'undefined' &&
+                                    $scope.options.selectedExportDatasource !== null &&
+                                    typeof $scope.options.selectedExportDatasource.data !== 'undefined' &&
                                     $scope.options.selectedExportDatasource.data !== null) {
                                 externalDatasourceData = $scope.options.selectedExportDatasource.data;
+                                //console.debug('exportController::finishedWizard -> merge with external datasource: ');
                             } else {
-                                console.error("exportController::finishedWizard -> isMergeExternalDatasource is true but external datasource's data (zipped geoJson) is null!");
+                                console.error('exportController::finishedWizard -> isMergeExternalDatasource is true but external datasources data (zipped geoJson) is null!');
                                 externalDatasourceData = null;
                             }
                         } else {
                             externalDatasourceData = null;
+                            //console.debug('exportController::finishedWizard -> do not merge with external datasource');
                         }
 
                         // clean ExportOptions from obsolete properties before submitting to REST API ------
@@ -194,12 +197,16 @@ angular.module(
                             if (exportOptions.isMergeExternalDatasource === true && externalDatasourceData !== null) {
                                 if (typeof exportEntitiesCollection.exportDatasource !== 'undefined' &&
                                         exportEntitiesCollection.exportDatasource !== null) {
+                                    exportEntitiesCollection.exportDatasource.data = null;
                                     for (var i = exportEntitiesCollection.exportDatasource.parameters.length - 1; i >= 0; i--) {
                                         // keep only selected parameters
                                         if (!exportEntitiesCollection.exportDatasource.parameters[i].selected) {
                                             exportEntitiesCollection.exportDatasource.parameters.splice(i, 1);
                                         }
                                     }
+                                } else {
+                                    console.error('exportController::finishedWizard -> isMergeExternalDatasource is true but external datasources "' +
+                                            exportEntitiesCollection.title + '" data (zipped geoJson) is null!');
                                 }
                             } else {
                                 exportEntitiesCollection.exportDatasource = null;
@@ -217,7 +224,7 @@ angular.module(
                                     } else {
                                         $timeout(function () {
                                             $uibModalInstance.dismiss('error');
-                                        }, 2200);
+                                        }, 600);
                                     }
                                 });
                     }
@@ -231,6 +238,7 @@ angular.module(
                                 $scope.status.type = 'info';
                             }
                         }).finally(function () {
+                    console.log('exportController::finishedWizard -> closing modal');
                     $state.go('main.analysis.map');
                 });
 

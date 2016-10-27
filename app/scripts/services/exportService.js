@@ -85,8 +85,11 @@ angular.module('de.cismet.uim2020-html5-demonstrator.services')
                                     // the browser will do a 'toString()' on the object which will result 
                                     // in the value '[Object object]' on the server.
                                     formData.append("taskparams", new Blob([angular.toJson(data.taskparams)], {type: 'application/json'}));
-                                    if(typeof data.file !== 'undefined' && externalDatasourceData !== null) {
+                                    if (typeof data.file !== 'undefined' && data.file !== null) {
                                         formData.append("file", data.file);
+                                        console.log('exportService::export -> sending "' + data.file.type + '" file');
+                                    } else {
+                                        console.log('exportService::export -> do not sending body parameter (file is null)');
                                     }
                                     return formData;
                                 },
@@ -98,9 +101,7 @@ angular.module('de.cismet.uim2020-html5-demonstrator.services')
                                 data: {
                                     taskparams: {'actionKey': 'restApiExportAction',
                                         'description': 'Export Meta-Data Repository to CSV',
-                                        'parameters':
-                                                {'exportOptions': angular.toJson(exportOptions)}
-                                    },
+                                        'parameters': {'\exportOptions': angular.toJson(exportOptions)}},
                                     file: externalDatasourceData
                                 }
                             });

@@ -217,14 +217,14 @@ angular.module(
 
                             // set to false on first non-point feature
                             isPointLayer = isPointLayer === false ? false : (feature.geometry.type === 'Point');
-                            
+
                             // set export parameters from 1st feature
-                            if(parameters.length === 0) {
-                                Object.keys(feature.properties).forEach(function(parameterName){
+                            if (parameters.length === 0) {
+                                Object.keys(feature.properties).forEach(function (parameterName) {
                                     parameters.push({
-                                        parameterpk:parameterName,
-                                        parametername:parameterName,
-                                        selected:false
+                                        parameterpk: parameterName,
+                                        parametername: parameterName,
+                                        selected: false
                                     });
                                 });
                             }
@@ -265,7 +265,7 @@ angular.module(
                     localDatasource.setParameters(parameters);
                     localDatasource.setLayer(overlayLayer);
 
-                    console.log('featureRendererService::createOverlayLayer -> resolve(overlayLayer)');
+                    //console.log('featureRendererService::createOverlayLayer -> resolve(overlayLayer)');
                     if (progressCallBack) {
                         progressCallBack(geojson.features.length, geojson.features.length);
                     }

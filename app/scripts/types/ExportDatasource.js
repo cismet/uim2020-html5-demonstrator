@@ -23,6 +23,7 @@ angular.module(
                     this.filename = externalDatasource.filename;
                     this.groupName = '';
                     this.selected = false;
+                    this.data = externalDatasource.data;
                     this.setGlobal(externalDatasource.global);
                     this.parameters = [];
 

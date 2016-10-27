@@ -90,7 +90,7 @@ angular.module(
                                 if (numForbiddenDatasources > 0) {
                                     forbiddenDatasources += ', ';
                                 }
-                                
+
                                 numForbiddenDatasources++;
                                 forbiddenDatasources += exportEntitiesCollection.title;
                             }
@@ -108,10 +108,10 @@ angular.module(
                     if ($scope.options.isMergeExternalDatasource === true) {
                         if (datasourcesController.exportDatasources.length > 0) {
                             // select 1st ext. datasource by default
-                            if ($scope.options.selectedExportDatasource === null) {
-                                datasourcesController.exportDatasources[0].setSelected(true);
-                                $scope.options.selectedExportDatasource = datasourcesController.exportDatasources[0];
-                            }
+                            /*if ($scope.options.selectedExportDatasource === null) {
+                             datasourcesController.exportDatasources[0].setSelected(true);
+                             $scope.options.selectedExportDatasource = datasourcesController.exportDatasources[0];
+                             }*/
                         } else {
                             $scope.status.message = 'Es sind keine externen Datenquellen zum Verschneiden verfügbar.';
                             $scope.status.type = 'warning';
@@ -135,22 +135,22 @@ angular.module(
                 // EXIT VALIDATION ---------------------------------------------
                 $scope.wizard.exitValidators['Datenquellen'] = function (context) {
                     context.valid = true;
-                    
+
                     // check external datasources
                     if ($scope.options.isMergeExternalDatasource === true) {
-                        if($scope.options.selectedExportDatasource === null) {
+                        if ($scope.options.selectedExportDatasource === null) {
                             $scope.status.message = 'Bitte wählen Sie eine externe Datenquellen zum Verschneiden aus.';
                             $scope.status.type = 'warning';
                             context.valid = false;
                             return context.valid;
                         } else if ($scope.options.selectedExportDatasource.data === null) {
-                            $scope.status.message = 'Die externe Datenquelle "' + 
+                            $scope.status.message = 'Die externe Datenquelle "' +
                                     $scope.options.selectedExportDatasource.name + " enthält keine kompatiblen Daten zum Verschneiden!";
                             $scope.status.type = 'danger';
                             context.valid = false;
                             return context.valid;
                         }
-                    } 
+                    }
 
                     // check export themes
                     $scope.options.selectedExportThemes = datasourcesController.exportThemes.getSelectedExportEntitiesCollections();

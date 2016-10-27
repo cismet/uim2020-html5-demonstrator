@@ -106,6 +106,9 @@ angular.module(
                                 importController.status.message = 'Die Datei "' + localDatasource.filename + '" konnte nicht geladen werden: ' + reader.error;
                             });
                         } else {
+                            // store zip file as blob
+                            localDatasource.data = new Blob([arrayBuffer], {type: 'application/zip'});
+                            
                             $scope.$apply(function () {
                                 importController.importProgress = 100;
                             });
@@ -181,7 +184,9 @@ angular.module(
 
                                 if (isCreateOverlayLayer === true) {
                                     importController.status.message = geojson.features.length + ' Features werden verarbeitet.';
-
+                                    
+                                    // disable zipping GeoJson -> send the original SHP.ZIP instead!
+                                    /*
                                     var zip = new JSZip();
                                     zip.file(localDatasource.name + '.geojson', angular.toJson(geojson));
                                     zip.generateAsync({type: "blob"})
@@ -193,6 +198,7 @@ angular.module(
                                                 console.error('importController::convertToLayer -> could not zip GeoJson of file "' +
                                                         localDatasource.name + '": ' + angular.toJson(error));
                                             });
+                                    */
 
                                     // return new promise
                                     return featureRendererService.createOverlayLayer(
