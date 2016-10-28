@@ -106,9 +106,10 @@ angular.module(
                                 importController.status.message = 'Die Datei "' + localDatasource.filename + '" konnte nicht geladen werden: ' + reader.error;
                             });
                         } else {
-                            // store zip file as blob
-                            localDatasource.data = new Blob([arrayBuffer], {type: 'application/zip'});
-                            
+                            // don't store orogonal SHP zip file as blob
+                            // send zipped geojson instead!
+                            //localDatasource.data = new Blob([arrayBuffer], {type: 'application/zip'});
+
                             $scope.$apply(function () {
                                 importController.importProgress = 100;
                             });
@@ -173,6 +174,7 @@ angular.module(
                                 var isCreateOverlayLayer = true;
                                 //console.log('importController::convertToLayer: processing ' +
                                 //        geojson.features.length + ' GeoJson Features');
+                                //saveAs(new Blob([angular.toJson(geojson, true)], {type: 'application/json'}), localDatasource.filename + '.geojson');
 
                                 importController.status.type = 'info';
                                 importController.status.message = geojson.features.length + ' Features bereit zum Verarbeiten.';
@@ -184,21 +186,6 @@ angular.module(
 
                                 if (isCreateOverlayLayer === true) {
                                     importController.status.message = geojson.features.length + ' Features werden verarbeitet.';
-                                    
-                                    // disable zipping GeoJson -> send the original SHP.ZIP instead!
-                                    /*
-                                    var zip = new JSZip();
-                                    zip.file(localDatasource.name + '.geojson', angular.toJson(geojson));
-                                    zip.generateAsync({type: "blob"})
-                                            .then(function success(blob) {
-                                                console.log('importController::convertToLayer -> zipping geoJson: ' + blob.type);
-                                                localDatasource.data = blob;
-                                                //saveAs(blob, localDatasource.filename + '.zip');
-                                            }, function error(error) {
-                                                console.error('importController::convertToLayer -> could not zip GeoJson of file "' +
-                                                        localDatasource.name + '": ' + angular.toJson(error));
-                                            });
-                                    */
 
                                     // return new promise
                                     return featureRendererService.createOverlayLayer(
@@ -221,6 +208,8 @@ angular.module(
                     promise.then(
                             function success(overlayLayer) {
                                 //console.log('importController::convertToLayer: GeoJson Features successfully processed');
+                                //saveAs(new Blob([angular.toJson(overlayLayer.toGeoJSON(), true)], {type: 'application/json'}), localDatasource.filename + '.geojson');
+
                                 $timeout(function () {
                                     //console.log('importController::convertToLayer: adding  ' + overlayLayer.getLayers().length + ' GeoJson Features to map');
                                     mapController.addOverlay(overlayLayer);
@@ -234,6 +223,20 @@ angular.module(
                                     importController.status.message = overlayLayer.getLayers().length +
                                             ' Features aus der Datei "' + localDatasource.filename + '" wurden der Karte hinzugefügt';
                                 }, 500);
+
+                                //zipping GeoJson 
+
+                                var zip = new JSZip();
+                                zip.file(localDatasource.name + '.geojson', angular.toJson(overlayLayer.toGeoJSON(), false));
+                                zip.generateAsync({type: "blob"})
+                                        .then(function success(blob) {
+                                            console.log('importController::convertToLayer -> zipping geoJson: ' + blob.type);
+                                            localDatasource.data = blob;
+                                            //saveAs(blob, localDatasource.filename + '.zip');
+                                        }, function error(error) {
+                                            console.error('importController::convertToLayer -> could not zip GeoJson of file "' +
+                                                    localDatasource.name + '": ' + angular.toJson(error));
+                                        });
                             },
                             function error(reason) {
                                 $timeout(function () {

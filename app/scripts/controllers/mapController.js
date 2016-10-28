@@ -157,8 +157,7 @@ angular.module(
                  */
                 selectNode = function (node) {
                     var icon;
-                    // FIXME: ->  Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
-                    // when node has been removed from map!
+                    //console.log(mapController.mode + '-map::selectNode() -> ' + node.name);
                     // reset selection
                     if (selectedNode !== node && selectedNode !== null && selectedNode.$feature) {
                         icon = featureRendererService.getIconForNode(selectedNode);
@@ -213,7 +212,7 @@ angular.module(
                     if (mapController.mode === 'search') {
                         searchGeometryLayerGroup.clearLayers();
                         if (searchGeometryLayer !== null) {
-                            console.log('setSearchGeometry: ' + layerType);
+                            //console.log('setSearchGeometry: ' + layerType);
 
                             searchGeometryLayer.$name = layerType;
                             searchGeometryLayer.$key = 'searchGeometry';
@@ -269,6 +268,7 @@ angular.module(
                  * @returns {undefined}
                  */
                 mapController.unSelectOverlayByKey = function (layerKey) {
+                    //console.log(mapController.mode + '-map::unSelectOverlayByKey() -> ' + layerKey);
                     if (layerKey &&
                             layerControlMappings[layerKey] &&
                             layerControl._Layers[layerControlMappings[layerKey]]) {
@@ -286,6 +286,7 @@ angular.module(
                  * @returns {undefined}
                  */
                 mapController.unSelectOverlay = function (layer) {
+                    //console.log(mapController.mode + '-map::unSelectOverlay() -> ' + layer.length);
                     layerControl.unSelectLayer(layer);
                 };
 
@@ -324,6 +325,7 @@ angular.module(
                 };
 
                 mapController.removeOverlayByKey = function (layerKey) {
+                    //console.log(mapController.mode + '-map::removeOverlayByKey() -> ' + layerKey);
                     if (layerKey &&
                             layerControlMappings[layerKey] &&
                             layerControl._Layers[layerControlMappings[layerKey]]) {
@@ -335,6 +337,7 @@ angular.module(
                 };
 
                 mapController.removeOverlay = function (layer) {
+                    //console.log(mapController.mode + '-map::removeOverlay() -> ' + layer.$key);
                     mapController.unSelectOverlay(layer);
                     layerControl.removeLayer(layer);
                     if (layer.$key) {
@@ -343,13 +346,14 @@ angular.module(
                 };
 
                 mapController.addOverlay = function (layer) {
+                    //console.log(mapController.mode + '-map::addOverlay() -> ' + layer.$key);
                     if (mapController.mode === 'analysis') {
                         if (layer.$key && layer.$name) {
 
                             layerControlMappings[layer.$key] =
                                     L.stamp(layer);
 
-                            //console.log('mapController::addOverlay: ' + layer.$name + ' (' + layerControlMappings[layer.$key] + ')');
+                            ////console.log('mapController::addOverlay: ' + layer.$name + ' (' + layerControlMappings[layer.$key] + ')');
 
                             var groupName = layer.$groupName ? layer.$groupName : config.layerGroupMappings['external'];
                             layerControl.addOverlay(
@@ -397,18 +401,18 @@ angular.module(
                  */
                 mapController.gotoNode = function (node) {
                     var theSelectedNode, zoom;
-
+                    //console.log(mapController.mode + '-map::gotoNode() -> ' + node.name);
                     zoom = 14;
                     theSelectedNode = selectNode(node);
 
                     if (theSelectedNode) {
-
                         // FIXME: probably immediate clustered layer in between!
                         if (theSelectedNode.$feature.__parent &&
                                 theSelectedNode.$feature.__parent._group &&
                                 theSelectedNode.$feature.__parent._group.$maxZoom) {
 
                             zoom = theSelectedNode.$feature.__parent._group.$maxZoom;
+                            //console.log(mapController.mode + '-map::gotoNode() -> ' + node.name + ' -> apply max zoom: ' + zoom);
                         }
 
                         leafletMap.setView(selectedNode.$feature.getLatLng(), zoom);
@@ -423,11 +427,10 @@ angular.module(
                  * @returns {undefined}
                  */
                 mapController.addNode = function (node) {
-
+                    //console.log(mapController.mode + '-map::addNode() -> ' + node.name);
                     // FIXME: prevent adding duplicate nodes!
                     if (mapController.mode === 'analysis') {
                         mapController.setNodes([node]);
-
                     } else {
                         console.warn("mapController:: cannot add Node on search map!");
                     }
@@ -443,6 +446,7 @@ angular.module(
                     var feature, featureGroupLayer, layerControlId;
                     if (mapController.mode === 'analysis') {
                         if (node && node.$feature && node.$feature.$groupKey) {
+                            //console.log(mapController.mode + '-map::removeNode() -> ' + node.name);
                             if (node === selectedNode) {
                                 selectedNode = null;
                             }
@@ -472,7 +476,7 @@ angular.module(
                  */
                 mapController.clearNodes = function () {
                     var nodeLayerControlIds, featureGroupLayer;
-
+                    //console.log(mapController.mode + '-map::clearNodes()');
                     selectedNode = null;
                     nodeLayerControlIds = [
                         layerControlMappings.BORIS_SITE,
@@ -498,7 +502,7 @@ angular.module(
                  */
                 mapController.gotoNodes = function () {
                     var bounds, nodeLayerControlIds, featureGroupLayer, nodesFitBoundsOptions;
-
+                    //console.log(mapController.mode + '-map::gotoNodes()');
                     nodesFitBoundsOptions = angular.extend({}, fitBoundsOptions);
 
                     // FIXME: take from nodeOverlays
@@ -531,8 +535,8 @@ angular.module(
                     if (bounds) {
                         leafletData.getMap(mapId).then(function (map) {
                             map.fitBounds(bounds, nodesFitBoundsOptions);
-                            //console.log('fit bounds:' + JSON.stringify(bounds));
-                            //console.log('fit bounds:' + JSON.stringify(nodesFitBoundsOptions));
+                            ////console.log('fit bounds:' + JSON.stringify(bounds));
+                            ////console.log('fit bounds:' + JSON.stringify(nodesFitBoundsOptions));
                         });
                     }
                 };
@@ -549,6 +553,7 @@ angular.module(
                     var featureGroups, featureGroup, featureGroupLayer, theme,
                             layerControlId;
 
+                    //console.log(mapController.mode + '-map::setNodes() -> ' + nodes.length);
                     // check for falsy, undefoined, whatever, ....
                     if (clearLayers !== false && clearLayers !== true) {
                         clearLayers = mapController.mode === 'search' ? true : false;
@@ -603,7 +608,7 @@ angular.module(
 
                 mapController.setGazetteerLocation = function (gazetteerLocation) {
                     if (mapController.mode === 'search') {
-                        console.log('mapController::setGazetteerLocation: ' + gazetteerLocation.name);
+                        //console.log('mapController::setGazetteerLocation: ' + gazetteerLocation.name);
                         if (gazetteerLocation !== null) {
                             // remove old layer
                             if (gazetteerLocationLayer !== null) {
@@ -662,6 +667,7 @@ angular.module(
 
                 mapController.applyZoomLevelRestriction = function () {
                     var currentZoomLevel, zoom;
+                    //console.log(mapController.mode + '-map::applyZoomLevelRestriction()');
 
                     // always close popups on close: it may leak the position of a hidden feature!
                     leafletMap.closePopup();
@@ -687,7 +693,7 @@ angular.module(
                 if (mapController.mode === 'search') {
                     $scope.$on('gotoLocation()', function (event) {
                         if (mapController.mode === 'search') {
-                            console.log('mapController::gotoLocation(' + sharedDatamodel.selectedGazetteerLocation.name + ')');
+                            //console.log('mapController::gotoLocation(' + sharedDatamodel.selectedGazetteerLocation.name + ')');
                             mapController.setGazetteerLocation(sharedDatamodel.selectedGazetteerLocation);
                         }
                     });
@@ -724,7 +730,7 @@ angular.module(
                     });
 
                     /*$scope.$on('nodesFiltered()', function (event) {
-                     console.log('mapController::nodesFiltered');
+                     //console.log('mapController::nodesFiltered');
                      mapController.applyZoomLevelRestriction();
                      });*/
                 }
@@ -734,19 +740,19 @@ angular.module(
                  // Return the "result" of the watch expression.
                  return(mapController.zoom);
                  }, function (newZoom, oldZoom) {
-                 //console.log('newZoom:' + newZoom + " = this.zoom:" + mapController.zoom);
+                 ////console.log('newZoom:' + newZoom + " = this.zoom:" + mapController.zoom);
                  if (mapController.zoom && newZoom !== oldZoom) {
                  $state.go('main.' + $scope.mainController.mode + '.map', {'zoom': mapController.zoom},
                  {'inherit': true, 'notify': false, 'reload': false}).then(
                  function (state)
                  {
-                 console.log(state);
+                 //console.log(state);
                  });
                  } else {
-                 console.log('oldZoom:' + oldZoom + " = this.zoom:" + mapController.zoom);
+                 //console.log('oldZoom:' + oldZoom + " = this.zoom:" + mapController.zoom);
                  $state.go('main.analysis.map', {'zoom': undefined},
                  {'inherit': true, 'notify': false, 'reload': false}).then(function (state) {
-                 console.log(state);
+                 //console.log(state);
                  });
                  }
                  });*/
@@ -757,7 +763,7 @@ angular.module(
                  if (nodes !== null && nodes.length > 0) {
                  layerGroups = featureRendererService.createNodeFeatureLayers(nodes);
                  for (theme in layerGroups) {
-                 console.log(mapId + '::setResultNodes for ' + theme);
+                 //console.log(mapId + '::setResultNodes for ' + theme);
                  featureLayer = layerGroups[theme];
                  // FIXME: clear layers before adding
                  // FIXME: setVisible to true adds duplicate layers ?!!!!!
@@ -793,11 +799,11 @@ angular.module(
                             if (!event.layerType) {
                                 event.layerType = 'polygon';
                             }
-                            console.log('draw:created: ' + event.layerType);
+                            //console.log('draw:created: ' + event.layerType);
                             setSearchGeometry(event.layer, event.layerType);
                             // this is madness!
                             sharedDatamodel.selectedSearchLocation.id = 1;
-                            console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                            //console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
 
                             // directly switch to expand mode after drawing polyline
                             if (event.layerType === 'polyline') {
@@ -807,12 +813,12 @@ angular.module(
                         });
 
                         /*map.on('draw:edited', function (event) {
-                         console.log('draw:edited: ' + event.layers.getLayers().length);
-                         console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                         //console.log('draw:edited: ' + event.layers.getLayers().length);
+                         //console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
                          });*/
 
                         /*map.on('draw:deleted', function (event) {
-                         console.log('draw:deleted: ' + event.layers.getLayers().length);
+                         //console.log('draw:deleted: ' + event.layers.getLayers().length);
                          if (event.layers.getLayers().length > 0) {
                          // ugly workaround for leafleft.buffer plugin which does not remove expanded polyline layers
                          event.layers.eachLayer(function (deletedLayer) {
@@ -820,14 +826,14 @@ angular.module(
                          });
                          }
                          
-                         console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                         //console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
                          if (searchGeometryLayerGroup.getLayers().length === 0) {
                          sharedDatamodel.selectedSearchLocation.id = 0;
                          }
                          });*/
 
                         /*map.on('draw:buffered', function (event) {
-                         console.log('draw:buffered: ' + event.layers.getLayers().length);
+                         //console.log('draw:buffered: ' + event.layers.getLayers().length);
                          });*/
                     }
 
@@ -844,11 +850,13 @@ angular.module(
                      * Show or hide features based on zoom level
                      */
                     map.on('zoomend', function () {
+                        //console.log(mapController.mode + '-map::zoomed');
                         mapController.applyZoomLevelRestriction();
                     });
 
                     map.on('layerremove', function (layerEvent) {
                         var removedLayer = layerEvent.layer;
+                        //console.log(mapController.mode + '-map::layerremove -> key:' + removedLayer.$key + ', type: ' + removedLayer.constructor.name);
 
                         if (removedLayer.StyledLayerControl &&
                                 layerControl._layers[L.stamp(removedLayer)]) {
@@ -863,7 +871,7 @@ angular.module(
                             }
                         }
 
-                        /*console.log('mapController:: layer removed: ' + removedLayer.$name +
+                        /*//console.log('mapController:: layer removed: ' + removedLayer.$name +
                          ' (' + L.stamp(removedLayer) + ')');*/
 
                         if (removedLayer && removedLayer === gazetteerLocationLayer) {
@@ -880,6 +888,7 @@ angular.module(
                      */
                     map.on('layeradd', function (layerEvent) {
                         var addedLayer = layerEvent.layer;
+                        //console.log(mapController.mode + '-map::layeradd -> key:' + addedLayer.$key + ', type: ' + addedLayer.constructor.name);
                         if (addedLayer.$maxZoom) {
                             featureRendererService.applyZoomLevelRestriction(addedLayer, map.getZoom());
                         }
