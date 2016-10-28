@@ -124,20 +124,24 @@ angular.module(
                         $scope.status.type = 'success';
 
                         if (progressModal) {
-                            $timeout(function () {
+                            progressModal.close();
+                            /*$timeout(function () {
                                 progressModal.close();
-                            }, 500);
+                            }, 500);*/
                         }
                         // search error ...
                     } else if (type === 'error') {
                         $scope.status.progress.current = 300;
                         $scope.status.message = 'Der Datenexport konnte aufgrund eines Server-Fehlers nicht durchgeführt werden.';
                         $scope.status.type = 'danger';
-                        $timeout(function () {
-                            if (progressModal) {
-                                progressModal.close($scope.status.message);
-                            }
-                        }, 500);
+                        if (progressModal) {
+                            progressModal.close($scope.status.message);
+                            /*$timeout(function () {
+                                if (progressModal) {
+                                    progressModal.close($scope.status.message);
+                                }
+                            }, 500);*/
+                        }
                     }
                 };
                 // </editor-fold>
@@ -182,11 +186,14 @@ angular.module(
 
                         // clean ExportOptions from obsolete properties before submitting to REST API ------
                         // See de.cismet.cids.custom.udm2020di.types.rest.ExportOptions for required properties
-                        delete exportOptions.selectedExportDatasource;
+                        //delete exportOptions.selectedExportDatasource;
+                        exportOptions.selectedExportDatasource = null;
 
                         exportOptions.selectedExportThemes.forEach(function (exportEntitiesCollection) {
-                            delete exportEntitiesCollection.parametersKeys;
-                            delete exportEntitiesCollection.forbiddenParameters;
+                            //delete exportEntitiesCollection.parametersKeys;
+                            exportEntitiesCollection.parametersKeys = null;
+                            //delete exportEntitiesCollection.forbiddenParameters;
+                            exportEntitiesCollection.forbiddenParameters = null;
                             for (var i = exportEntitiesCollection.parameters.length - 1; i >= 0; i--) {
                                 // keep only selected parameters
                                 if (!exportEntitiesCollection.parameters[i].selected) {
@@ -218,13 +225,15 @@ angular.module(
                         promise.then(
                                 function  callback(success) {
                                     if (success === true) {
-                                        $timeout(function () {
+                                        $uibModalInstance.dismiss('success');
+                                        /*$timeout(function () {
                                             $uibModalInstance.dismiss('success');
-                                        }, 600);
+                                        }, 600);*/
                                     } else {
-                                        $timeout(function () {
+                                        $uibModalInstance.dismiss('error');
+                                        /*$timeout(function () {
                                             $uibModalInstance.dismiss('error');
-                                        }, 600);
+                                        }, 600);*/
                                     }
                                 });
                     }
