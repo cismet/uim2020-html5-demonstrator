@@ -3385,9 +3385,9 @@ angular.module(
         ).controller(
         'searchController',
         [
-            '$rootScope', '$window', '$timeout', '$scope', '$state', '$uibModal', 'leafletData',
-            'configurationService', 'sharedDatamodel', 'sharedControllers', 'dataService', 'searchService',
-            function ($rootScope, $window, $timeout, $scope, $state, $uibModal, leafletData,
+            '$rootScope', '$timeout', '$scope', '$state', '$uibModal', 'configurationService',
+            'sharedDatamodel', 'sharedControllers', 'dataService', 'searchService',
+            function ($rootScope, $timeout, $scope, $state, $uibModal,
                     configurationService, sharedDatamodel, sharedControllers, dataService, searchService) {
                 'use strict';
                 var searchController, searchProcessCallback, showProgressModal, progressModal;
@@ -3558,10 +3558,18 @@ angular.module(
                         // search completed
                     } else if (current === max && type === 'success') {
                         if (current > 0) {
-                            searchController.status.progress.current = 100;
-                            searchController.status.message = 'Suche erfolgreich, ' +
-                                    (current === 1 ? 'eine Messstelle' : (current + ' Messstellen')) + ' im UIM2020-DI Indexdatenbestand gefunden.';
-                            searchController.status.type = 'success';
+                            if (current >= configurationService.searchService.maxLimit) {
+                                searchController.status.progress.current = 100;
+                                searchController.status.message = 'Es können maximal ' + searchController.status.progress.current +
+                                        ' Messstellen angezeigt werden. Bitte grenzen Sie den Suchbereich weiter ein.';
+                                searchController.status.type = 'info';
+                            } else
+                            {
+                                searchController.status.progress.current = 100;
+                                searchController.status.message = 'Suche erfolgreich, ' +
+                                        (current === 1 ? 'eine Messstelle' : (current + ' Messstellen')) + ' im UIM2020-DI Indexdatenbestand gefunden.';
+                                searchController.status.type = 'success';
+                            }
                         } else {
                             // feature request #59
                             searchController.status.progress.current = 100;
@@ -3630,7 +3638,7 @@ angular.module(
                     geometry = sharedControllers.searchMapController.getSearchWktString();
                     themes = [];
                     pollutants = [];
-                    limit = 500;
+                    limit = configurationService.searchService.defautLimit;
                     offset = 0;
 
                     sharedDatamodel.selectedSearchThemes.forEach(function (theme) {
@@ -4246,8 +4254,8 @@ angular.module(
 
                 // <editor-fold defaultstate="collapsed" desc="=== cidsRestApi ===========================">
                 configurationService.cidsRestApi = {};
-                //configurationService.cidsRestApi.host = 'http://localhost:8890';
-                configurationService.cidsRestApi.host = 'http://DEMO-NOTEBOOK:8890';
+                configurationService.cidsRestApi.host = 'http://localhost:8890';
+                //configurationService.cidsRestApi.host = 'http://DEMO-NOTEBOOK:8890';
                 configurationService.cidsRestApi.domain = 'UDM2020-DI';
                 configurationService.cidsRestApi.defaultRestApiSearch = 'de.cismet.cids.custom.udm2020di.serversearch.rest.DefaultRestApiSearch';
                 configurationService.cidsRestApi.restApiExportAction = 'restApiExportAction';
@@ -4264,8 +4272,8 @@ angular.module(
                 // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="=== searchService ===========================">
                 configurationService.searchService = {};
-                configurationService.searchService.defautLimit = 10;
-                configurationService.searchService.maxLimit = 50;
+                configurationService.searchService.defautLimit = 100;
+                configurationService.searchService.maxLimit = 100;
                 configurationService.searchService.host = configurationService.cidsRestApi.host;
                 // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="=== featureRenderer ===========================">
@@ -5902,6 +5910,12 @@ angular.module(
                             },
                             {
                                 'key': 'pollutants', 'value': pollutants
+                            },
+                            {
+                                'key': 'limit', 'value': limit
+                            },
+                            {
+                                'key': 'offset', 'value': offset
                             }
                         ]
                     };
@@ -5925,8 +5939,8 @@ angular.module(
                     defaultRestApiSearch = $resource(cidsRestApiConfig.host +
                             '/searches/' + cidsRestApiConfig.domain + '.' + cidsRestApiConfig.defaultRestApiSearch + '/results',
                             {
-                                limit: 100,
-                                offset: 0,
+                                limit: limit,
+                                offset: offset,
                                 omitNullValues: true,
                                 deduplicate: true
                             }, {
@@ -5948,10 +5962,11 @@ angular.module(
                     // FIXME:   limit an offset GET parameters currently not evaluated 
                     //          by the leagcy service. There we have to add them also
                     //          to the queryObject.
-                    defaultRestApiSearchResult = defaultRestApiSearch.search({
-                        limit: limit,
-                        offset: offset
-                    },
+                    defaultRestApiSearchResult = defaultRestApiSearch.search(
+                            {
+                                limit: limit,
+                                offset: offset
+                            },
                             queryObject
                             );
 
