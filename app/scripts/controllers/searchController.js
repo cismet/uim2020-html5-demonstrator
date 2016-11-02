@@ -327,37 +327,9 @@ angular.module(
                      }*/
                     // </editor-fold>
                 };
-                // </editor-fold>
+                // </editor-fold>     
 
-                // TODO: put into parent scope?
-                $scope.$on('$stateChangeSuccess', function (toState) {
-                    if ($state.includes("main.search") && !$state.is("main.search")) {
-                        //$scope.mode = $state.current.name.split(".").slice(1, 2).pop();
-                        searchController.mode = $state.current.name.split(".").slice(1, 3).pop();
-                        //console.log('searchController::mode: ' + searchController.mode);
-
-                        // resize the map on state change
-                        if (searchController.mode === 'map') {
-                            leafletData.getMap('search-map').then(function (map) {
-                                $timeout(function () {
-                                    if (map && map._container.parentElement) {
-                                        if (map._container.parentElement.offsetHeight > 0 &&
-                                                map._container.parentElement.offsetWidth) {
-                                            $scope.mapHeight = map._container.parentElement.offsetHeight;
-                                            $scope.mapWidth = map._container.parentElement.offsetWidth;
-                                            //console.log('searchController::stateChangeSuccess new size: ' + map._container.parentElement.offsetWidth + "x" + map._container.parentElement.offsetHeight);
-                                            map.invalidateSize(false);
-                                        } else {
-                                            //console.warn('searchController::stateChangeSuccess saved size: ' + $scope.mapWidth + "x" + $scope.mapHeight);
-                                            map.invalidateSize(false);
-                                        }
-                                    }
-                                }, 100);
-                            });
-                        }
-                    }
-                });        
-
+                sharedControllers.searchController = searchController;
                 console.log('searchController instance created');
             }
         ]

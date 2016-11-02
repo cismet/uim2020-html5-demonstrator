@@ -56,15 +56,15 @@ angular.module(
                  */
                 $uibModalInstance.result.then(function (data) {
                     // modal was closed by the user by pressing one of the close buttons -> go to previous state
-                    if(data === 'close') {
+                    if (data === 'close') {
 
                         if ($previousState.get("entityModalInvoker") &&
                                 $previousState.get("entityModalInvoker").state) {
-                            console.log('entityController::close('+data+') goto $previousState ' + $previousState.get('entityModalInvoker').state.name);
+                            console.log('entityController::close(' + data + ') goto $previousState ' + $previousState.get('entityModalInvoker').state.name);
                             $previousState.go('entityModalInvoker');
                             $previousState.forget('entityModalInvoker');
                         } else {
-                            console.log('entityController::close('+data+') goto default main.search.map');
+                            console.log('entityController::close(' + data + ') goto default main.search.map');
                             $state.go('main.search.map');
                         }
                     } else {

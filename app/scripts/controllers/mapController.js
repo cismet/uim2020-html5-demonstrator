@@ -49,7 +49,6 @@ angular.module(
 
                 if (mapController.mode === 'search') {
                     mapController.nodes = sharedDatamodel.resultNodes;
-                    sharedControllers.searchMapController = mapController;
 
                     overlays.push({
                         groupName: configurationService.map.layerGroupMappings['gazetteer'],
@@ -75,7 +74,6 @@ angular.module(
                     });
                 } else if (mapController.mode === 'analysis') {
                     mapController.nodes = sharedDatamodel.analysisNodes;
-                    sharedControllers.analysisMapController = mapController;
 
                     overlays.push(nodeOverlays);
                     overlays.push({
@@ -242,6 +240,31 @@ angular.module(
 
                 // <editor-fold defaultstate="collapsed" desc="=== Public Controller API Functions ===========================">
 
+
+                /**
+                 * Activate the map and set correct size
+                 * 
+                 * @returns {undefined}
+                 */
+                mapController.activate = function () {
+                    $timeout(function () {
+                        if (leafletMap._container && leafletMap._container.parentElement) {
+                            var height = leafletMap._container.parentElement.offsetHeight;
+                            var width = leafletMap._container.parentElement.offsetWidth;
+
+                            if ((height > 0 && height !== $scope.mapHeight) ||
+                                    (width > 0 && width !== $scope.mapWidth)) {
+                                $scope.mapHeight = height;
+                                $scope.mapWidth = width;
+
+                                console.log(mapController.mode + '-map::activate new size: ' + width + "x" + height);
+                                leafletMap.invalidateSize(false);
+                            }
+                        }
+                        //}
+                    }, 100);
+                };
+
                 /**
                  * Returns the current search location wkt. If no search bbox or polygon
                  * is drawn, retuns the map bounds as wkt;
@@ -353,7 +376,7 @@ angular.module(
                             layerControlMappings[layer.$key] =
                                     L.stamp(layer);
 
-                            ////console.log('mapController::addOverlay: ' + layer.$name + ' (' + layerControlMappings[layer.$key] + ')');
+                            //console.log('mapController::addOverlay: ' + layer.$name + ' (' + layerControlMappings[layer.$key] + ')');
 
                             var groupName = layer.$groupName ? layer.$groupName : config.layerGroupMappings['external'];
                             layerControl.addOverlay(
@@ -535,8 +558,8 @@ angular.module(
                     if (bounds) {
                         leafletData.getMap(mapId).then(function (map) {
                             map.fitBounds(bounds, nodesFitBoundsOptions);
-                            ////console.log('fit bounds:' + JSON.stringify(bounds));
-                            ////console.log('fit bounds:' + JSON.stringify(nodesFitBoundsOptions));
+                            //console.log('fit bounds:' + JSON.stringify(bounds));
+                            //console.log('fit bounds:' + JSON.stringify(nodesFitBoundsOptions));
                         });
                     }
                 };
@@ -730,7 +753,7 @@ angular.module(
                     });
 
                     /*$scope.$on('nodesFiltered()', function (event) {
-                     //console.log('mapController::nodesFiltered');
+                     console.log('mapController::nodesFiltered');
                      mapController.applyZoomLevelRestriction();
                      });*/
                 }
@@ -740,19 +763,19 @@ angular.module(
                  // Return the "result" of the watch expression.
                  return(mapController.zoom);
                  }, function (newZoom, oldZoom) {
-                 ////console.log('newZoom:' + newZoom + " = this.zoom:" + mapController.zoom);
+                 //console.log('newZoom:' + newZoom + " = this.zoom:" + mapController.zoom);
                  if (mapController.zoom && newZoom !== oldZoom) {
                  $state.go('main.' + $scope.mainController.mode + '.map', {'zoom': mapController.zoom},
                  {'inherit': true, 'notify': false, 'reload': false}).then(
                  function (state)
                  {
-                 //console.log(state);
+                 console.log(state);
                  });
                  } else {
-                 //console.log('oldZoom:' + oldZoom + " = this.zoom:" + mapController.zoom);
+                 console.log('oldZoom:' + oldZoom + " = this.zoom:" + mapController.zoom);
                  $state.go('main.analysis.map', {'zoom': undefined},
                  {'inherit': true, 'notify': false, 'reload': false}).then(function (state) {
-                 //console.log(state);
+                 console.log(state);
                  });
                  }
                  });*/
@@ -763,7 +786,7 @@ angular.module(
                  if (nodes !== null && nodes.length > 0) {
                  layerGroups = featureRendererService.createNodeFeatureLayers(nodes);
                  for (theme in layerGroups) {
-                 //console.log(mapId + '::setResultNodes for ' + theme);
+                 console.log(mapId + '::setResultNodes for ' + theme);
                  featureLayer = layerGroups[theme];
                  // FIXME: clear layers before adding
                  // FIXME: setVisible to true adds duplicate layers ?!!!!!
@@ -813,12 +836,12 @@ angular.module(
                         });
 
                         /*map.on('draw:edited', function (event) {
-                         //console.log('draw:edited: ' + event.layers.getLayers().length);
-                         //console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                         console.log('draw:edited: ' + event.layers.getLayers().length);
+                         console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
                          });*/
 
                         /*map.on('draw:deleted', function (event) {
-                         //console.log('draw:deleted: ' + event.layers.getLayers().length);
+                         console.log('draw:deleted: ' + event.layers.getLayers().length);
                          if (event.layers.getLayers().length > 0) {
                          // ugly workaround for leafleft.buffer plugin which does not remove expanded polyline layers
                          event.layers.eachLayer(function (deletedLayer) {
@@ -826,14 +849,14 @@ angular.module(
                          });
                          }
                          
-                         //console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                         console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
                          if (searchGeometryLayerGroup.getLayers().length === 0) {
                          sharedDatamodel.selectedSearchLocation.id = 0;
                          }
                          });*/
 
                         /*map.on('draw:buffered', function (event) {
-                         //console.log('draw:buffered: ' + event.layers.getLayers().length);
+                         console.log('draw:buffered: ' + event.layers.getLayers().length);
                          });*/
                     }
 
@@ -871,7 +894,7 @@ angular.module(
                             }
                         }
 
-                        /*//console.log('mapController:: layer removed: ' + removedLayer.$name +
+                        /*console.log('mapController:: layer removed: ' + removedLayer.$name +
                          ' (' + L.stamp(removedLayer) + ')');*/
 
                         if (removedLayer && removedLayer === gazetteerLocationLayer) {
@@ -920,6 +943,16 @@ angular.module(
                 // leak this to parent scope
                 // FIXME: use sharedControllers Service instead
                 $scope.$parent.mapController = mapController;
+
+                if (mapController.mode === 'analysis') {
+                    sharedControllers.analysisMapController = mapController;
+                    console.log('analysisMapController instance created');
+                } else {
+                    sharedControllers.searchMapController = mapController;
+                    console.log('searchMapController instance created');
+                }
+
+                mapController.activate();
 
             }]
         );

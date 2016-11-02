@@ -17,9 +17,9 @@ angular.module(
 
                 this.appController = undefined;
                 this.mainController = undefined;
+                this.analysisController = undefined;
                 this.analysisMapController = undefined;
                 this.searchController = undefined;
-                this.analysisMapController = undefined;
                 this.searchMapController = undefined;
                 this.searchListController = undefined;
                 this.protocolController = undefined;
