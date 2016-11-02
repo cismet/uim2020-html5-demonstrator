@@ -14,9 +14,9 @@ angular.module(
         ).controller(
         'searchController',
         [
-            '$rootScope', '$window', '$timeout', '$scope', '$state', '$uibModal', 'leafletData',
-            'configurationService', 'sharedDatamodel', 'sharedControllers', 'dataService', 'searchService',
-            function ($rootScope, $window, $timeout, $scope, $state, $uibModal, leafletData,
+            '$rootScope', '$timeout', '$scope', '$state', '$uibModal', 'configurationService',
+            'sharedDatamodel', 'sharedControllers', 'dataService', 'searchService',
+            function ($rootScope, $timeout, $scope, $state, $uibModal,
                     configurationService, sharedDatamodel, sharedControllers, dataService, searchService) {
                 'use strict';
                 var searchController, searchProcessCallback, showProgressModal, progressModal;
@@ -187,10 +187,18 @@ angular.module(
                         // search completed
                     } else if (current === max && type === 'success') {
                         if (current > 0) {
-                            searchController.status.progress.current = 100;
-                            searchController.status.message = 'Suche erfolgreich, ' +
-                                    (current === 1 ? 'eine Messstelle' : (current + ' Messstellen')) + ' im UIM2020-DI Indexdatenbestand gefunden.';
-                            searchController.status.type = 'success';
+                            if (current >= configurationService.searchService.maxLimit) {
+                                searchController.status.progress.current = 100;
+                                searchController.status.message = 'Es können maximal ' + searchController.status.progress.current +
+                                        ' Messstellen angezeigt werden. Bitte grenzen Sie den Suchbereich weiter ein.';
+                                searchController.status.type = 'info';
+                            } else
+                            {
+                                searchController.status.progress.current = 100;
+                                searchController.status.message = 'Suche erfolgreich, ' +
+                                        (current === 1 ? 'eine Messstelle' : (current + ' Messstellen')) + ' im UIM2020-DI Indexdatenbestand gefunden.';
+                                searchController.status.type = 'success';
+                            }
                         } else {
                             // feature request #59
                             searchController.status.progress.current = 100;
@@ -259,7 +267,7 @@ angular.module(
                     geometry = sharedControllers.searchMapController.getSearchWktString();
                     themes = [];
                     pollutants = [];
-                    limit = 500;
+                    limit = configurationService.searchService.defautLimit;
                     offset = 0;
 
                     sharedDatamodel.selectedSearchThemes.forEach(function (theme) {

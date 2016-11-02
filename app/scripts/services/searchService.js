@@ -64,6 +64,12 @@ angular.module(
                             },
                             {
                                 'key': 'pollutants', 'value': pollutants
+                            },
+                            {
+                                'key': 'limit', 'value': limit
+                            },
+                            {
+                                'key': 'offset', 'value': offset
                             }
                         ]
                     };
@@ -87,8 +93,8 @@ angular.module(
                     defaultRestApiSearch = $resource(cidsRestApiConfig.host +
                             '/searches/' + cidsRestApiConfig.domain + '.' + cidsRestApiConfig.defaultRestApiSearch + '/results',
                             {
-                                limit: 100,
-                                offset: 0,
+                                limit: limit,
+                                offset: offset,
                                 omitNullValues: true,
                                 deduplicate: true
                             }, {
@@ -110,10 +116,11 @@ angular.module(
                     // FIXME:   limit an offset GET parameters currently not evaluated 
                     //          by the leagcy service. There we have to add them also
                     //          to the queryObject.
-                    defaultRestApiSearchResult = defaultRestApiSearch.search({
-                        limit: limit,
-                        offset: offset
-                    },
+                    defaultRestApiSearchResult = defaultRestApiSearch.search(
+                            {
+                                limit: limit,
+                                offset: offset
+                            },
                             queryObject
                             );
 

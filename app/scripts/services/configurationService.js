@@ -46,8 +46,8 @@ angular.module(
                 // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="=== searchService ===========================">
                 configurationService.searchService = {};
-                configurationService.searchService.defautLimit = 10;
-                configurationService.searchService.maxLimit = 50;
+                configurationService.searchService.defautLimit = 100;
+                configurationService.searchService.maxLimit = 100;
                 configurationService.searchService.host = configurationService.cidsRestApi.host;
                 // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="=== featureRenderer ===========================">
