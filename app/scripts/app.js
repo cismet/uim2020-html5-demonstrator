@@ -380,13 +380,13 @@ app.config(
                             controller: 'mapController',
                             controllerAs: 'mapController'
                         }
-                    },
-                    onEnter: function () {
-                        //console.log("enter main.analysis.map");
-                    },
-                    onExit: function () {
-                        //console.log("exit main.analysis.map");
-                    }
+                    }/*,
+                     onEnter: function () {
+                     //console.log("enter main.analysis.map");
+                     },
+                     onExit: function () {
+                     //console.log("exit main.analysis.map");
+                     }*/
                 });
 
                 $stateProvider.state('main.protocol', {
@@ -466,7 +466,18 @@ app.config(
                     controllerAs: 'exportController',
                     backdrop: 'static', // this is js-madness: put modal properties into state options!
                     size: 'lg',
-                    modal: true
+                    modal: true/*,
+                     resolve: {
+                     exportModalInvoker: function ($previousState) {
+                     if ($previousState.get() && $previousState.get().state) {
+                     var previousState = $previousState.get().state;
+                     if (previousState.name.indexOf('modal') !== 0) {
+                     $previousState.memo('exportModalInvoker');
+                     return $previousState.get('exportModalInvoker');
+                     }
+                     }
+                     }
+                     }*/
                 });
 
                 /*

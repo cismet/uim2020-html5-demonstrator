@@ -126,8 +126,8 @@ angular.module(
                         if (progressModal) {
                             progressModal.close();
                             /*$timeout(function () {
-                                progressModal.close();
-                            }, 500);*/
+                             progressModal.close();
+                             }, 500);*/
                         }
                         // search error ...
                     } else if (type === 'error') {
@@ -137,10 +137,10 @@ angular.module(
                         if (progressModal) {
                             progressModal.close($scope.status.message);
                             /*$timeout(function () {
-                                if (progressModal) {
-                                    progressModal.close($scope.status.message);
-                                }
-                            }, 500);*/
+                             if (progressModal) {
+                             progressModal.close($scope.status.message);
+                             }
+                             }, 500);*/
                         }
                     }
                 };
@@ -227,13 +227,13 @@ angular.module(
                                     if (success === true) {
                                         $uibModalInstance.dismiss('success');
                                         /*$timeout(function () {
-                                            $uibModalInstance.dismiss('success');
-                                        }, 600);*/
+                                         $uibModalInstance.dismiss('success');
+                                         }, 600);*/
                                     } else {
                                         $uibModalInstance.dismiss('error');
                                         /*$timeout(function () {
-                                            $uibModalInstance.dismiss('error');
-                                        }, 600);*/
+                                         $uibModalInstance.dismiss('error');
+                                         }, 600);*/
                                     }
                                 });
                     }
@@ -247,7 +247,7 @@ angular.module(
                                 $scope.status.type = 'info';
                             }
                         }).finally(function () {
-                    console.log('exportController::finishedWizard -> closing modal');
+                    //console.log('exportController::finishedWizard -> closing modal');
                     $state.go('main.analysis.map');
                 });
 

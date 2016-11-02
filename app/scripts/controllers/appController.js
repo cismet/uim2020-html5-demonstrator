@@ -14,15 +14,17 @@ angular.module(
         ).controller(
         'appController',
         [
+            '$scope',
             '$state',
             '$previousState',
-            'configurationService',
+            'sharedControllers',
             'sharedDatamodel',
             'authenticationService',
             function (
+                    $scope,
                     $state,
                     $previousState,
-                    configurationService,
+                    sharedControllers,
                     sharedDatamodel,
                     authenticationService
                     ) {
@@ -41,6 +43,35 @@ angular.module(
                     $state.go('main.authentication');
                     $previousState.memo('authentication');
                 };
+
+                $scope.$on('$stateChangeSuccess', function (toState) {
+                    if ($state.includes("main.analysis") && !$state.is("main.analysis")) {
+                        var analysisController = sharedControllers.analysisController;
+                        if (sharedControllers.analysisController) {
+                            var analysisMapController = sharedControllers.analysisMapController;
+                            analysisController.mode = $state.current.name.split(".").slice(1, 3).pop();
+
+                            // resize the map on state change
+                            if (analysisController.mode === 'map' && analysisMapController) {
+                                analysisMapController.activate();
+                            }
+                        }
+                    } else if ($state.includes("main.search") && !$state.is("main.search")) {
+                        var searchController = sharedControllers.searchController;
+                        if (sharedControllers.searchController) {
+                            var searchMapController = sharedControllers.searchMapController;
+                            searchController.mode = $state.current.name.split(".").slice(1, 3).pop();
+
+                            // resize the map on state change
+                            if (searchController.mode === 'map' && searchMapController) {
+                                searchMapController.activate();
+                            }
+                        }
+                    }
+                });
+                
+                sharedControllers.appController = appController;
+                console.log('appController instance created');
             }
         ]
         );
