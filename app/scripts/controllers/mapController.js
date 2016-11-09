@@ -921,38 +921,59 @@ angular.module(
                     if (mapController.mode === 'analysis' &&
                             sharedDatamodel.analysisNodes &&
                             sharedDatamodel.analysisNodes.length > 0) {
+                        console.log(sharedDatamodel.analysisNodes.length + ' analysis nodes available before analysis map controler instance created');
+                        if (sharedControllers.analysisMapController) {
+                            console.error(sharedDatamodel.analysisNodes.length + ' analysis nodes available after analysis map controler instance created: sticky state synchronisation problem!');
+                            sharedDatamodel.analysisNodes.forEach(function (node) {
+                                node.$feature = null;
+                            });
+                        }
 
                         // set nodes and fit bounds manually after delay (to allow map to be rendered)
-                        mapController.setNodes(sharedDatamodel.analysisNodes, false);
+                        mapController.setNodes(sharedDatamodel.analysisNodes, false, true);
                         $timeout(function () {
                             mapController.gotoNodes();
                         }, 500);
                     } else if (mapController.mode === 'search' &&
                             sharedDatamodel.resultNodes &&
                             sharedDatamodel.resultNodes.length > 0) {
-                        console.warn(sharedDatamodel.resultNodes.length + ' result nodes available before search map controler instance created: possible sticky state synchrnoisation problem!');
-
+                        console.log(sharedDatamodel.resultNodes.length + ' resultNodes nodes available before search map controler instance created');
+                        if (sharedControllers.searchMapController) {
+                            console.error(sharedDatamodel.resultNodes.length + ' resultNodes nodes available after search map controler instance created: sticky state synchronisation problem!');
+                            sharedDatamodel.resultNodes.forEach(function (node) {
+                                node.$feature = null;
+                            });
+                        }
                         // set nodes and fit bounds manually after delay (to allow map to be rendered)
                         mapController.setNodes(sharedDatamodel.resultNodes, false, true);
                         $timeout(function () {
                             mapController.gotoNodes();
                         }, 500);
                     }
+
+                    // leak this to parent scope
+                    // FIXME: use sharedControllers Service instead
+                    $scope.$parent.mapController = mapController;
+
+                    if (mapController.mode === 'analysis') {
+                        if (sharedControllers.analysisMapController) {
+                            console.log('analysisMapController instance already available, sticky state synchronisation problem');
+                        } else {
+                            console.log('analysisMap instance created');
+                        }
+
+                        sharedControllers.analysisMapController = mapController;
+                    } else {
+                        if (sharedControllers.searchMapController) {
+                            console.log('searchMapController instance already available, sticky state synchronisation problem');
+                        } else {
+                            console.log('searchMapController instance created');
+                        }
+
+                        sharedControllers.searchMapController = mapController;
+                    }
+
+                    mapController.activate();
                 });
-
-                // leak this to parent scope
-                // FIXME: use sharedControllers Service instead
-                $scope.$parent.mapController = mapController;
-
-                if (mapController.mode === 'analysis') {
-                    sharedControllers.analysisMapController = mapController;
-                    console.log('analysisMapController instance created');
-                } else {
-                    sharedControllers.searchMapController = mapController;
-                    console.log('searchMapController instance created');
-                }
-
-                mapController.activate();
-
             }]
         );
