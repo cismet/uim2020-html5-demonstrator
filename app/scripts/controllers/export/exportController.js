@@ -248,7 +248,7 @@ angular.module(
                             }
                         }).finally(function () {
                     //console.log('exportController::finishedWizard -> closing modal');
-                    $state.go('main.analysis.map');
+                    $state.go('main.analysis');
                 });
 
                 // <editor-fold defaultstate="collapsed" desc="[!!!!] MOCK DATA (DISABLED) ----------------">        
