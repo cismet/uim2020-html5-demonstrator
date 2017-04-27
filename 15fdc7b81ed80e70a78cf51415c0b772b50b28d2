@@ -1,11 +1,11 @@
 {
   "built_on": "master",
-  "duration": 58.390000015,
-  "full_display_name": "uim2020-html5-demonstrator #1",
-  "id": "1",
-  "number": 1,
+  "duration": 6.420000051,
+  "full_display_name": "uim2020-html5-demonstrator #2",
+  "id": "2",
+  "number": 2,
   "result": "FAILURE",
   "status_message": "?",
-  "time": "2017-04-27 13:50:21 +0000",
-  "url": "job/uim2020-html5-demonstrator/1/"
+  "time": "2017-04-27 14:03:30 +0000",
+  "url": "job/uim2020-html5-demonstrator/2/"
 }
