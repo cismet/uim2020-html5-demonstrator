@@ -6,7 +6,7 @@
                   done: step.completed && !step.selected, 
                   editing: step.selected && step.completed}" 
                   ng-repeat="step in getEnabledSteps()">
-        <a ng-click="goTo(step)">{{step.title || step.wzTitle}}</a>
+        <a title="Wechseln zu {{step.title || step.wzTitle}}" ng-click="goTo(step)">{{step.title || step.wzTitle}}</a>
       </li>
     </ul>
 </div>

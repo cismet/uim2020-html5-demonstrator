@@ -2,11 +2,13 @@
     <div class="panel panel-primary">
         <div class="panel-heading">
             <h1 class="panel-title">{{wzTitle}}
-            <button type="button" 
-                    class="close pull-right" 
-                    ng-click="wzData.close()">
-                <span class="fa fa-close"></span>
-            </button></h1>
+                <button type="button" 
+                        title="Dialog schließen"
+                        class="close pull-right" 
+                        ng-click="wzData.close()">
+                    <span class="fa fa-close"></span>
+                </button>
+            </h1>
         </div>
 
         <div class="panel-body">
@@ -21,6 +23,7 @@
 
         <div class="panel-footer clearfix">
             <button type="button" 
+                    title="Nächster Schritt"
                     class="btn btn-primary pull-right" 
                     wz-next 
                     ng-disabled="!wzData.canProceed">
@@ -28,6 +31,7 @@
             </button>
             <span class="pull-right">&nbsp;</span>
             <button type="button" 
+                    title="Vorheriger Schritt"
                     class="btn btn-default pull-right" 
                     wz-previous 
                     ng-disabled="!wzData.canGoBack">

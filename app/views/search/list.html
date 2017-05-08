@@ -34,7 +34,7 @@
             <td title="''">
                 <a class="btn btn-sm btn-icon"
                    data-ui-sref="modal.entity({class: node.classKey.split('.').slice(1, 2).pop(), id:node.LEGACY_OBJECT_ID})"
-                   title="Informationen zum Object anzeigen">
+                   title="Informationen zum Objekt anzeigen">
                     <span class="fa fa-info-circle fa-2x"></span>
                 </a>
             </td>
@@ -44,12 +44,10 @@
                    ng-click="mainController.addAnalysisNode(node)">
                     <span class="fa fa-plus-circle fa-2x"></span>
                 </a>
-
             </td>
         </tr>
     </table>
 </div>
-
 
 <div class="cs-filter">
     <!-- Allgemeine Schadstoffe -------------------------------------------- -->
@@ -81,7 +79,7 @@
                 <span class="btn-icon">
                     <img src="icons/factory_16.png" 
                          alt="ePRTR"
-                         title="Suchergebnisse nach Meldeperiode filtern"/>
+                         title="Suchergebnisse nach ePRTR Meldeperiode filtern"/>
                 </span>
                 <strong>Meldeperiode</strong> ({{listController.notificationPeriodPostfilters.tags.length}})
             </div>

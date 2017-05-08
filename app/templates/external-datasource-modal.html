@@ -20,7 +20,8 @@
                 <div class="input-group">
                     <label class="input-group-btn">
                         <span class="btn btn-default"
-                              ng-disabled="importController.importInProgress === true || importController.importCompleted === true">
+                              ng-disabled="importController.importInProgress === true || importController.importCompleted === true"
+                              title="Bitte wählen Sie eine zu importierende Datei aus">
                             Datei auswählen: 
                             <input type="file" 
                                    style="display: none;" 
@@ -90,6 +91,7 @@
 <div class="modal-footer">
     <!-- Import Button -->
     <button class="btn btn-default pull-left"
+            title="Import der ausgewählten Datei durchführen"
             type="button" 
             ng-disabled="!importForm.$valid || importController.importInProgress"
             ng-show="!importController.importCompleted" 
@@ -99,6 +101,7 @@
 
     <!-- Close Button -->
     <button class="btn btn-default pull-left"
+            title="Importdialog schliessen"
             type="button" 
             ng-show="importController.importCompleted" 
             ng-click="importController.close()">
@@ -108,6 +111,7 @@
     <!-- Cancel Button -->
     <button 
         class="btn btn-default pull-left" 
+        title="Importdialog schliessen"
         type="button" 
         ng-disabled="importController.importInProgress" 
         ng-hide="importController.importCompleted" 
