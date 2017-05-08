@@ -12,6 +12,7 @@
 
                 <!-- GOTO Object in Map ------------------------------------ -->
                 <span class="btn-link"
+                      title="Objekt in der Karte anzeigen"
                       ng-disabled="!node.$feature"
                       ng-style="mapController.isNodeSelected(node) && {'font-weight':'bold'}"
                       ng-click="mapController.gotoNode(node)">
@@ -43,7 +44,7 @@
                    data-ui-sref="modal.entity({class: node.classKey.split('.').slice(1, 2).pop(), id:node.LEGACY_OBJECT_ID})"
                    title="Informationen zum Objekt anzeigen"
                    style="padding-right:0; padding-left:0">
-                    <span class="fa fa-info-circle fa-2x"></span>
+                   <span class="fa fa-info-circle fa-2x"></span>
                 </a>
 
                 <!-- DESCRIPTION ------------------------------------------- -->

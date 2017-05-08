@@ -497,7 +497,7 @@ angular.module(
                 L.drawLocal.draw.handlers.polyline.tooltip.cont = 'Klicken um den Linienzug zu erweitern';
                 L.drawLocal.draw.handlers.polyline.tooltip.end = 'Mit Doppelklick das Zeichnen des Linienzugs zu beenden';
                 L.drawLocal.draw.handlers.polyline.error = '<strong>Achtung: </strong><br/>Die Kanten des Linienzugs dürfen sich nicht überschneiden!';
-                L.drawLocal.draw.handlers.rectangle.tooltip.start = 'Klicken um ein Rechteck zu zeichnen';
+                L.drawLocal.draw.handlers.rectangle.tooltip.start = 'Klicken und Ziehen um ein Rechteck zu zeichnen';
                 L.drawLocal.draw.handlers.simpleshape.tooltip.end = 'Klicken um das Zeichnen zu beenden';
                 L.drawLocal.edit.toolbar.actions.save.title = 'Änderungen speichern';
                 L.drawLocal.edit.toolbar.actions.save.text = 'Speichern';
