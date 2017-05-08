@@ -28,19 +28,23 @@ var app = angular.module(
         ]
         );
 
+app.constant('DEVELOPMENT_MODE', true);
+
 /**
  * Configuration blocks get executed during the provider registrations and configuration phase. 
  * Only providers and constants can be injected into configuration blocks. 
  * This is to prevent accidental instantiation of services before they have been fully configured.
  */
 app.config(
-        [
+        [   
             '$logProvider',
             '$stateProvider',
             '$urlRouterProvider',
-            function ($logProvider, $stateProvider, $urlRouterProvider) {
+            'DEVELOPMENT_MODE',
+            function ($logProvider, $stateProvider, $urlRouterProvider, DEVELOPMENT_MODE) {
                 'use strict';
 
+                //$logProvider.debugEnabled(DEVELOPMENT_MODE);
                 $logProvider.debugEnabled(false);
 
                 var resolveEntity;
@@ -59,7 +63,7 @@ app.config(
                  * @returns {nm$_deferred.exports.promise|nm$_deferred.module.exports.promise|$q@call;defer.promise}
                  */
                 resolveEntity = function ($q, $stateParams, configurationService, entityService, sharedDatamodel) {
-                    //console.log("resolve entity " + $stateParams.id + "@" + $stateParams.class);
+                    if(DEVELOPMENT_MODE === true)console.log("resolve entity " + $stateParams.id + "@" + $stateParams.class);
 
                     var entityResource, deferred, className, objectId, dataObject;
 
@@ -272,6 +276,12 @@ app.config(
                             controller: 'authenticationController',
                             controllerAs: 'authenticationController'
                         }
+                    },
+                    onEnter: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("enter main.authentication");
+                    },
+                    onExit: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("enter main.authentication");
                     }
                 });
 
@@ -297,14 +307,19 @@ app.config(
                             templateUrl: 'views/search/toolbar.html',
                             controller: ['$scope',
                                 function ($scope) {
-                                    //console.log('main.search.toolbar instance created');
+                                    if(DEVELOPMENT_MODE === true)console.log('main.search.toolbar instance created');
                                     $scope.name = 'main.search.toolbar';
                                     this.name = 'this.main.search.toolbar';
                                 }],
                             controllerAs: 'toolbarController'
                         }
+                    },
+                    onEnter: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("enter main.search");
+                    },
+                    onExit: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("exit main.search");
                     }
-
                 });
 
                 $stateProvider.state('main.search.map', {
@@ -319,6 +334,12 @@ app.config(
                             controller: 'mapController',
                             controllerAs: 'mapController'
                         }
+                    },
+                    onEnter: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("enter main.search.map");
+                    },
+                    onExit: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("exit main.search.map");
                     }
                 });
 
@@ -334,6 +355,12 @@ app.config(
                             controller: 'listController',
                             controllerAs: 'listController'
                         }
+                    },
+                    onEnter: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("enter main.search.list");
+                    },
+                    onExit: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("exit main.search.list");
                     }
                 });
 
@@ -360,12 +387,18 @@ app.config(
                             templateUrl: 'views/analysis/toolbar.html',
                             controller: ['$scope',
                                 function ($scope) {
-                                    //console.log('main.analysis.toolbar instance created');
+                                    if(DEVELOPMENT_MODE === true)console.log('main.analysis.toolbar instance created');
                                     $scope.name = 'main.analysis.toolbar';
                                     this.name = 'this.main.analysis.toolbar';
                                 }],
                             controllerAs: 'toolbarController'
                         }
+                    },
+                    onEnter: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("enter main.analysis");
+                    },
+                    onExit: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("exit main.analysis");
                     }
                 });
 
@@ -380,13 +413,13 @@ app.config(
                             controller: 'mapController',
                             controllerAs: 'mapController'
                         }
-                    }/*,
-                     onEnter: function () {
-                     //console.log("enter main.analysis.map");
-                     },
-                     onExit: function () {
-                     //console.log("exit main.analysis.map");
-                     }*/
+                    },
+                    onEnter: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("enter main.analysis.map");
+                    },
+                    onExit: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("exit main.analysis.map");
+                    }
                 });
 
                 $stateProvider.state('main.protocol', {
@@ -408,6 +441,12 @@ app.config(
                         'protocol@main': {
                             templateUrl: 'views/protocol/index.html'
                         }
+                    },
+                    onEnter: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("enter main.protocol");
+                    },
+                    onExit: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("exit main.protocol");
                     }
                 });
 
@@ -445,11 +484,11 @@ app.config(
 
                                 // don't memo the modal state!
                                 if (previousState.name.indexOf('modal') !== 0) {
-                                    //console.log('entityModalInvoker: saving previous state ' + previousState.name);
+                                    if(DEVELOPMENT_MODE === true)console.log('entityModalInvoker: saving previous state ' + previousState.name);
                                     $previousState.memo('entityModalInvoker');
                                     return $previousState.get('entityModalInvoker');
                                 }
-                                //console.log('entityModalInvoker: ignoring previous state ' + previousState.name);
+                                if(DEVELOPMENT_MODE === true)console.log('entityModalInvoker: ignoring previous state ' + previousState.name);
                             }
                         }
                     }
@@ -511,8 +550,9 @@ app.run(
             '$previousState',
             'configurationService',
             'authenticationService',
+            'DEVELOPMENT_MODE',
             function ($rootScope, $anchorScroll, $state, $stateParams, $previousState,
-                    configurationService, authenticationService) {
+                    configurationService, authenticationService, DEVELOPMENT_MODE) {
                 'use strict';
                 // It's very handy to add references to $state and $stateParams to the $rootScope
                 // so that you can access them from any scope within your applications.For example,
@@ -533,13 +573,13 @@ app.run(
                 });
 
                 // FIXME: asynchronous call
-                // Gets identity from cookie and cheks if valid ($http)
+                // Gets identity from cookie and checks if valid ($http)
                 // result is available after ui-ruoter state change! :(
                 //authenticationService.resolveIdentity(true);
 
                 $rootScope.$on('$stateChangeStart',
                         function (event, toState, toParams, fromState, fromParams) {
-                            //console.log('$stateChangeStart: ' + toState.name);
+                            if(DEVELOPMENT_MODE === true)console.log('$stateChangeStart: ' + toState.name);
                             if (toState.name !== 'main.authentication') {
 //                                if ((!authenticationService.isIdentityResolved() &&
 //                                        !authenticationService.getIdentity()) ||

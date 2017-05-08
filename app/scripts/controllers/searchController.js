@@ -14,10 +14,12 @@ angular.module(
         ).controller(
         'searchController',
         [
-            '$rootScope', '$timeout', '$scope', '$state', '$uibModal', 'configurationService',
+            '$rootScope', '$timeout', '$scope', '$state', '$stickyState', '$uibModal', 'configurationService',
             'sharedDatamodel', 'sharedControllers', 'dataService', 'searchService',
-            function ($rootScope, $timeout, $scope, $state, $uibModal,
-                    configurationService, sharedDatamodel, sharedControllers, dataService, searchService) {
+            '$stickyState', '$state', 'DEVELOPMENT_MODE',
+            function ($rootScope, $timeout, $scope, $state, $stickyState, $uibModal,
+                    configurationService, sharedDatamodel, sharedControllers, dataService, 
+                    searchService, DEVELOPMENT_MODE) {
                 'use strict';
                 var searchController, searchProcessCallback, showProgressModal, progressModal;
                 searchController = this;
@@ -148,7 +150,7 @@ angular.module(
 
                 showProgressModal = function () {
                     var modalScope;
-                    //console.log('searchController::showProgress()');
+                    if(DEVELOPMENT_MODE === true)console.log('searchController::showProgress()');
                     modalScope = $rootScope.$new(true);
                     modalScope.status = searchController.status;
                     progressModal = $uibModal.open({
@@ -166,7 +168,7 @@ angular.module(
                     });
                 };
                 searchProcessCallback = function (current, max, type) {
-                    //console.log('searchProcess: type=' + type + ', current=' + current + ", max=" + max)
+                    if(DEVELOPMENT_MODE === true)console.log('searchProcess: type=' + type + ', current=' + current + ", max=" + max)
                     // the maximum object count
                     searchController.status.progress.max = 100;
                     // the scaled progress: 0 <fake progress> 100 <real progress> 200
@@ -236,6 +238,21 @@ angular.module(
                     }
 
                     $scope.$broadcast('gotoLocation()');
+                };
+                
+                searchController.reset = function () {
+                    if(DEVELOPMENT_MODE === true)console.log('reset search view');
+
+                    sharedDatamodel.reset();
+
+                    $stickyState.reset('main.search.map');
+                    $stickyState.reset('main.search.list');
+
+                    
+                    sharedControllers.searchMapController = null;
+                    sharedControllers.searchListController = null;
+  
+                    $state.go('main.search.map', undefined, {'reload':true});
                 };
 
                 /**
@@ -338,7 +355,7 @@ angular.module(
                 // </editor-fold>     
 
                 sharedControllers.searchController = searchController;
-                console.log('searchController instance created');
+                if(DEVELOPMENT_MODE === true)console.log('searchController instance created');
             }
         ]
         );
