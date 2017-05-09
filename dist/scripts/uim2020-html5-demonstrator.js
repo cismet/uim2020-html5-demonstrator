@@ -21,12 +21,14 @@ var app = angular.module(
             'ui.bootstrap', 'ui.bootstrap.modal', 'angular.filter',
             'ui.router', 'ui.router.modal',
             'ct.ui.router.extras.sticky', 'ct.ui.router.extras.dsr', 'ct.ui.router.extras.previous',
-            'leaflet-directive',
+            'ui-leaflet', 'nemLogging',
             'ngTable', 'angularjs-dropdown-multiselect',
             'mgcrea.ngStrap.tooltip', 'mgcrea.ngStrap.popover', 'mgcrea.ngStrap.modal',
             'mgo-angular-wizard', 'ngFileUpload'
         ]
         );
+
+app.constant('DEVELOPMENT_MODE', true);
 
 /**
  * Configuration blocks get executed during the provider registrations and configuration phase. 
@@ -34,13 +36,15 @@ var app = angular.module(
  * This is to prevent accidental instantiation of services before they have been fully configured.
  */
 app.config(
-        [
+        [   
             '$logProvider',
             '$stateProvider',
             '$urlRouterProvider',
-            function ($logProvider, $stateProvider, $urlRouterProvider) {
+            'DEVELOPMENT_MODE',
+            function ($logProvider, $stateProvider, $urlRouterProvider, DEVELOPMENT_MODE) {
                 'use strict';
 
+                //$logProvider.debugEnabled(DEVELOPMENT_MODE);
                 $logProvider.debugEnabled(false);
 
                 var resolveEntity;
@@ -59,7 +63,7 @@ app.config(
                  * @returns {nm$_deferred.exports.promise|nm$_deferred.module.exports.promise|$q@call;defer.promise}
                  */
                 resolveEntity = function ($q, $stateParams, configurationService, entityService, sharedDatamodel) {
-                    //console.log("resolve entity " + $stateParams.id + "@" + $stateParams.class);
+                    if(DEVELOPMENT_MODE === true)console.log("resolve entity " + $stateParams.id + "@" + $stateParams.class);
 
                     var entityResource, deferred, className, objectId, dataObject;
 
@@ -272,6 +276,12 @@ app.config(
                             controller: 'authenticationController',
                             controllerAs: 'authenticationController'
                         }
+                    },
+                    onEnter: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("enter main.authentication");
+                    },
+                    onExit: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("enter main.authentication");
                     }
                 });
 
@@ -297,14 +307,19 @@ app.config(
                             templateUrl: 'views/search/toolbar.html',
                             controller: ['$scope',
                                 function ($scope) {
-                                    //console.log('main.search.toolbar instance created');
+                                    if(DEVELOPMENT_MODE === true)console.log('main.search.toolbar instance created');
                                     $scope.name = 'main.search.toolbar';
                                     this.name = 'this.main.search.toolbar';
                                 }],
                             controllerAs: 'toolbarController'
                         }
+                    },
+                    onEnter: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("enter main.search");
+                    },
+                    onExit: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("exit main.search");
                     }
-
                 });
 
                 $stateProvider.state('main.search.map', {
@@ -319,6 +334,12 @@ app.config(
                             controller: 'mapController',
                             controllerAs: 'mapController'
                         }
+                    },
+                    onEnter: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("enter main.search.map");
+                    },
+                    onExit: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("exit main.search.map");
                     }
                 });
 
@@ -334,6 +355,12 @@ app.config(
                             controller: 'listController',
                             controllerAs: 'listController'
                         }
+                    },
+                    onEnter: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("enter main.search.list");
+                    },
+                    onExit: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("exit main.search.list");
                     }
                 });
 
@@ -360,12 +387,18 @@ app.config(
                             templateUrl: 'views/analysis/toolbar.html',
                             controller: ['$scope',
                                 function ($scope) {
-                                    //console.log('main.analysis.toolbar instance created');
+                                    if(DEVELOPMENT_MODE === true)console.log('main.analysis.toolbar instance created');
                                     $scope.name = 'main.analysis.toolbar';
                                     this.name = 'this.main.analysis.toolbar';
                                 }],
                             controllerAs: 'toolbarController'
                         }
+                    },
+                    onEnter: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("enter main.analysis");
+                    },
+                    onExit: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("exit main.analysis");
                     }
                 });
 
@@ -380,13 +413,13 @@ app.config(
                             controller: 'mapController',
                             controllerAs: 'mapController'
                         }
-                    }/*,
-                     onEnter: function () {
-                     //console.log("enter main.analysis.map");
-                     },
-                     onExit: function () {
-                     //console.log("exit main.analysis.map");
-                     }*/
+                    },
+                    onEnter: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("enter main.analysis.map");
+                    },
+                    onExit: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("exit main.analysis.map");
+                    }
                 });
 
                 $stateProvider.state('main.protocol', {
@@ -408,6 +441,12 @@ app.config(
                         'protocol@main': {
                             templateUrl: 'views/protocol/index.html'
                         }
+                    },
+                    onEnter: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("enter main.protocol");
+                    },
+                    onExit: function () {
+                       if(DEVELOPMENT_MODE === true)console.log("exit main.protocol");
                     }
                 });
 
@@ -445,11 +484,11 @@ app.config(
 
                                 // don't memo the modal state!
                                 if (previousState.name.indexOf('modal') !== 0) {
-                                    //console.log('entityModalInvoker: saving previous state ' + previousState.name);
+                                    if(DEVELOPMENT_MODE === true)console.log('entityModalInvoker: saving previous state ' + previousState.name);
                                     $previousState.memo('entityModalInvoker');
                                     return $previousState.get('entityModalInvoker');
                                 }
-                                //console.log('entityModalInvoker: ignoring previous state ' + previousState.name);
+                                if(DEVELOPMENT_MODE === true)console.log('entityModalInvoker: ignoring previous state ' + previousState.name);
                             }
                         }
                     }
@@ -511,8 +550,9 @@ app.run(
             '$previousState',
             'configurationService',
             'authenticationService',
+            'DEVELOPMENT_MODE',
             function ($rootScope, $anchorScroll, $state, $stateParams, $previousState,
-                    configurationService, authenticationService) {
+                    configurationService, authenticationService, DEVELOPMENT_MODE) {
                 'use strict';
                 // It's very handy to add references to $state and $stateParams to the $rootScope
                 // so that you can access them from any scope within your applications.For example,
@@ -533,13 +573,13 @@ app.run(
                 });
 
                 // FIXME: asynchronous call
-                // Gets identity from cookie and cheks if valid ($http)
+                // Gets identity from cookie and checks if valid ($http)
                 // result is available after ui-ruoter state change! :(
                 //authenticationService.resolveIdentity(true);
 
                 $rootScope.$on('$stateChangeStart',
                         function (event, toState, toParams, fromState, fromParams) {
-                            //console.log('$stateChangeStart: ' + toState.name);
+                            if(DEVELOPMENT_MODE === true)console.log('$stateChangeStart: ' + toState.name);
                             if (toState.name !== 'main.authentication') {
 //                                if ((!authenticationService.isIdentityResolved() &&
 //                                        !authenticationService.getIdentity()) ||
@@ -2424,8 +2464,9 @@ angular.module(
             'sharedDatamodel',
             'sharedControllers',
             'featureRendererService',
+            'DEVELOPMENT_MODE',
             function ($scope, $timeout, leafletData, configurationService,
-                    sharedDatamodel, sharedControllers, featureRendererService) {
+                    sharedDatamodel, sharedControllers, featureRendererService, DEVELOPMENT_MODE) {
                 'use strict';
 
                 var leafletMap, mapId, mapController, config, layerControl, searchGeometryLayerGroup, drawControl,
@@ -2567,7 +2608,7 @@ angular.module(
                  */
                 selectNode = function (node) {
                     var icon;
-                    //console.log(mapController.mode + '-map::selectNode() -> ' + node.name);
+                     if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::selectNode() -> ' + node.name);
                     // reset selection
                     if (selectedNode !== node && selectedNode !== null && selectedNode.$feature) {
                         icon = featureRendererService.getIconForNode(selectedNode);
@@ -2622,7 +2663,7 @@ angular.module(
                     if (mapController.mode === 'search') {
                         searchGeometryLayerGroup.clearLayers();
                         if (searchGeometryLayer !== null) {
-                            //console.log('setSearchGeometry: ' + layerType);
+                            if(DEVELOPMENT_MODE === true)console.log('setSearchGeometry: ' + layerType);
 
                             searchGeometryLayer.$name = layerType;
                             searchGeometryLayer.$key = 'searchGeometry';
@@ -2669,9 +2710,13 @@ angular.module(
                                 $scope.mapHeight = height;
                                 $scope.mapWidth = width;
 
-                                console.log(mapController.mode + '-map::activate new size: ' + width + "x" + height);
-                                leafletMap.invalidateSize(false);
+                                if(DEVELOPMENT_MODE)console.log(mapController.mode + '-map::activate new size: ' + width + 'x' + height);
+                            } else if(DEVELOPMENT_MODE) {
+                                console.log(mapController.mode + '-map::size not changed: ' + 
+                                        width + "x" + height + ' === ' + $scope.mapWidth + "x" + $scope.mapHeight);
                             }
+                            
+                            leafletMap.invalidateSize(false);
                         }
                         //}
                     }, 100);
@@ -2703,7 +2748,7 @@ angular.module(
                  * @returns {undefined}
                  */
                 mapController.unSelectOverlayByKey = function (layerKey) {
-                    //console.log(mapController.mode + '-map::unSelectOverlayByKey() -> ' + layerKey);
+                    if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::unSelectOverlayByKey() -> ' + layerKey);
                     if (layerKey &&
                             layerControlMappings[layerKey] &&
                             layerControl._Layers[layerControlMappings[layerKey]]) {
@@ -2721,7 +2766,7 @@ angular.module(
                  * @returns {undefined}
                  */
                 mapController.unSelectOverlay = function (layer) {
-                    //console.log(mapController.mode + '-map::unSelectOverlay() -> ' + layer.length);
+                    if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::unSelectOverlay() -> ' + layer.length);
                     layerControl.unSelectLayer(layer);
                 };
 
@@ -2760,7 +2805,7 @@ angular.module(
                 };
 
                 mapController.removeOverlayByKey = function (layerKey) {
-                    //console.log(mapController.mode + '-map::removeOverlayByKey() -> ' + layerKey);
+                    if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::removeOverlayByKey() -> ' + layerKey);
                     if (layerKey &&
                             layerControlMappings[layerKey] &&
                             layerControl._Layers[layerControlMappings[layerKey]]) {
@@ -2772,7 +2817,7 @@ angular.module(
                 };
 
                 mapController.removeOverlay = function (layer) {
-                    //console.log(mapController.mode + '-map::removeOverlay() -> ' + layer.$key);
+                    if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::removeOverlay() -> ' + layer.$key);
                     mapController.unSelectOverlay(layer);
                     layerControl.removeLayer(layer);
                     if (layer.$key) {
@@ -2781,14 +2826,14 @@ angular.module(
                 };
 
                 mapController.addOverlay = function (layer) {
-                    //console.log(mapController.mode + '-map::addOverlay() -> ' + layer.$key);
+                    if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::addOverlay() -> ' + layer.$key);
                     if (mapController.mode === 'analysis') {
                         if (layer.$key && layer.$name) {
 
                             layerControlMappings[layer.$key] =
                                     L.stamp(layer);
 
-                            //console.log('mapController::addOverlay: ' + layer.$name + ' (' + layerControlMappings[layer.$key] + ')');
+                             if(DEVELOPMENT_MODE === true)console.log('mapController::addOverlay: ' + layer.$name + ' (' + layerControlMappings[layer.$key] + ')');
 
                             var groupName = layer.$groupName ? layer.$groupName : config.layerGroupMappings['external'];
                             layerControl.addOverlay(
@@ -2836,7 +2881,7 @@ angular.module(
                  */
                 mapController.gotoNode = function (node) {
                     var theSelectedNode, zoom;
-                    //console.log(mapController.mode + '-map::gotoNode() -> ' + node.name);
+                     if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::gotoNode() -> ' + node.name);
                     zoom = 14;
                     theSelectedNode = selectNode(node);
 
@@ -2847,7 +2892,7 @@ angular.module(
                                 theSelectedNode.$feature.__parent._group.$maxZoom) {
 
                             zoom = theSelectedNode.$feature.__parent._group.$maxZoom;
-                            //console.log(mapController.mode + '-map::gotoNode() -> ' + node.name + ' -> apply max zoom: ' + zoom);
+                            if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::gotoNode() -> ' + node.name + ' -> apply max zoom: ' + zoom);
                         }
 
                         leafletMap.setView(selectedNode.$feature.getLatLng(), zoom);
@@ -2862,7 +2907,7 @@ angular.module(
                  * @returns {undefined}
                  */
                 mapController.addNode = function (node) {
-                    //console.log(mapController.mode + '-map::addNode() -> ' + node.name);
+                    if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::addNode() -> ' + node.name);
                     // FIXME: prevent adding duplicate nodes!
                     if (mapController.mode === 'analysis') {
                         mapController.setNodes([node]);
@@ -2881,7 +2926,7 @@ angular.module(
                     var feature, featureGroupLayer, layerControlId;
                     if (mapController.mode === 'analysis') {
                         if (node && node.$feature && node.$feature.$groupKey) {
-                            //console.log(mapController.mode + '-map::removeNode() -> ' + node.name);
+                            if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::removeNode() -> ' + node.name);
                             if (node === selectedNode) {
                                 selectedNode = null;
                             }
@@ -2911,7 +2956,7 @@ angular.module(
                  */
                 mapController.clearNodes = function () {
                     var nodeLayerControlIds, featureGroupLayer;
-                    //console.log(mapController.mode + '-map::clearNodes()');
+                    if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::clearNodes()');
                     selectedNode = null;
                     nodeLayerControlIds = [
                         layerControlMappings.BORIS_SITE,
@@ -2937,7 +2982,7 @@ angular.module(
                  */
                 mapController.gotoNodes = function () {
                     var bounds, nodeLayerControlIds, featureGroupLayer, nodesFitBoundsOptions;
-                    //console.log(mapController.mode + '-map::gotoNodes()');
+                    if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::gotoNodes()');
                     nodesFitBoundsOptions = angular.extend({}, fitBoundsOptions);
 
                     // FIXME: take from nodeOverlays
@@ -2970,8 +3015,8 @@ angular.module(
                     if (bounds) {
                         leafletData.getMap(mapId).then(function (map) {
                             map.fitBounds(bounds, nodesFitBoundsOptions);
-                            //console.log('fit bounds:' + JSON.stringify(bounds));
-                            //console.log('fit bounds:' + JSON.stringify(nodesFitBoundsOptions));
+                             if(DEVELOPMENT_MODE === true)console.log('fit bounds:' + JSON.stringify(bounds));
+                            if(DEVELOPMENT_MODE === true)console.log('fit bounds:' + JSON.stringify(nodesFitBoundsOptions));
                         });
                     }
                 };
@@ -2988,7 +3033,7 @@ angular.module(
                     var featureGroups, featureGroup, featureGroupLayer, theme,
                             layerControlId;
 
-                    //console.log(mapController.mode + '-map::setNodes() -> ' + nodes.length);
+                    if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::setNodes() -> ' + nodes.length);
                     // check for falsy, undefoined, whatever, ....
                     if (clearLayers !== false && clearLayers !== true) {
                         clearLayers = mapController.mode === 'search' ? true : false;
@@ -3043,7 +3088,7 @@ angular.module(
 
                 mapController.setGazetteerLocation = function (gazetteerLocation) {
                     if (mapController.mode === 'search') {
-                        //console.log('mapController::setGazetteerLocation: ' + gazetteerLocation.name);
+                        if(DEVELOPMENT_MODE === true)console.log('mapController::setGazetteerLocation: ' + gazetteerLocation.name);
                         if (gazetteerLocation !== null) {
                             // remove old layer
                             if (gazetteerLocationLayer !== null) {
@@ -3102,7 +3147,7 @@ angular.module(
 
                 mapController.applyZoomLevelRestriction = function () {
                     var currentZoomLevel, zoom;
-                    //console.log(mapController.mode + '-map::applyZoomLevelRestriction()');
+                    if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::applyZoomLevelRestriction()');
 
                     // always close popups on close: it may leak the position of a hidden feature!
                     leafletMap.closePopup();
@@ -3128,7 +3173,7 @@ angular.module(
                 if (mapController.mode === 'search') {
                     $scope.$on('gotoLocation()', function (event) {
                         if (mapController.mode === 'search') {
-                            //console.log('mapController::gotoLocation(' + sharedDatamodel.selectedGazetteerLocation.name + ')');
+                            if(DEVELOPMENT_MODE === true)console.log('mapController::gotoLocation(' + sharedDatamodel.selectedGazetteerLocation.name + ')');
                             mapController.setGazetteerLocation(sharedDatamodel.selectedGazetteerLocation);
                         }
                     });
@@ -3175,7 +3220,7 @@ angular.module(
                  // Return the "result" of the watch expression.
                  return(mapController.zoom);
                  }, function (newZoom, oldZoom) {
-                 //console.log('newZoom:' + newZoom + " = this.zoom:" + mapController.zoom);
+                  if(DEVELOPMENT_MODE === true)console.log('newZoom:' + newZoom + " = this.zoom:" + mapController.zoom);
                  if (mapController.zoom && newZoom !== oldZoom) {
                  $state.go('main.' + $scope.mainController.mode + '.map', {'zoom': mapController.zoom},
                  {'inherit': true, 'notify': false, 'reload': false}).then(
@@ -3234,11 +3279,11 @@ angular.module(
                             if (!event.layerType) {
                                 event.layerType = 'polygon';
                             }
-                            //console.log('draw:created: ' + event.layerType);
+                             if(DEVELOPMENT_MODE === true)console.log('draw:created: ' + event.layerType);
                             setSearchGeometry(event.layer, event.layerType);
                             // this is madness!
                             sharedDatamodel.selectedSearchLocation.id = 1;
-                            //console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                             if(DEVELOPMENT_MODE === true)console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
 
                             // directly switch to expand mode after drawing polyline
                             if (event.layerType === 'polyline') {
@@ -3285,13 +3330,13 @@ angular.module(
                      * Show or hide features based on zoom level
                      */
                     map.on('zoomend', function () {
-                        //console.log(mapController.mode + '-map::zoomed');
+                         if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::zoomed');
                         mapController.applyZoomLevelRestriction();
                     });
 
                     map.on('layerremove', function (layerEvent) {
                         var removedLayer = layerEvent.layer;
-                        //console.log(mapController.mode + '-map::layerremove -> key:' + removedLayer.$key + ', type: ' + removedLayer.constructor.name);
+                         if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::layerremove -> key:' + removedLayer.$key + ', type: ' + removedLayer.constructor.name);
 
                         if (removedLayer.StyledLayerControl &&
                                 layerControl._layers[L.stamp(removedLayer)]) {
@@ -3310,7 +3355,7 @@ angular.module(
                          ' (' + L.stamp(removedLayer) + ')');*/
 
                         if (removedLayer && removedLayer === gazetteerLocationLayer) {
-                            //console.log('mapController::gazetteerLocationLayer removed');
+                             if(DEVELOPMENT_MODE === true)console.log('mapController::gazetteerLocationLayer removed');
                             //gazetteerLocationLayer = null;
                             //layerControl.removeLayer(gazetteerLocationLayer);
                         }
@@ -3323,7 +3368,7 @@ angular.module(
                      */
                     map.on('layeradd', function (layerEvent) {
                         var addedLayer = layerEvent.layer;
-                        //console.log(mapController.mode + '-map::layeradd -> key:' + addedLayer.$key + ', type: ' + addedLayer.constructor.name);
+                         if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::layeradd -> key:' + addedLayer.$key + ', type: ' + addedLayer.constructor.name);
                         if (addedLayer.$maxZoom) {
                             featureRendererService.applyZoomLevelRestriction(addedLayer, map.getZoom());
                         }
@@ -3367,17 +3412,17 @@ angular.module(
                     // FIXME: use sharedControllers Service instead
                     $scope.$parent.mapController = mapController;
 
-                    if (mapController.mode === 'analysis') {
+                    if (DEVELOPMENT_MODE === true && mapController.mode === 'analysis') {
                         if (sharedControllers.analysisMapController) {
-                            console.log('analysisMapController instance already available, sticky state synchronisation problem');
+                            console.error('analysisMapController instance already available, sticky state synchronisation problem');
                         } else {
-                            console.log('analysisMap instance created');
+                            console.log('analysisMapController instance created');
                         }
 
                         sharedControllers.analysisMapController = mapController;
-                    } else {
+                    } else if (DEVELOPMENT_MODE === true){
                         if (sharedControllers.searchMapController) {
-                            console.log('searchMapController instance already available, sticky state synchronisation problem');
+                            console.error('searchMapController instance already available, sticky state synchronisation problem');
                         } else {
                             console.log('searchMapController instance created');
                         }
@@ -3406,12 +3451,12 @@ angular.module(
         ).controller(
         'searchController',
         [
-            '$rootScope', '$timeout', '$scope', '$state', '$uibModal', 'configurationService',
-            'sharedDatamodel', 'sharedControllers', 'dataService', 'searchService',
-            function ($rootScope, $timeout, $scope, $state, $uibModal,
-                    configurationService, sharedDatamodel, sharedControllers, dataService, searchService) {
+            '$rootScope', '$timeout', '$scope', '$state', '$stickyState', '$uibModal', 'configurationService',
+            'sharedDatamodel', 'sharedControllers', 'dataService', 'searchService', 'DEVELOPMENT_MODE',
+            function ($rootScope, $timeout, $scope, $state, $stickyState, $uibModal, configurationService, 
+                sharedDatamodel, sharedControllers, dataService, searchService, DEVELOPMENT_MODE) {
                 'use strict';
-                var searchController, searchProcessCallback, showProgressModal, progressModal;
+                var searchController, searchProgressCallback, showProgressModal, progressModal;
                 searchController = this;
                 // set default mode according to default route in app.js 
                 searchController.mode = 'map';
@@ -3540,7 +3585,7 @@ angular.module(
 
                 showProgressModal = function () {
                     var modalScope;
-                    //console.log('searchController::showProgress()');
+                    if(DEVELOPMENT_MODE === true)console.log('searchController::showProgress()');
                     modalScope = $rootScope.$new(true);
                     modalScope.status = searchController.status;
                     progressModal = $uibModal.open({
@@ -3557,8 +3602,8 @@ angular.module(
                         }
                     });
                 };
-                searchProcessCallback = function (current, max, type) {
-                    //console.log('searchProcess: type=' + type + ', current=' + current + ", max=" + max)
+                searchProgressCallback = function (current, max, type) {
+                    if(DEVELOPMENT_MODE === true)console.log('searchProgress: type=' + type + ', current=' + current + ', max=' + max);
                     // the maximum object count
                     searchController.status.progress.max = 100;
                     // the scaled progress: 0 <fake progress> 100 <real progress> 200
@@ -3629,6 +3674,22 @@ angular.module(
 
                     $scope.$broadcast('gotoLocation()');
                 };
+                
+                searchController.reset = function () {
+                    if(DEVELOPMENT_MODE === true)console.log('reset search view');
+
+                    sharedDatamodel.reset();
+
+                    $stickyState.reset('main.search.map');
+                    $stickyState.reset('main.search.list');
+
+                    
+                    sharedControllers.searchMapController = null;
+                    sharedControllers.searchListController = null;
+  
+                    // reload the whole search state to rewset also the toolbar controllers
+                    $state.go('main.search.map',{},{reload: "main.search"});
+                };
 
                 /**
                  * Fit bounds to nodes
@@ -3678,7 +3739,7 @@ angular.module(
                             pollutants,
                             limit,
                             offset,
-                            searchProcessCallback).$promise.then(
+                            searchProgressCallback).$promise.then(
                             function (searchResult)
                             {
                                 sharedDatamodel.resultNodes.length = 0;
@@ -3730,7 +3791,7 @@ angular.module(
                 // </editor-fold>     
 
                 sharedControllers.searchController = searchController;
-                console.log('searchController instance created');
+                if(DEVELOPMENT_MODE === true)console.log('searchController instance created');
             }
         ]
         );
@@ -4272,7 +4333,7 @@ angular.module(
                         wagwClusterGroupOptions, waowClusterGroupOptions;
 
                 configurationService = this;
-
+                
                 // <editor-fold defaultstate="collapsed" desc="=== cidsRestApi ===========================">
                 configurationService.cidsRestApi = {};
                 configurationService.cidsRestApi.host = 'http://localhost:8890';
@@ -4744,7 +4805,7 @@ angular.module(
                 L.drawLocal.draw.handlers.polyline.tooltip.cont = 'Klicken um den Linienzug zu erweitern';
                 L.drawLocal.draw.handlers.polyline.tooltip.end = 'Mit Doppelklick das Zeichnen des Linienzugs zu beenden';
                 L.drawLocal.draw.handlers.polyline.error = '<strong>Achtung: </strong><br/>Die Kanten des Linienzugs dürfen sich nicht überschneiden!';
-                L.drawLocal.draw.handlers.rectangle.tooltip.start = 'Klicken um ein Rechteck zu zeichnen';
+                L.drawLocal.draw.handlers.rectangle.tooltip.start = 'Klicken und Ziehen um ein Rechteck zu zeichnen';
                 L.drawLocal.draw.handlers.simpleshape.tooltip.end = 'Klicken um das Zeichnen zu beenden';
                 L.drawLocal.edit.toolbar.actions.save.title = 'Änderungen speichern';
                 L.drawLocal.edit.toolbar.actions.save.text = 'Speichern';
@@ -4809,6 +4870,7 @@ angular.module(
 
                 // </editor-fold>
             }]);
+
 /* 
  * ***************************************************
  * 
@@ -6083,39 +6145,54 @@ angular.module(
         ).service('sharedDatamodel',
         [function () {
                 'use strict';
+                
+                var _this;
+                _this = this;
 
                 // auth token
-                this.identity = null;
+                _this.identity = null;
 
                 // resolved entity
-                this.resolvedEntity = null;
+                _this.resolvedEntity = null;
 
                 // search selection
-                this.selectedSearchThemes = [];
-                this.selectedSearchPollutants = [];
-                this.selectedGazetteerLocation = {};
-                //this.selectedSearchGeometry = {};
-                this.selectedSearchLocation = {
+                _this.selectedSearchThemes = [];
+                _this.selectedSearchPollutants = [];
+                _this.selectedGazetteerLocation = {};
+                //_this.selectedSearchGeometry = {};
+                _this.selectedSearchLocation = {
                     id: 0
                 };
 
                 // search results
-                this.resultNodes = [];
-                this.analysisNodes = [];
+                _this.resultNodes = [];
+                _this.analysisNodes = [];
 
                 // postfilters
-                this.filteredResultNodes = [];
+                _this.filteredResultNodes = [];
 
                 // data import
-                this.globalDatasources = [];
-                this.localDatasources = [];
+                _this.globalDatasources = [];
+                _this.localDatasources = [];
 
-                this.status = {};
-                this.status.type = 'success';
-                this.status.message = 'UIM-2020 Demonstrator Datenintegration';
-                this.status.progress = {};
-                this.status.progress.current = 0;
-                this.status.progress.max = 0;
+                _this.status = {};
+                _this.status.type = 'success';
+                _this.status.message = 'UIM-2020 Demonstrator Datenintegration';
+                _this.status.progress = {};
+                _this.status.progress.current = 0;
+                _this.status.progress.max = 0;
+                
+                _this.reset = function() {
+                    _this.selectedSearchThemes.length = 0;     
+                    _this.selectedSearchPollutants.length = 0;    
+                    _this.resultNodes.length = 0;      
+                    _this.selectedGazetteerLocation = {};
+                    //_this.selectedSearchGeometry = {};
+                    _this.selectedSearchLocation.id = 0;
+                    _this.filteredResultNodes.length = 0;    
+                    _this.status.type = 'success';
+                    _this.status.message = 'Recherche zurückgesetzt';
+                };
             }]);
 /* 
  * ***************************************************

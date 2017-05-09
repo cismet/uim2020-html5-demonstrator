@@ -149,7 +149,9 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "                        <span class=\"btn btn-default\"\r" +
     "\n" +
-    "                              ng-disabled=\"importController.importInProgress === true || importController.importCompleted === true\">\r" +
+    "                              ng-disabled=\"importController.importInProgress === true || importController.importCompleted === true\"\r" +
+    "\n" +
+    "                              title=\"Bitte wählen Sie eine zu importierende Datei aus\">\r" +
     "\n" +
     "                            Datei auswählen: \r" +
     "\n" +
@@ -289,6 +291,8 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "    <button class=\"btn btn-default pull-left\"\r" +
     "\n" +
+    "            title=\"Import der ausgewählten Datei durchführen\"\r" +
+    "\n" +
     "            type=\"button\" \r" +
     "\n" +
     "            ng-disabled=\"!importForm.$valid || importController.importInProgress\"\r" +
@@ -307,6 +311,8 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "    <button class=\"btn btn-default pull-left\"\r" +
     "\n" +
+    "            title=\"Importdialog schliessen\"\r" +
+    "\n" +
     "            type=\"button\" \r" +
     "\n" +
     "            ng-show=\"importController.importCompleted\" \r" +
@@ -324,6 +330,8 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "    <button \r" +
     "\n" +
     "        class=\"btn btn-default pull-left\" \r" +
+    "\n" +
+    "        title=\"Importdialog schliessen\"\r" +
     "\n" +
     "        type=\"button\" \r" +
     "\n" +
@@ -357,6 +365,8 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "    <h1 class=\"popover-title\">\r" +
     "\n" +
     "        <button type=\"button\" \r" +
+    "\n" +
+    "                title=\"Dialog schließen\"\r" +
     "\n" +
     "                class=\"close\" \r" +
     "\n" +
@@ -540,6 +550,8 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "        <button type=\"button\" \r" +
     "\n" +
+    "                title=\"Dialog schließen\"\r" +
+    "\n" +
     "                class=\"btn btn-default\" \r" +
     "\n" +
     "                ng-click=\"$hide()\">\r" +
@@ -616,15 +628,19 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "            <h1 class=\"panel-title\">{{wzTitle}}\r" +
     "\n" +
-    "            <button type=\"button\" \r" +
+    "                <button type=\"button\" \r" +
     "\n" +
-    "                    class=\"close pull-right\" \r" +
+    "                        title=\"Dialog schließen\"\r" +
     "\n" +
-    "                    ng-click=\"wzData.close()\">\r" +
+    "                        class=\"close pull-right\" \r" +
     "\n" +
-    "                <span class=\"fa fa-close\"></span>\r" +
+    "                        ng-click=\"wzData.close()\">\r" +
     "\n" +
-    "            </button></h1>\r" +
+    "                    <span class=\"fa fa-close\"></span>\r" +
+    "\n" +
+    "                </button>\r" +
+    "\n" +
+    "            </h1>\r" +
     "\n" +
     "        </div>\r" +
     "\n" +
@@ -654,6 +670,8 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "            <button type=\"button\" \r" +
     "\n" +
+    "                    title=\"Nächster Schritt\"\r" +
+    "\n" +
     "                    class=\"btn btn-primary pull-right\" \r" +
     "\n" +
     "                    wz-next \r" +
@@ -667,6 +685,8 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "            <span class=\"pull-right\">&nbsp;</span>\r" +
     "\n" +
     "            <button type=\"button\" \r" +
+    "\n" +
+    "                    title=\"Vorheriger Schritt\"\r" +
     "\n" +
     "                    class=\"btn btn-default pull-right\" \r" +
     "\n" +
@@ -703,7 +723,7 @@ angular.module('').run(['$templateCache', function($templateCache) {
     "\n" +
     "                  ng-repeat=\"step in getEnabledSteps()\">\r" +
     "\n" +
-    "        <a ng-click=\"goTo(step)\">{{step.title || step.wzTitle}}</a>\r" +
+    "        <a title=\"Wechseln zu {{step.title || step.wzTitle}}\" ng-click=\"goTo(step)\">{{step.title || step.wzTitle}}</a>\r" +
     "\n" +
     "      </li>\r" +
     "\n" +

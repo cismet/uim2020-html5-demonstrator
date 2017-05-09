@@ -21,7 +21,7 @@ var app = angular.module(
             'ui.bootstrap', 'ui.bootstrap.modal', 'angular.filter',
             'ui.router', 'ui.router.modal',
             'ct.ui.router.extras.sticky', 'ct.ui.router.extras.dsr', 'ct.ui.router.extras.previous',
-            'leaflet-directive',
+            'ui-leaflet', 'nemLogging',
             'ngTable', 'angularjs-dropdown-multiselect',
             'mgcrea.ngStrap.tooltip', 'mgcrea.ngStrap.popover', 'mgcrea.ngStrap.modal',
             'mgo-angular-wizard', 'ngFileUpload'
