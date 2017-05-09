@@ -14,12 +14,12 @@ angular.module(
         ).controller(
         'searchController',
         [
-            '$rootScope', '$timeout', '$scope', '$state', '$uibModal', 'configurationService',
-            'sharedDatamodel', 'sharedControllers', 'dataService', 'searchService',
-            function ($rootScope, $timeout, $scope, $state, $uibModal,
-                    configurationService, sharedDatamodel, sharedControllers, dataService, searchService) {
+            '$rootScope', '$timeout', '$scope', '$state', '$stickyState', '$uibModal', 'configurationService',
+            'sharedDatamodel', 'sharedControllers', 'dataService', 'searchService', 'DEVELOPMENT_MODE',
+            function ($rootScope, $timeout, $scope, $state, $stickyState, $uibModal, configurationService, 
+                sharedDatamodel, sharedControllers, dataService, searchService, DEVELOPMENT_MODE) {
                 'use strict';
-                var searchController, searchProcessCallback, showProgressModal, progressModal;
+                var searchController, searchProgressCallback, showProgressModal, progressModal;
                 searchController = this;
                 // set default mode according to default route in app.js 
                 searchController.mode = 'map';
@@ -148,7 +148,7 @@ angular.module(
 
                 showProgressModal = function () {
                     var modalScope;
-                    //console.log('searchController::showProgress()');
+                    if(DEVELOPMENT_MODE === true)console.log('searchController::showProgress()');
                     modalScope = $rootScope.$new(true);
                     modalScope.status = searchController.status;
                     progressModal = $uibModal.open({
@@ -165,8 +165,8 @@ angular.module(
                         }
                     });
                 };
-                searchProcessCallback = function (current, max, type) {
-                    //console.log('searchProcess: type=' + type + ', current=' + current + ", max=" + max)
+                searchProgressCallback = function (current, max, type) {
+                    if(DEVELOPMENT_MODE === true)console.log('searchProgress: type=' + type + ', current=' + current + ', max=' + max);
                     // the maximum object count
                     searchController.status.progress.max = 100;
                     // the scaled progress: 0 <fake progress> 100 <real progress> 200
@@ -237,6 +237,22 @@ angular.module(
 
                     $scope.$broadcast('gotoLocation()');
                 };
+                
+                searchController.reset = function () {
+                    if(DEVELOPMENT_MODE === true)console.log('reset search view');
+
+                    sharedDatamodel.reset();
+
+                    $stickyState.reset('main.search.map');
+                    $stickyState.reset('main.search.list');
+
+                    
+                    sharedControllers.searchMapController = null;
+                    sharedControllers.searchListController = null;
+  
+                    // reload the whole search state to rewset also the toolbar controllers
+                    $state.go('main.search.map',{},{reload: "main.search"});
+                };
 
                 /**
                  * Fit bounds to nodes
@@ -286,7 +302,7 @@ angular.module(
                             pollutants,
                             limit,
                             offset,
-                            searchProcessCallback).$promise.then(
+                            searchProgressCallback).$promise.then(
                             function (searchResult)
                             {
                                 sharedDatamodel.resultNodes.length = 0;
@@ -338,7 +354,7 @@ angular.module(
                 // </editor-fold>     
 
                 sharedControllers.searchController = searchController;
-                console.log('searchController instance created');
+                if(DEVELOPMENT_MODE === true)console.log('searchController instance created');
             }
         ]
         );

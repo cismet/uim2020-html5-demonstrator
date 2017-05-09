@@ -12,8 +12,9 @@ angular.module(
             'sharedDatamodel',
             'sharedControllers',
             'featureRendererService',
+            'DEVELOPMENT_MODE',
             function ($scope, $timeout, leafletData, configurationService,
-                    sharedDatamodel, sharedControllers, featureRendererService) {
+                    sharedDatamodel, sharedControllers, featureRendererService, DEVELOPMENT_MODE) {
                 'use strict';
 
                 var leafletMap, mapId, mapController, config, layerControl, searchGeometryLayerGroup, drawControl,
@@ -257,8 +258,10 @@ angular.module(
                                 $scope.mapHeight = height;
                                 $scope.mapWidth = width;
 
-                                console.log(mapController.mode + '-map::activate new size: ' + width + "x" + height);
+                                if(DEVELOPMENT_MODE)console.log(mapController.mode + '-map::activate new size: ' + width + "x" + height);
                                 leafletMap.invalidateSize(false);
+                            } else if(DEVELOPMENT_MODE) {
+                                console.log(mapController.mode + '-map::size not changed: ' + width + "x" + height);
                             }
                         }
                         //}
@@ -955,17 +958,17 @@ angular.module(
                     // FIXME: use sharedControllers Service instead
                     $scope.$parent.mapController = mapController;
 
-                    if (mapController.mode === 'analysis') {
+                    if (DEVELOPMENT_MODE === true && mapController.mode === 'analysis') {
                         if (sharedControllers.analysisMapController) {
-                            console.log('analysisMapController instance already available, sticky state synchronisation problem');
+                            console.error('analysisMapController instance already available, sticky state synchronisation problem');
                         } else {
-                            console.log('analysisMap instance created');
+                            console.log('analysisMapController instance created');
                         }
 
                         sharedControllers.analysisMapController = mapController;
-                    } else {
+                    } else if (DEVELOPMENT_MODE === true){
                         if (sharedControllers.searchMapController) {
-                            console.log('searchMapController instance already available, sticky state synchronisation problem');
+                            console.error('searchMapController instance already available, sticky state synchronisation problem');
                         } else {
                             console.log('searchMapController instance created');
                         }

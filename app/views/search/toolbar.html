@@ -17,16 +17,23 @@
             </button>
         </div>
 
-        <!-- Auf Objekte zentrieren -->
         <form class="navbar-form navbar-left cs-toolbar-form">
+            <!-- Auf Objekte zentrieren -->
             <button type="button" 
-                    id="external-datasources" 
+                    id="center-objects" 
                     class="btn btn-default btn-primary navbar-btn"
                     ng-click="searchController.gotoNodes()"
                     ng-disabled="!searchController.hasNodes()"
-                    ng-visible=""
                     title="Auf Objekte in der Karte zentrieren">
                 <span class="fa fa-arrows-alt"></span>
+            </button>
+            <!-- Recherche Zurücksetzen -->
+            <button type="button" 
+                    id="reset-search" 
+                    class="btn btn-default btn-primary navbar-btn"
+                    ng-click="searchController.reset()"
+                    title="Recherche Zurücksetzen">
+                <span class="fa fa-ban"></span>
             </button>
         </form>
 

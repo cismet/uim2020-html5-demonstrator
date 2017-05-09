@@ -25,7 +25,7 @@ angular.module(
                         wagwClusterGroupOptions, waowClusterGroupOptions;
 
                 configurationService = this;
-
+                
                 // <editor-fold defaultstate="collapsed" desc="=== cidsRestApi ===========================">
                 configurationService.cidsRestApi = {};
                 configurationService.cidsRestApi.host = 'http://localhost:8890';

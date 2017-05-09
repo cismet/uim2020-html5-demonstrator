@@ -31,12 +31,12 @@
     "leaflet-slc": "https://github.com/davicustodio/Leaflet.StyledLayerControl.git",
     "leaflet-shapefile": "https://github.com/calvinmetcalf/leaflet.shapefile.git#gh-pages",
     "leaflet-wmts": "https://github.com/mylen/leaflet.TileLayer.WMTS.git",
-    "leaflet.draw": "^0.4.9",
+    "leaflet.draw": "^0.3.2",
     "esri-leaflet": "^1.0.5",
     "wicket": "Wicket#^1.3.2",
     "ng-table": "^1.0.0",
     "angular-bootstrap": "^2.1.3",
-    "angular-ui-router": "^0.4.1",
+    "angular-ui-router": "^0.4.2",
     "leaflet-popup-angular": "https://github.com/cismet/leaflet-popup-angular.git#^0.1.3",
     "leaflet.markercluster": "^0.5.0",
     "jsts": "^0.17.0",
@@ -44,7 +44,7 @@
     "jszip": "3.1.3",
     "angular-filter": "^0.5.16",
     "angular-strap": "^2.3.9",
-    "angular-ui-router-uib-modal": "^0.0.9",
+    "angular-ui-router-uib-modal": "^0.0.11",
     "leaflet.buffer": "^0.2.1",
     "ng-file-upload": "^12.2.13"
   },
@@ -55,6 +55,6 @@
   "resolutions": {
     "angular": "^1.5.8",
     "leaflet": "^0.7.7",
-    "angular-ui-router": "^0.4.1"
+    "angular-ui-router": "^0.4.2"
   }
 }
