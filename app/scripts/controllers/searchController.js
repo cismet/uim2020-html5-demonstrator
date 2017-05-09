@@ -15,13 +15,11 @@ angular.module(
         'searchController',
         [
             '$rootScope', '$timeout', '$scope', '$state', '$stickyState', '$uibModal', 'configurationService',
-            'sharedDatamodel', 'sharedControllers', 'dataService', 'searchService',
-            '$stickyState', '$state', 'DEVELOPMENT_MODE',
-            function ($rootScope, $timeout, $scope, $state, $stickyState, $uibModal,
-                    configurationService, sharedDatamodel, sharedControllers, dataService, 
-                    searchService, DEVELOPMENT_MODE) {
+            'sharedDatamodel', 'sharedControllers', 'dataService', 'searchService', 'DEVELOPMENT_MODE',
+            function ($rootScope, $timeout, $scope, $state, $stickyState, $uibModal, configurationService, 
+                sharedDatamodel, sharedControllers, dataService, searchService, DEVELOPMENT_MODE) {
                 'use strict';
-                var searchController, searchProcessCallback, showProgressModal, progressModal;
+                var searchController, searchProgressCallback, showProgressModal, progressModal;
                 searchController = this;
                 // set default mode according to default route in app.js 
                 searchController.mode = 'map';
@@ -167,8 +165,8 @@ angular.module(
                         }
                     });
                 };
-                searchProcessCallback = function (current, max, type) {
-                    if(DEVELOPMENT_MODE === true)console.log('searchProcess: type=' + type + ', current=' + current + ", max=" + max)
+                searchProgressCallback = function (current, max, type) {
+                    if(DEVELOPMENT_MODE === true)console.log('searchProgress: type=' + type + ', current=' + current + ', max=' + max);
                     // the maximum object count
                     searchController.status.progress.max = 100;
                     // the scaled progress: 0 <fake progress> 100 <real progress> 200
@@ -252,7 +250,8 @@ angular.module(
                     sharedControllers.searchMapController = null;
                     sharedControllers.searchListController = null;
   
-                    $state.go('main.search.map', undefined, {'reload':true});
+                    // reload the whole search state to rewset also the toolbar controllers
+                    $state.go('main.search.map',{},{reload: "main.search"});
                 };
 
                 /**
@@ -303,7 +302,7 @@ angular.module(
                             pollutants,
                             limit,
                             offset,
-                            searchProcessCallback).$promise.then(
+                            searchProgressCallback).$promise.then(
                             function (searchResult)
                             {
                                 sharedDatamodel.resultNodes.length = 0;

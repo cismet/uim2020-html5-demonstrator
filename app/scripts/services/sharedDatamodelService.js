@@ -57,9 +57,7 @@ angular.module(
                     _this.resultNodes.length = 0;      
                     _this.selectedGazetteerLocation = {};
                     //_this.selectedSearchGeometry = {};
-                    _this.selectedSearchLocation = {
-                        id: 0
-                    };
+                    _this.selectedSearchLocation.id = 0;
                     _this.filteredResultNodes.length = 0;    
                     _this.status.type = 'success';
                     _this.status.message = 'Recherche zurückgesetzt';
