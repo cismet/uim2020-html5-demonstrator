@@ -81,6 +81,10 @@ angular.module(
                         $scope.status.type = 'warning';
                         context.valid = false;
                         return context.valid;
+                    } else if (datasourcesController.exportThemes.size() === 1) {
+                        // select one export theme
+                        datasourcesController.exportThemes.exportEntitiesCollections[0].setSelected(true);
+                        $scope.options.selectedExportThemes = datasourcesController.exportThemes.getSelectedExportEntitiesCollections();
                     }
 
                     if ($scope.options.exportFormat === 'shp') {
@@ -107,11 +111,18 @@ angular.module(
 
                     if ($scope.options.isMergeExternalDatasource === true) {
                         if (datasourcesController.exportDatasources.length > 0) {
-                            // select 1st ext. datasource by default
-                            /*if ($scope.options.selectedExportDatasource === null) {
-                             datasourcesController.exportDatasources[0].setSelected(true);
-                             $scope.options.selectedExportDatasource = datasourcesController.exportDatasources[0];
-                             }*/
+                            // select one datasource by default
+                            if (datasourcesController.exportDatasources.length === 1 && $scope.options.selectedExportDatasource === null) {
+                                datasourcesController.exportDatasources[0].setSelected(true);
+                                $scope.options.selectedExportDatasource = datasourcesController.exportDatasources[0];
+                            } else if (sharedDatamodel.localDatasources.length === 1 && $scope.options.selectedExportDatasource === null) {
+                                datasourcesController.exportDatasources.forEach(function (exportDatasource) {
+                                    if (exportDatasource.isLocal()) {
+                                        exportDatasource.setSelected(true);
+                                        $scope.options.selectedExportDatasource = exportDatasource;
+                                    }
+                                }); 
+                            }
                         } else {
                             $scope.status.message = 'Es sind keine externen Datenquellen zum Verschneiden verfügbar.';
                             $scope.status.type = 'warning';

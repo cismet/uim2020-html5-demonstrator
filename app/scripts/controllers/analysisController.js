@@ -15,9 +15,9 @@ angular.module(
         'analysisController',
         [
             '$timeout', '$scope', '$state', 'sharedDatamodel', 'sharedControllers',
-            'leafletData',
+            'leafletData', 'dataService',
             function ($timeout, $scope, $state, sharedDatamodel,
-                    sharedControllers, leafletData) {
+                    sharedControllers, leafletData, dataService) {
                 'use strict';
 
                 var analysisController;
@@ -39,7 +39,7 @@ angular.module(
                 };
 
                 // <editor-fold defaultstate="collapsed" desc="[!!!!] MOCK DATA (DISABLED) ----------------">        
-                /*var loadMockNodes = function (mockNodes) {
+                var loadMockNodes = function (mockNodes) {
                  if (mockNodes.$resolved) {
                  sharedDatamodel.analysisNodes.length = 0;
                  sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, mockNodes);
@@ -50,7 +50,7 @@ angular.module(
                  }
                  };
                  
-                 loadMockNodes(dataService.getMockNodes());*/
+                 loadMockNodes(dataService.getMockNodes());
                 // </editor-fold>
 
                 sharedControllers.analysisController = analysisController;

@@ -15,6 +15,15 @@ angular.module(
             function () {
                 'use strict';
 
+                /**
+                 * A *collection* of ExportEntities (single Export Theme)
+                 * Export ExportEntitiesCollection = Object Nodes of the
+                 * Same class (Export Theme) + unique aggregation of all parameters
+                 *  
+                 * @param {type} className
+                 * @param {type} title
+                 * @return {ExportEntitiesCollectionL#15.ExportEntitiesCollection}
+                 */
                 function ExportEntitiesCollection(className, title) {
                     this.className = className;
                     this.title = title;
@@ -169,21 +178,23 @@ angular.module(
                 };
 
                 ExportEntitiesCollection.prototype.allParametersSelected = function () {
-                    this.parameters.every(function (parameter, index, array) {
-                        if (!parameter.selected) {
-                            return false;
-                        }
+                    return this.parameters.every(function (parameter, index, array) {
+                        return parameter.selected;
                     });
-
-                    return true;
                 };
 
                 ExportEntitiesCollection.prototype.allParametersDeselected = function () {
-                    this.parameters.every(function (parameter, index, array) {
-                        if (parameter.selected) {
-                            return false;
-                        }
+                    return this.parameters.every(function (parameter, index, array) {
+                        return !parameter.selected;
                     });
+                };
+                
+                ExportEntitiesCollection.prototype.toggleParametersSelection = function () {
+                    if(this.allParametersSelected() === true) {
+                        this.deselectAllParameters();
+                    } else {
+                        this.selectAllParameters();
+                    }
 
                     return true;
                 };

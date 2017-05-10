@@ -166,7 +166,7 @@ angular.module(
                     });
                 };
                 searchProgressCallback = function (current, max, type) {
-                    if(DEVELOPMENT_MODE === true)console.log('searchProgress: type=' + type + ', current=' + current + ', max=' + max);
+                    // if(DEVELOPMENT_MODE === true)console.log('searchProgress: type=' + type + ', current=' + current + ', max=' + max);
                     // the maximum object count
                     searchController.status.progress.max = 100;
                     // the scaled progress: 0 <fake progress> 100 <real progress> 200

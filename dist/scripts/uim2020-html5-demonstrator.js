@@ -705,9 +705,9 @@ angular.module(
         'analysisController',
         [
             '$timeout', '$scope', '$state', 'sharedDatamodel', 'sharedControllers',
-            'leafletData',
+            'leafletData', 'dataService',
             function ($timeout, $scope, $state, sharedDatamodel,
-                    sharedControllers, leafletData) {
+                    sharedControllers, leafletData, dataService) {
                 'use strict';
 
                 var analysisController;
@@ -729,18 +729,18 @@ angular.module(
                 };
 
                 // <editor-fold defaultstate="collapsed" desc="[!!!!] MOCK DATA (DISABLED) ----------------">        
-                /*var loadMockNodes = function (mockNodes) {
-                 if (mockNodes.$resolved) {
-                 sharedDatamodel.analysisNodes.length = 0;
-                 sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, mockNodes);
-                 } else {
-                 mockNodes.$promise.then(function (resolvedMockNodes) {
-                 loadMockNodes(resolvedMockNodes);
-                 });
-                 }
-                 };
-                 
-                 loadMockNodes(dataService.getMockNodes());*/
+//                var loadMockNodes = function (mockNodes) {
+//                 if (mockNodes.$resolved) {
+//                 sharedDatamodel.analysisNodes.length = 0;
+//                 sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, mockNodes);
+//                 } else {
+//                 mockNodes.$promise.then(function (resolvedMockNodes) {
+//                 loadMockNodes(resolvedMockNodes);
+//                 });
+//                 }
+//                 };
+//                 
+//                 loadMockNodes(dataService.getMockNodes());
                 // </editor-fold>
 
                 sharedControllers.analysisController = analysisController;
@@ -1425,6 +1425,10 @@ angular.module(
                         $scope.status.type = 'warning';
                         context.valid = false;
                         return context.valid;
+                    } else if (datasourcesController.exportThemes.size() === 1) {
+                        // select one export theme
+                        datasourcesController.exportThemes.exportEntitiesCollections[0].setSelected(true);
+                        $scope.options.selectedExportThemes = datasourcesController.exportThemes.getSelectedExportEntitiesCollections();
                     }
 
                     if ($scope.options.exportFormat === 'shp') {
@@ -1451,11 +1455,18 @@ angular.module(
 
                     if ($scope.options.isMergeExternalDatasource === true) {
                         if (datasourcesController.exportDatasources.length > 0) {
-                            // select 1st ext. datasource by default
-                            /*if ($scope.options.selectedExportDatasource === null) {
-                             datasourcesController.exportDatasources[0].setSelected(true);
-                             $scope.options.selectedExportDatasource = datasourcesController.exportDatasources[0];
-                             }*/
+                            // select one datasource by default
+                            if (datasourcesController.exportDatasources.length === 1 && $scope.options.selectedExportDatasource === null) {
+                                datasourcesController.exportDatasources[0].setSelected(true);
+                                $scope.options.selectedExportDatasource = datasourcesController.exportDatasources[0];
+                            } else if (sharedDatamodel.localDatasources.length === 1 && $scope.options.selectedExportDatasource === null) {
+                                datasourcesController.exportDatasources.forEach(function (exportDatasource) {
+                                    if (exportDatasource.isLocal()) {
+                                        exportDatasource.setSelected(true);
+                                        $scope.options.selectedExportDatasource = exportDatasource;
+                                    }
+                                }); 
+                            }
                         } else {
                             $scope.status.message = 'Es sind keine externen Datenquellen zum Verschneiden verfügbar.';
                             $scope.status.type = 'warning';
@@ -1816,9 +1827,9 @@ angular.module(
         ).controller(
         'importController', [
             '$q', '$scope', '$timeout', '$window', '$uibModalInstance', 'configurationService', 'featureRendererService', 'sharedDatamodel',
-            'sharedControllers', 'localDatasource',
+            'sharedControllers', 'localDatasource', 'DEVELOPMENT_MODE',
             function ($q, $scope, $timeout, $window, $uibModalInstance, configurationService, featureRendererService, sharedDatamodel,
-                    sharedControllers, localDatasource) {
+                    sharedControllers, localDatasource, DEVELOPMENT_MODE) {
                 'use strict';
                 var config, importController, mapController, handleZipFile, convertToLayer,
                         updateProgress;
@@ -1879,10 +1890,8 @@ angular.module(
                             max = event.total;
                             current = event.loaded;
 
-                            //console.log('importController::onprogress -> importProgress: ' + current + '/' + max +
-                            //        ' (' + Math.min(100, parseInt(100.0 * current / max)) + '%)');
-
                             $scope.$apply(function () {
+                                if(DEVELOPMENT_MODE === true)console.log('importController::onprogress -> importProgress: ' + current + '/' + max + ' (' + Math.min(100, parseInt(100.0 * current / max)) + '%)');
                                 importController.importProgress =
                                         Math.min(100, parseInt(100.0 * current / max));
                             });
@@ -1911,7 +1920,7 @@ angular.module(
                                 importController.status.message = 'Die Datei "' + localDatasource.filename + '" konnte nicht geladen werden: ' + reader.error;
                             });
                         } else {
-                            // don't store orogonal SHP zip file as blob
+                            // don't store original SHP zip file as blob
                             // send zipped geojson instead!
                             //localDatasource.data = new Blob([arrayBuffer], {type: 'application/zip'});
 
@@ -1919,10 +1928,7 @@ angular.module(
                                 importController.importProgress = 100;
                             });
 
-                            //console.log('importController::onloadend -> importController.onloadend progress: ' +
-                            //        importController.importProgress);
-
-
+                            if(DEVELOPMENT_MODE === true)console.log('importController::onloadend -> importController.onloadend progress: ' + importController.importProgress);
 
                             $timeout(function () {
                                 importController.importProgress = 100;
@@ -1932,8 +1938,7 @@ angular.module(
                                 convertToLayer(arrayBuffer, file.name);
                             }, 500);
 
-                            //console.log('importController::onloadend -> importController.onloadend progress: ' +
-                            //        importController.importProgress);
+                            if(DEVELOPMENT_MODE === true)console.log('importController::onloadend -> importController.onloadend progress: ' + importController.importProgress);
                         }
                     };
 
@@ -1959,8 +1964,7 @@ angular.module(
                         }
                     } else { // finished
                         importProgress = 200;
-                        //console.log('importController::convertToLayer: importProgress FINISHED = ' + 
-                        //        importProgress + ' (' + current + '/' + max + ')');
+                        if(DEVELOPMENT_MODE === true) console.log('importController::convertToLayer: importProgress FINISHED = ' + importProgress + ' (' + current + '/' + max + ')');
                         $scope.$apply(function () {
                             importController.importProgress = 200;
                             importController.importInProgress = false;
@@ -1977,8 +1981,7 @@ angular.module(
                     promise = shp(buffer).then(
                             function success(geojson) {
                                 var isCreateOverlayLayer = true;
-                                //console.log('importController::convertToLayer: processing ' +
-                                //        geojson.features.length + ' GeoJson Features');
+                                if(DEVELOPMENT_MODE === true)console.log('importController::convertToLayer: processing ' + geojson.features.length + ' GeoJson Features');
                                 //saveAs(new Blob([angular.toJson(geojson, true)], {type: 'application/json'}), localDatasource.filename + '.geojson');
 
                                 importController.status.type = 'info';
@@ -2012,7 +2015,7 @@ angular.module(
 
                     promise.then(
                             function success(overlayLayer) {
-                                //console.log('importController::convertToLayer: GeoJson Features successfully processed');
+                                if(DEVELOPMENT_MODE === true)console.log('importController::convertToLayer: GeoJson Features successfully processed');
                                 //saveAs(new Blob([angular.toJson(overlayLayer.toGeoJSON(), true)], {type: 'application/json'}), localDatasource.filename + '.geojson');
 
                                 $timeout(function () {
@@ -2035,7 +2038,7 @@ angular.module(
                                 zip.file(localDatasource.name + '.geojson', angular.toJson(overlayLayer.toGeoJSON(), false));
                                 zip.generateAsync({type: "blob"})
                                         .then(function success(blob) {
-                                            console.log('importController::convertToLayer -> zipping geoJson: ' + blob.type);
+                                            if(DEVELOPMENT_MODE === true)console.log('importController::convertToLayer -> zipping geoJson: ' + blob.type);
                                             localDatasource.data = blob;
                                             //saveAs(blob, localDatasource.filename + '.zip');
                                         }, function error(error) {
@@ -2045,7 +2048,7 @@ angular.module(
                             },
                             function error(reason) {
                                 $timeout(function () {
-                                    console.log('importController::convertToLayer: failed: ' + reason);
+                                    console.error('importController::convertToLayer: failed: ' + reason);
                                     importController.importProgress = 0;
                                     importController.importInProgress = false;
                                     importController.importError = true;
@@ -3015,7 +3018,6 @@ angular.module(
                     if (bounds) {
                         leafletData.getMap(mapId).then(function (map) {
                             map.fitBounds(bounds, nodesFitBoundsOptions);
-                             if(DEVELOPMENT_MODE === true)console.log('fit bounds:' + JSON.stringify(bounds));
                             if(DEVELOPMENT_MODE === true)console.log('fit bounds:' + JSON.stringify(nodesFitBoundsOptions));
                         });
                     }
@@ -3368,7 +3370,7 @@ angular.module(
                      */
                     map.on('layeradd', function (layerEvent) {
                         var addedLayer = layerEvent.layer;
-                         if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::layeradd -> key:' + addedLayer.$key + ', type: ' + addedLayer.constructor.name);
+                        // if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::layeradd -> key:' + addedLayer.$key + ', type: ' + addedLayer.constructor.name);
                         if (addedLayer.$maxZoom) {
                             featureRendererService.applyZoomLevelRestriction(addedLayer, map.getZoom());
                         }
@@ -3603,7 +3605,7 @@ angular.module(
                     });
                 };
                 searchProgressCallback = function (current, max, type) {
-                    if(DEVELOPMENT_MODE === true)console.log('searchProgress: type=' + type + ', current=' + current + ', max=' + max);
+                    // if(DEVELOPMENT_MODE === true)console.log('searchProgress: type=' + type + ', current=' + current + ', max=' + max);
                     // the maximum object count
                     searchController.status.progress.max = 100;
                     // the scaled progress: 0 <fake progress> 100 <real progress> 200
@@ -6241,6 +6243,10 @@ angular.module(
                 ExportDatasource.prototype.isGlobal = function () {
                     return this.global;
                 };
+                
+                ExportDatasource.prototype.isLocal = function () {
+                    return !this.global;
+                };
 
                 ExportDatasource.prototype.isSelected = function () {
                     return this.selected;
@@ -6273,6 +6279,47 @@ angular.module(
                     } else {
                         return false;
                     }
+                };
+                
+                ExportDatasource.prototype.selectAllParameters = function () {
+                    this.parameters.forEach(function (parameter) {
+                        parameter.selected = true;
+                    });
+                };
+
+
+                ExportDatasource.prototype.deselectAllParameters = function () {
+                    this.parameters.forEach(function (parameter) {
+                        parameter.selected = false;
+                    });
+                };
+
+                ExportDatasource.prototype.invertParameterSelection = function () {
+                    this.parameters.forEach(function (parameter) {
+                        parameter.selected = !parameter.selected;
+                    });
+                };
+
+                ExportDatasource.prototype.allParametersSelected = function () {
+                    return this.parameters.every(function (parameter, index, array) {
+                        return parameter.selected;
+                    });
+                };
+
+                ExportDatasource.prototype.allParametersDeselected = function () {
+                    return this.parameters.every(function (parameter, index, array) {
+                        return !parameter.selected;
+                    });
+                };
+                
+                ExportDatasource.prototype.toggleParametersSelection = function () {
+                    if(this.allParametersSelected() === true) {
+                        this.deselectAllParameters();
+                    } else {
+                        this.selectAllParameters();
+                    }
+
+                    return true;
                 };
 
                 ExportDatasource.prototype.getSelectedParameters = function () {
@@ -6309,6 +6356,15 @@ angular.module(
             function () {
                 'use strict';
 
+                /**
+                 * A *collection* of ExportEntities (single Export Theme)
+                 * Export ExportEntitiesCollection = Object Nodes of the
+                 * Same class (Export Theme) + unique aggregation of all parameters
+                 *  
+                 * @param {type} className
+                 * @param {type} title
+                 * @return {ExportEntitiesCollectionL#15.ExportEntitiesCollection}
+                 */
                 function ExportEntitiesCollection(className, title) {
                     this.className = className;
                     this.title = title;
@@ -6463,21 +6519,23 @@ angular.module(
                 };
 
                 ExportEntitiesCollection.prototype.allParametersSelected = function () {
-                    this.parameters.every(function (parameter, index, array) {
-                        if (!parameter.selected) {
-                            return false;
-                        }
+                    return this.parameters.every(function (parameter, index, array) {
+                        return parameter.selected;
                     });
-
-                    return true;
                 };
 
                 ExportEntitiesCollection.prototype.allParametersDeselected = function () {
-                    this.parameters.every(function (parameter, index, array) {
-                        if (parameter.selected) {
-                            return false;
-                        }
+                    return this.parameters.every(function (parameter, index, array) {
+                        return !parameter.selected;
                     });
+                };
+                
+                ExportEntitiesCollection.prototype.toggleParametersSelection = function () {
+                    if(this.allParametersSelected() === true) {
+                        this.deselectAllParameters();
+                    } else {
+                        this.selectAllParameters();
+                    }
 
                     return true;
                 };
@@ -6571,10 +6629,17 @@ angular.module(
 angular.module(
         'de.cismet.uim2020-html5-demonstrator.types'
         ).factory('ExportThemeCollection',
-        ['ExportEntitiesCollection',
-            function (ExportEntitiesCollection) {
+        ['ExportEntitiesCollection', 'DEVELOPMENT_MODE',
+            function (ExportEntitiesCollection, DEVELOPMENT_MODE) {
                 'use strict';
 
+                /**
+                 * A *collection* of export Themes
+                 * Export Theme = Class (Bodenmessstellen, ePRTR Einrichtungen, ...)
+                 * 
+                 * @param {type} analysisNodes
+                 * @return {ExportThemeCollectionL#16.ExportThemeCollection}
+                 */
                 function ExportThemeCollection(analysisNodes) {
                     var _this = this;
                     _this.exportEntitiesCollections = [];
@@ -6603,12 +6668,7 @@ angular.module(
                 }
 
                 ExportThemeCollection.prototype.size = function () {
-                    var _this = this;
-                    return Object.keys(
-                            _this.exportEntitiesCollections).map(function (key)
-                    {
-                        return _this.exportEntitiesCollections.hasOwnProperty(key);
-                    }).length;
+                   return this.exportEntitiesCollections.length;
                 };
 
                 ExportThemeCollection.prototype.getExportEntitiesCollection = function (className) {
@@ -6635,6 +6695,63 @@ angular.module(
                         console.warn('ExportThemeCollection::setExportEntitiesCollectionSelected -> unknow theme "' + className + '"');
                     }
                 };
+                
+                ExportThemeCollection.prototype.selectAllExportEntitiesCollections = function () {
+                    this.exportEntitiesCollections.forEach(function (exportEntitiesCollection) {
+                        //if(DEVELOPMENT_MODE === true)console.log('change "' + exportEntitiesCollection.title + '" selected from ' + exportEntitiesCollection.isSelected() + ' to true');
+                        exportEntitiesCollection.setSelected(true);
+                    });
+                };
+
+
+                ExportThemeCollection.prototype.deselectAllExportEntitiesCollections = function () {
+                    this.exportEntitiesCollections.forEach(function (exportEntitiesCollection) {
+                        //if(DEVELOPMENT_MODE === true)console.log('change "' + exportEntitiesCollection.title + '" selected from ' + exportEntitiesCollection.isSelected() + ' to false');
+                        exportEntitiesCollection.setSelected(false);
+                    });
+                };
+
+                ExportThemeCollection.prototype.invertExportEntitiesCollectionsSelection = function () {
+                    this.exportEntitiesCollections.forEach(function (exportEntitiesCollection) {
+                        //if(DEVELOPMENT_MODE === true)console.log('change "' + exportEntitiesCollection.title + '" selected from ' + exportEntitiesCollection.isSelected() + ' to ' + !exportEntitiesCollection.isSelected());
+                        exportEntitiesCollection.setSelected(!exportEntitiesCollection.isSelected());
+                    });
+                };
+
+                ExportThemeCollection.prototype.allExportEntitiesCollectionsSelected = function () {
+                    if(this.exportEntitiesCollections === null || this.exportEntitiesCollections.length === 0) {
+                        return false;
+                    }
+                    
+                    return this.exportEntitiesCollections.every(function (exportEntitiesCollection, index, array) {
+                        //if(DEVELOPMENT_MODE === true)console.log('is "' + exportEntitiesCollection.title + '" selected: ' + exportEntitiesCollection.isSelected());
+                        return exportEntitiesCollection.isSelected();
+                    });
+                };
+
+                ExportThemeCollection.prototype.allExportEntitiesCollectionsDeselected = function () {
+                    if(this.exportEntitiesCollections === null || this.exportEntitiesCollections.length === 0) {
+                        return true;
+                    }
+                    
+                    return this.exportEntitiesCollections.every(function (exportEntitiesCollection, index, array) {
+                        return !exportEntitiesCollection.isSelected();
+                    });
+                };
+                
+                ExportThemeCollection.prototype.toggleExportEntitiesCollectionsSelection = function () {
+                    if(this.exportEntitiesCollections === null || this.exportEntitiesCollections.length === 0) {
+                        return false;
+                    }
+                    
+                    if(this.allExportEntitiesCollectionsSelected() === true) {
+                        this.deselectAllExportEntitiesCollections();
+                    } else {
+                        this.selectAllExportEntitiesCollections();
+                    }
+
+                    return true;
+                };
 
                 return ExportThemeCollection;
             }]
@@ -6658,6 +6775,12 @@ angular.module(
             function () {
                 'use strict';
 
+                /**
+                 * ExternalDatasource = SHP File
+                 * 
+                 * @param {type} externalDatasource
+                 * @return {ExternalDatasourceL#15.ExternalDatasource}
+                 */
                 function ExternalDatasource(externalDatasource) {
                     var _this = this;
 

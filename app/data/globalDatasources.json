@@ -48,7 +48,7 @@
     {
         "id": 1,
         "name": "Einzugsgebiet 100km",
-        "ezgb.zip": "bdk.zip",
+        "filename": "bdk.zip",
         "parameters": [{
                 "parameterpk": "C",
                 "parametername": "C",

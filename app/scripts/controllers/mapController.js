@@ -563,7 +563,6 @@ angular.module(
                     if (bounds) {
                         leafletData.getMap(mapId).then(function (map) {
                             map.fitBounds(bounds, nodesFitBoundsOptions);
-                             if(DEVELOPMENT_MODE === true)console.log('fit bounds:' + JSON.stringify(bounds));
                             if(DEVELOPMENT_MODE === true)console.log('fit bounds:' + JSON.stringify(nodesFitBoundsOptions));
                         });
                     }
@@ -916,7 +915,7 @@ angular.module(
                      */
                     map.on('layeradd', function (layerEvent) {
                         var addedLayer = layerEvent.layer;
-                         if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::layeradd -> key:' + addedLayer.$key + ', type: ' + addedLayer.constructor.name);
+                        // if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::layeradd -> key:' + addedLayer.$key + ', type: ' + addedLayer.constructor.name);
                         if (addedLayer.$maxZoom) {
                             featureRendererService.applyZoomLevelRestriction(addedLayer, map.getZoom());
                         }
