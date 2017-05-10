@@ -51,12 +51,7 @@ angular.module(
                 }
 
                 ExportThemeCollection.prototype.size = function () {
-                    var _this = this;
-                    return Object.keys(
-                            _this.exportEntitiesCollections).map(function (key)
-                    {
-                        return _this.exportEntitiesCollections.hasOwnProperty(key);
-                    }).length;
+                   return this.exportEntitiesCollections.length;
                 };
 
                 ExportThemeCollection.prototype.getExportEntitiesCollection = function (className) {

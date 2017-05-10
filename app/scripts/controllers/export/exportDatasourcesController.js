@@ -83,7 +83,8 @@ angular.module(
                         return context.valid;
                     } else if (datasourcesController.exportThemes.size() === 1) {
                         // select one export theme
-                        datasourcesController.exportThemes[0].setSelected(true);
+                        datasourcesController.exportThemes.exportEntitiesCollections[0].setSelected(true);
+                        $scope.options.selectedExportThemes = datasourcesController.exportThemes.getSelectedExportEntitiesCollections();
                     }
 
                     if ($scope.options.exportFormat === 'shp') {
