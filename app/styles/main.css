@@ -43,7 +43,7 @@
 
 .cs-result-list {
     margin: 0px !important;
-    flex: 0 0 400px;
+    flex: 0 0 320px;
     /*min-width:150px;*/
     overflow-y: scroll !important;
 }
@@ -120,6 +120,10 @@
     min-height:600px; 
     height:600px; 
     overflow-y: scroll
+}
+
+.cs-active-item {
+    background-image: linear-gradient(to bottom, #7fea7f 0%, #4b944d 100%);
 }
 
 .angular-leaflet-map {

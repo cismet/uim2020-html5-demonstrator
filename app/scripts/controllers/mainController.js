@@ -31,16 +31,23 @@ angular.module(
                  * @param {type} node
                  * @returns {undefined}
                  */
-                mainController.removeAnalysisNode = function (node) {
-                    var index = sharedDatamodel.analysisNodes.indexOf(node);
+                mainController.removeAnalysisNode = function (analysisNode) {
+                    sharedDatamodel.resultNodes.forEach(function (resultNode) {
+                        if (resultNode.objectKey === analysisNode.objectKey) {
+                            resultNode.$analysis = false;
+                        }
+                    });
+                    
+                    var index = sharedDatamodel.analysisNodes.indexOf(analysisNode);
+                    
                     if (index !== -1) {
-                        sharedDatamodel.analysisNodes.splice(sharedDatamodel.analysisNodes.indexOf(node), 1);
+                        sharedDatamodel.analysisNodes.splice(sharedDatamodel.analysisNodes.indexOf(analysisNode), 1);
                         // manually update map
                         if (sharedControllers.analysisMapController) {
-                            sharedControllers.analysisMapController.removeNode(node);
+                            sharedControllers.analysisMapController.removeNode(analysisNode);
                         }
                     } else {
-                        console.warn("mainController::removeAnalysisNode: node '" + node.name + "' no in list of analysis nodes!");
+                        console.warn("mainController::removeAnalysisNode: analysisNode '" + analysisNode.name + "' not in list of analysis nodes!");
                     }
                 };
 
@@ -49,33 +56,36 @@ angular.module(
                  * @param {type} node
                  * @returns {undefined}
                  */
-                mainController.addAnalysisNode = function (node) {
+                mainController.addAnalysisNode = function (resultNode) {
                     var i, index;
+                    
+                    resultNode.$analysis = true;
 
-                    if (node.$filtered) {
-                        console.warn('mainController::addAnalysisNode: node "' + node.name +
-                                '" (' + node.objectKey + ') is NOT visible (filtered)!?!');
-                        node.$filtered = false;
+                    if (resultNode.$filtered) {
+                        console.warn('mainController::addAnalysisNode: resultNode "' + resultNode.name +
+                                '" (' + resultNode.objectKey + ') is NOT visible (filtered)!?!');
+                        resultNode.$filtered = false;
                     }
 
                     // indexOf does not work since node$feature is different!
                     index = -1; //sharedDatamodel.analysisNodes.indexOf(node);
                     for (i = 0; i < sharedDatamodel.analysisNodes.length; i++) {
-                        if (sharedDatamodel.analysisNodes[i].objectKey === node.objectKey) {
+                        if (sharedDatamodel.analysisNodes[i].objectKey === resultNode.objectKey) {
                             index = i;
                             break;
                         }
                     }
 
                     if (index !== -1) {
-                        console.warn("mainController::addAnalysisNode: node '" + node.name + "' already in list of analysis nodes!");
+                        console.warn("mainController::addAnalysisNode: resultNode '" + resultNode.name + "' already in list of analysis nodes!");
                     } else {
                         // we cannot add the same feature to two different maps ... :-(
                         // var analysisNode = angular.copy(node);
 
                         // make *shallow* copy
-                        var analysisNode = angular.extend({}, node);
+                        var analysisNode = angular.extend({}, resultNode);
                         analysisNode.$feature = null;
+                        analysisNode.$analysis = false;
 
                         // manually update map
                         sharedDatamodel.analysisNodes.push(analysisNode);
