@@ -315,6 +315,18 @@ angular.module(
                                     //
                                     sharedDatamodel.resultNodes.push.apply(
                                             sharedDatamodel.resultNodes, searchResult.$collection);
+                                    
+                                    if(sharedDatamodel.analysisNodes && sharedDatamodel.analysisNodes.length > 0) {
+                                        sharedDatamodel.analysisNodes.forEach(function (analysisNode) {
+                                            sharedDatamodel.resultNodes.forEach(function (resultNode) {
+                                                if (resultNode.objectKey === analysisNode.objectKey) {
+                                                    resultNode.$analysis = true;
+                                                } else {
+                                                    resultNode.$analysis = false;
+                                                }
+                                            });
+                                        });
+                                    }
                                 }
 
                                 $scope.$broadcast('searchSuccess()');

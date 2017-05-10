@@ -1,7 +1,8 @@
 <div class="flex-container-vertical">
     <div class="cs-result-list">
         <ul class="list-group">
-            <li class="list-group-item"
+            <li class="list-group-item "
+                ng-class="{'cs-active-item': node.$analysis}"
                 ng-repeat="node in mapController.nodes| filter:{$filtered:false} | orderBy:['$classTitle', 'name'] track by node.objectKey"
                 id="anchor{{node.objectKey}}">
 
@@ -12,18 +13,19 @@
 
                 <!-- GOTO Object in Map ------------------------------------ -->
                 <span class="btn-link"
-                      title="Objekt in der Karte anzeigen"
+                      title="{{node.name + ' in der Karte anzeigen'}}"
                       ng-disabled="!node.$feature"
                       ng-style="mapController.isNodeSelected(node) && {'font-weight':'bold'}"
                       ng-click="mapController.gotoNode(node)">
-                    {{node.name| textLengthFilter:35}} 
+                    {{node.name| textLengthFilter:28}} 
                 </span>
 
                 <!-- ADD to Analysis --------------------------------------- -->
                 <a class="btn btn-sm btn-icon pull-right"
-                   title="Zur Merkliste hinzufügen"
+                   title="{{node.$analysis ? 'Bereits zur Merkliste hinzugefügt' : 'Zur Merkliste hinzufügen'}}"
                    style="padding:5px"
                    ng-if="mainController.mode === 'search'"
+                   ng-disabled="node.$analysis === true"
                    ng-click="mainController.addAnalysisNode(node)">
                     <span class="fa fa-plus-circle fa-2x"></span>
                 </a>
@@ -49,7 +51,7 @@
 
                 <!-- DESCRIPTION ------------------------------------------- -->
                 <p>
-                    <small><small>{{node.$data| descriptionFilter | textLengthFilter:60:false:'...':true}}</small></small>
+                    <small><small><span title="{{node.$data| descriptionFilter}}">{{node.$data| descriptionFilter | textLengthFilter:50:false:'...':true}}</span></small></small>
                 </p>
                 <!--<div ng-if="!node.description" style="clear:right"></div>-->
             </li>

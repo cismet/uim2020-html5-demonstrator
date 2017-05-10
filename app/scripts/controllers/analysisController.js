@@ -39,18 +39,18 @@ angular.module(
                 };
 
                 // <editor-fold defaultstate="collapsed" desc="[!!!!] MOCK DATA (DISABLED) ----------------">        
-                var loadMockNodes = function (mockNodes) {
-                 if (mockNodes.$resolved) {
-                 sharedDatamodel.analysisNodes.length = 0;
-                 sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, mockNodes);
-                 } else {
-                 mockNodes.$promise.then(function (resolvedMockNodes) {
-                 loadMockNodes(resolvedMockNodes);
-                 });
-                 }
-                 };
-                 
-                 loadMockNodes(dataService.getMockNodes());
+//                var loadMockNodes = function (mockNodes) {
+//                 if (mockNodes.$resolved) {
+//                 sharedDatamodel.analysisNodes.length = 0;
+//                 sharedDatamodel.analysisNodes.push.apply(sharedDatamodel.analysisNodes, mockNodes);
+//                 } else {
+//                 mockNodes.$promise.then(function (resolvedMockNodes) {
+//                 loadMockNodes(resolvedMockNodes);
+//                 });
+//                 }
+//                 };
+//                 
+//                 loadMockNodes(dataService.getMockNodes());
                 // </editor-fold>
 
                 sharedControllers.analysisController = analysisController;
