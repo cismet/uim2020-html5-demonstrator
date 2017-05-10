@@ -2,7 +2,7 @@
      ng-controller="exportParametersController as parametersController">
 
     <uib-accordion close-others="true">
-
+        <!-- Type of exportTheme is ExportEntitiesCollection! -->
         <div uib-accordion-group  
              ng-init="exportParametersOpen = ($index === 0) ? true : false" 
              is-open="exportParametersOpen"
@@ -12,7 +12,7 @@
             <uib-accordion-heading>
                 <div uib-accordion-header 
                      style="margin:0px;padding:8px;background-color:#c6e1ec;color:#3d7489">
-                    {{exportTheme.title}}
+                            {{exportTheme.title}}
                     <i class="pull-right glyphicon" 
                        ng-class="{'glyphicon-chevron-down': exportParametersOpen, 'glyphicon-chevron-up': !exportParametersOpen}">
                     </i>
@@ -21,6 +21,32 @@
 
             <div style="max-height: 350px; overflow-y: scroll">
                 <div>
+                    <div class="checkbox" 
+                        style="width:100%;clear:right"
+                        ng-if="exportTheme.exportDatasource === null">
+                       <label class="form-check-label">
+                           <input 
+                               class="form-check-input"
+                               type="checkbox"
+                               name="selectAll"
+                               ng-checked="exportTheme.allParametersSelected()"
+                               ng-click="exportTheme.toggleParametersSelection()">
+                           <strong>Alle auswählen</strong>
+                       </label>
+                    </div>
+                    <div class="checkbox" 
+                        style="width:100%;clear:right"
+                        ng-if="exportTheme.exportDatasource !== null">
+                       <label class="form-check-label">
+                           <input 
+                               class="form-check-input"
+                               type="checkbox"
+                               name="selectAll"
+                               ng-checked="exportTheme.allParametersSelected() && exportTheme.exportDatasource.allParametersSelected()"
+                               ng-click="exportTheme.toggleParametersSelection(); exportTheme.exportDatasource.toggleParametersSelection()">
+                           <strong>Alle auswählen</strong>
+                       </label>
+                    </div>
                     <div class="checkbox" style="width:100%;clear:right"
                          ng-repeat="parameter in exportTheme.parameters| orderBy:'parametername' track by parameter.parameterpk">
                         <label class="form-check-label">

@@ -2,7 +2,7 @@
      ng-controller="exportDatasourcesController as datasourcesController">
 
     <uib-accordion close-others="false">
-        <!-- Themen-->
+        <!-- Themen (ExportThemeCollection) -->
         <div uib-accordion-group  
              ng-init="exportThemesOpen = true" 
              is-open="exportThemesOpen"
@@ -11,13 +11,26 @@
             <uib-accordion-heading>
                 <div uib-accordion-header 
                      style="margin:0px;padding:8px;background-color:#c6e1ec;color:#3d7489">
-                    Themen
+                            Themen
                     <i class="pull-right glyphicon" 
                        ng-class="{'glyphicon-chevron-down': exportThemesOpen, 'glyphicon-chevron-up': !exportThemesOpen}">
                     </i>
                 </div>
             </uib-accordion-heading>
 
+            <!-- Thema (ExportEntitiesCollection) -->
+            <div class="checkbox" 
+                 style="width:100%;clear:right">
+                <label class="form-check-label">
+                    <input 
+                        class="form-check-input"
+                        type="checkbox"
+                        name="selectAll"
+                        ng-checked="datasourcesController.exportThemes.allExportEntitiesCollectionsSelected()"
+                        ng-click="datasourcesController.exportThemes.toggleExportEntitiesCollectionsSelection()">
+                    <strong>Alle auswählen</strong>
+                </label>
+            </div>
             <div class="checkbox" 
                  style="width:100%;clear:right"
                  ng-repeat="exportTheme in datasourcesController.exportThemes.exportEntitiesCollections | orderBy:'title' track by exportTheme.className">
@@ -40,7 +53,7 @@
 
         <!-- Externe Datenquellen -->
         <div uib-accordion-group  
-             ng-init="exportDatasourcesOpen = false" 
+             ng-init="exportDatasourcesOpen = true" 
              is-open="exportDatasourcesOpen"
              ng-if="options.isMergeExternalDatasource">
 

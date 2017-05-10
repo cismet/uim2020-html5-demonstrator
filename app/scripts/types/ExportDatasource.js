@@ -45,6 +45,10 @@ angular.module(
                 ExportDatasource.prototype.isGlobal = function () {
                     return this.global;
                 };
+                
+                ExportDatasource.prototype.isLocal = function () {
+                    return !this.global;
+                };
 
                 ExportDatasource.prototype.isSelected = function () {
                     return this.selected;
@@ -77,6 +81,47 @@ angular.module(
                     } else {
                         return false;
                     }
+                };
+                
+                ExportDatasource.prototype.selectAllParameters = function () {
+                    this.parameters.forEach(function (parameter) {
+                        parameter.selected = true;
+                    });
+                };
+
+
+                ExportDatasource.prototype.deselectAllParameters = function () {
+                    this.parameters.forEach(function (parameter) {
+                        parameter.selected = false;
+                    });
+                };
+
+                ExportDatasource.prototype.invertParameterSelection = function () {
+                    this.parameters.forEach(function (parameter) {
+                        parameter.selected = !parameter.selected;
+                    });
+                };
+
+                ExportDatasource.prototype.allParametersSelected = function () {
+                    return this.parameters.every(function (parameter, index, array) {
+                        return parameter.selected;
+                    });
+                };
+
+                ExportDatasource.prototype.allParametersDeselected = function () {
+                    return this.parameters.every(function (parameter, index, array) {
+                        return !parameter.selected;
+                    });
+                };
+                
+                ExportDatasource.prototype.toggleParametersSelection = function () {
+                    if(this.allParametersSelected() === true) {
+                        this.deselectAllParameters();
+                    } else {
+                        this.selectAllParameters();
+                    }
+
+                    return true;
                 };
 
                 ExportDatasource.prototype.getSelectedParameters = function () {

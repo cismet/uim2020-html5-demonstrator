@@ -11,9 +11,9 @@ angular.module(
         ).controller(
         'importController', [
             '$q', '$scope', '$timeout', '$window', '$uibModalInstance', 'configurationService', 'featureRendererService', 'sharedDatamodel',
-            'sharedControllers', 'localDatasource',
+            'sharedControllers', 'localDatasource', 'DEVELOPMENT_MODE',
             function ($q, $scope, $timeout, $window, $uibModalInstance, configurationService, featureRendererService, sharedDatamodel,
-                    sharedControllers, localDatasource) {
+                    sharedControllers, localDatasource, DEVELOPMENT_MODE) {
                 'use strict';
                 var config, importController, mapController, handleZipFile, convertToLayer,
                         updateProgress;
@@ -74,10 +74,8 @@ angular.module(
                             max = event.total;
                             current = event.loaded;
 
-                            //console.log('importController::onprogress -> importProgress: ' + current + '/' + max +
-                            //        ' (' + Math.min(100, parseInt(100.0 * current / max)) + '%)');
-
                             $scope.$apply(function () {
+                                if(DEVELOPMENT_MODE === true)console.log('importController::onprogress -> importProgress: ' + current + '/' + max + ' (' + Math.min(100, parseInt(100.0 * current / max)) + '%)');
                                 importController.importProgress =
                                         Math.min(100, parseInt(100.0 * current / max));
                             });
@@ -106,7 +104,7 @@ angular.module(
                                 importController.status.message = 'Die Datei "' + localDatasource.filename + '" konnte nicht geladen werden: ' + reader.error;
                             });
                         } else {
-                            // don't store orogonal SHP zip file as blob
+                            // don't store original SHP zip file as blob
                             // send zipped geojson instead!
                             //localDatasource.data = new Blob([arrayBuffer], {type: 'application/zip'});
 
@@ -114,10 +112,7 @@ angular.module(
                                 importController.importProgress = 100;
                             });
 
-                            //console.log('importController::onloadend -> importController.onloadend progress: ' +
-                            //        importController.importProgress);
-
-
+                            if(DEVELOPMENT_MODE === true)console.log('importController::onloadend -> importController.onloadend progress: ' + importController.importProgress);
 
                             $timeout(function () {
                                 importController.importProgress = 100;
@@ -127,8 +122,7 @@ angular.module(
                                 convertToLayer(arrayBuffer, file.name);
                             }, 500);
 
-                            //console.log('importController::onloadend -> importController.onloadend progress: ' +
-                            //        importController.importProgress);
+                            if(DEVELOPMENT_MODE === true)console.log('importController::onloadend -> importController.onloadend progress: ' + importController.importProgress);
                         }
                     };
 
@@ -154,8 +148,7 @@ angular.module(
                         }
                     } else { // finished
                         importProgress = 200;
-                        //console.log('importController::convertToLayer: importProgress FINISHED = ' + 
-                        //        importProgress + ' (' + current + '/' + max + ')');
+                        if(DEVELOPMENT_MODE === true) console.log('importController::convertToLayer: importProgress FINISHED = ' + importProgress + ' (' + current + '/' + max + ')');
                         $scope.$apply(function () {
                             importController.importProgress = 200;
                             importController.importInProgress = false;
@@ -172,8 +165,7 @@ angular.module(
                     promise = shp(buffer).then(
                             function success(geojson) {
                                 var isCreateOverlayLayer = true;
-                                //console.log('importController::convertToLayer: processing ' +
-                                //        geojson.features.length + ' GeoJson Features');
+                                if(DEVELOPMENT_MODE === true)console.log('importController::convertToLayer: processing ' + geojson.features.length + ' GeoJson Features');
                                 //saveAs(new Blob([angular.toJson(geojson, true)], {type: 'application/json'}), localDatasource.filename + '.geojson');
 
                                 importController.status.type = 'info';
@@ -207,7 +199,7 @@ angular.module(
 
                     promise.then(
                             function success(overlayLayer) {
-                                //console.log('importController::convertToLayer: GeoJson Features successfully processed');
+                                if(DEVELOPMENT_MODE === true)console.log('importController::convertToLayer: GeoJson Features successfully processed');
                                 //saveAs(new Blob([angular.toJson(overlayLayer.toGeoJSON(), true)], {type: 'application/json'}), localDatasource.filename + '.geojson');
 
                                 $timeout(function () {
@@ -230,7 +222,7 @@ angular.module(
                                 zip.file(localDatasource.name + '.geojson', angular.toJson(overlayLayer.toGeoJSON(), false));
                                 zip.generateAsync({type: "blob"})
                                         .then(function success(blob) {
-                                            console.log('importController::convertToLayer -> zipping geoJson: ' + blob.type);
+                                            if(DEVELOPMENT_MODE === true)console.log('importController::convertToLayer -> zipping geoJson: ' + blob.type);
                                             localDatasource.data = blob;
                                             //saveAs(blob, localDatasource.filename + '.zip');
                                         }, function error(error) {
@@ -240,7 +232,7 @@ angular.module(
                             },
                             function error(reason) {
                                 $timeout(function () {
-                                    console.log('importController::convertToLayer: failed: ' + reason);
+                                    console.error('importController::convertToLayer: failed: ' + reason);
                                     importController.importProgress = 0;
                                     importController.importInProgress = false;
                                     importController.importError = true;

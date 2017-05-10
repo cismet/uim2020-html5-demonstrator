@@ -15,6 +15,12 @@ angular.module(
             function () {
                 'use strict';
 
+                /**
+                 * ExternalDatasource = SHP File
+                 * 
+                 * @param {type} externalDatasource
+                 * @return {ExternalDatasourceL#15.ExternalDatasource}
+                 */
                 function ExternalDatasource(externalDatasource) {
                     var _this = this;
 
