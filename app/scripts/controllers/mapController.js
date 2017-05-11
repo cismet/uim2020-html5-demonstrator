@@ -65,11 +65,11 @@ angular.module(
                         draw: drawOptions,
                         edit: {
                             featureGroup: searchGeometryLayerGroup,
-                            remove: false, // disable removal
+                            remove: true, // enable removal (
                             buffer: {
                                 replacePolylines: true, // why false? because true does not work !!??!!
                                 separateBuffer: true, // maintains both the original shape and the buffer.
-                                bufferStyle: drawOptions.polygon.shapeOptions
+                                bufferStyle: config.bufferStyle
                             }
                         }
                     });
@@ -185,6 +185,7 @@ angular.module(
 
                 setSearchGeometryFromGazetteerLocationLayer = function () {
                     if (gazetteerLocationLayer !== null) {
+                        // clone gazetteerLocationLayer (#19)
                         var searchGeometryLayer = cloneLayer(gazetteerLocationLayer);
                         gazetteerLocationLayer.closePopup();
                        
@@ -194,7 +195,6 @@ angular.module(
                         //gazetteerLocationLayer = null;
                         
                         searchGeometryLayer.unbindPopup();
-                        searchGeometryLayer.setStyle(drawOptions.polygon.shapeOptions);
                         setSearchGeometry(searchGeometryLayer, 'polygon');
 
                     } else {
@@ -216,6 +216,7 @@ angular.module(
                         if (searchGeometryLayer !== null) {
                             if(DEVELOPMENT_MODE === true)console.log('setSearchGeometry: ' + layerType);
 
+                            searchGeometryLayer.setStyle(drawOptions.polygon.shapeOptions);
                             searchGeometryLayer.$name = layerType;
                             searchGeometryLayer.$key = 'searchGeometry';
                             searchGeometryLayerGroup.addLayer(searchGeometryLayer);
@@ -729,10 +730,8 @@ angular.module(
                     });
 
                     $scope.$on('searchSuccess()', function (event) {
-                        // reset search geom
-                        setSearchGeometry(null);
-                        // Gesamter Kartenausschnitt
-                        sharedDatamodel.selectedSearchLocation.id = 0;
+                        // don't reset search geom (#19)
+                        // setSearchGeometry(null);
                         if (sharedDatamodel.resultNodes.length > 0) {
                             mapController.setNodes(sharedDatamodel.resultNodes);
                         } else {
@@ -744,10 +743,8 @@ angular.module(
                     });
 
                     $scope.$on('searchError()', function (event) {
-                        // reset search geom
-                        setSearchGeometry(null);
-                        // Gesamter Kartenausschnitt
-                        sharedDatamodel.selectedSearchLocation.id = 0;
+                        // don't reset search geom (#19)
+                        // setSearchGeometry(null);
                         mapController.clearNodes();
 
                     });
