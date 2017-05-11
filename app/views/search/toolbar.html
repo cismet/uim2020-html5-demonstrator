@@ -43,13 +43,21 @@
 
             <!-- Search Locations -->
             <div class="btn-group">
-                <div ng-dropdown-multiselect=""
+                <!--<div ng-dropdown-multiselect=""
                      id="search-themes"
                      options="searchController.searchLocations" 
                      selected-model="searchController.selectedSearchLocation" 
                      extra-settings="searchController.searchLocationsSettings"
                      events="searchController.selectedSearchLocationEvents"
-                     title="Geografische Einschränkungen">  
+                     title="Geografische Einschränkungen"
+                     ng-disabled="true">  
+                </div>-->
+                <div
+                    id="search-themes" 
+                    class="btn btn-default disabled"
+                    title="Geografische Einschränkungen"
+                    ng-disabled="true">
+                    {{searchController.selectedSearchLocation.id > 0 ? 'Ausgewählte Geometrie' : 'Gesamter Kartenausschnitt'}}
                 </div>
             </div>    
 

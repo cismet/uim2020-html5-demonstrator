@@ -283,6 +283,15 @@ angular.module(
                              unloadInvisibleTiles: true
                              }*/
                 };
+                
+                configurationService.map.bufferStyle = {
+                    fillOpacity: 0.2,
+                    fill: true,
+                    weight: 1,
+                    fillColor: '#1589FF',
+                    riseOnHover: true,
+                    clickable: true
+                };
 
                 /**
                  * styledLayerControl baseMaps!
