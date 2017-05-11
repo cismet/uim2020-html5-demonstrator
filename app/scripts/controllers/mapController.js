@@ -204,7 +204,7 @@ angular.module(
                 setSearchGeometryBuffer = function(buffer) {
                     if(DEVELOPMENT_MODE === true)console.debug('setSearchGeometryBuffer: ' + buffer);
                     if(searchGeometryLayerGroup.getLayers() && searchGeometryLayerGroup.getLayers().length !== 0) {
-                        var searchGeometryLayer = searchGeometryLayerGroup.getLayers()[0]
+                        var searchGeometryLayer = searchGeometryLayerGroup.getLayers()[0];
                         var buffered = turf.buffer(searchGeometryLayer.toGeoJSON(), buffer, 'kilometers');
                         setSearchGeometry(L.geoJson(buffered).getLayers()[0], 'polygon');
                     } else {

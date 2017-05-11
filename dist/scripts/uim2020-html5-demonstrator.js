@@ -2463,7 +2463,7 @@ angular.module(
 
 
 
-/*global angular, L, Wkt */
+/*global angular, L, Wkt, turf */
 /*jshint sub:true*/
 
 angular.module(
@@ -2486,7 +2486,7 @@ angular.module(
                         defaults, center, basemaps, overlays, layerControlOptions,
                         drawOptions, maxBounds, setSearchGeometry, gazetteerLocationLayer, layerControlMappings,
                         overlaysNodeLayersIndex, fitBoundsOptions, selectedNode, selectNode, featureLayersWithZoomRestriction,
-                        nodeOverlays, setSearchGeometryFromGazetteerLocationLayer;
+                        nodeOverlays, setSearchGeometryFromGazetteerLocationLayer, setSearchGeometryBuffer;
 
                 mapController = this;
                 mapController.mode = $scope.mainController.mode;
@@ -2530,11 +2530,11 @@ angular.module(
                         draw: drawOptions,
                         edit: {
                             featureGroup: searchGeometryLayerGroup,
-                            remove: false, // disable removal
+                            remove: true, // enable removal (
                             buffer: {
-                                replace_polylines: false, // why false? because true does not work !!??!!
-                                separate_buffer: false,
-                                buffer_style: drawOptions.polygon.shapeOptions
+                                replacePolylines: true, // why false? because true does not work !!??!!
+                                separateBuffer: true, // maintains both the original shape and the buffer.
+                                bufferStyle: config.bufferStyle
                             }
                         }
                     });
@@ -2650,19 +2650,31 @@ angular.module(
 
                 setSearchGeometryFromGazetteerLocationLayer = function () {
                     if (gazetteerLocationLayer !== null) {
-                        var searchGeometryLayer = gazetteerLocationLayer;
+                        // clone gazetteerLocationLayer (#19)
+                        var searchGeometryLayer = cloneLayer(gazetteerLocationLayer);
                         gazetteerLocationLayer.closePopup();
-                        gazetteerLocationLayer.unbindPopup();
-                        layerControl.removeLayer(gazetteerLocationLayer);
-                        leafletMap.removeLayer(gazetteerLocationLayer);
-                        gazetteerLocationLayer = null;
-
-                        searchGeometryLayer.setStyle(drawOptions.polygon.shapeOptions);
+                       
+                        //gazetteerLocationLayer.unbindPopup();
+                        //layerControl.removeLayer(gazetteerLocationLayer);
+                        //leafletMap.removeLayer(gazetteerLocationLayer);
+                        //gazetteerLocationLayer = null;
+                        
                         setSearchGeometry(searchGeometryLayer, 'polygon');
 
                     } else {
                         console.warn('setSearchGeometryFromGazetteerLocationLayer: no gazetteerLocationLayer available!');
                     }
+                };
+                
+                setSearchGeometryBuffer = function(buffer) {
+                    if(DEVELOPMENT_MODE === true)console.debug('setSearchGeometryBuffer: ' + buffer);
+                    if(searchGeometryLayerGroup.getLayers() && searchGeometryLayerGroup.getLayers().length !== 0) {
+                        var searchGeometryLayer = searchGeometryLayerGroup.getLayers()[0];
+                        var buffered = turf.buffer(searchGeometryLayer.toGeoJSON(), buffer, 'kilometers');
+                        setSearchGeometry(L.geoJson(buffered).getLayers()[0], 'polygon');
+                    } else {
+                        console.error('cannot set search geometry buffer of ' + buffer + "': no searchGeometryLayer found!?");
+                    } 
                 };
 
                 /**
@@ -2673,13 +2685,25 @@ angular.module(
                  * @returns {undefined}
                  */
                 setSearchGeometry = function (searchGeometryLayer, layerType) {
+                    if(DEVELOPMENT_MODE === true)console.log('setSearchGeometry -> searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
                     if (mapController.mode === 'search') {
                         searchGeometryLayerGroup.clearLayers();
                         if (searchGeometryLayer !== null) {
                             if(DEVELOPMENT_MODE === true)console.log('setSearchGeometry: ' + layerType);
-
+                            
+                            searchGeometryLayer.setStyle(drawOptions.polygon.shapeOptions);
+                            searchGeometryLayer.unbindPopup();
                             searchGeometryLayer.$name = layerType;
                             searchGeometryLayer.$key = 'searchGeometry';
+
+                            var searchGeometryPopup = L.popup.angular({
+                                template: '<form name="form" novalidate><label>Puffer (km): <input type="number" ng-model="buffer" name="buffer" min="-25" max="25" size="3" integer required/></label><input type="button" ng-click="$content.setSearchGeometryBuffer(buffer)" value="OK" ng-disabled="!form.$valid"/></form>'
+                            });
+                            searchGeometryPopup.setContent({
+                                setSearchGeometryBuffer: setSearchGeometryBuffer
+                            });
+                            searchGeometryLayer.bindPopup(searchGeometryPopup);
+                            
                             searchGeometryLayerGroup.addLayer(searchGeometryLayer);
 
                             if (config.options.centerOnSearchGeometry && searchGeometryLayerGroup.getBounds()) {
@@ -3191,10 +3215,8 @@ angular.module(
                     });
 
                     $scope.$on('searchSuccess()', function (event) {
-                        // reset search geom
-                        setSearchGeometry(null);
-                        // Gesamter Kartenausschnitt
-                        sharedDatamodel.selectedSearchLocation.id = 0;
+                        // don't reset search geom (#19)
+                        // setSearchGeometry(null);
                         if (sharedDatamodel.resultNodes.length > 0) {
                             mapController.setNodes(sharedDatamodel.resultNodes);
                         } else {
@@ -3206,10 +3228,8 @@ angular.module(
                     });
 
                     $scope.$on('searchError()', function (event) {
-                        // reset search geom
-                        setSearchGeometry(null);
-                        // Gesamter Kartenausschnitt
-                        sharedDatamodel.selectedSearchLocation.id = 0;
+                        // don't reset search geom (#19)
+                        // setSearchGeometry(null);
                         mapController.clearNodes();
 
                     });
@@ -3291,42 +3311,59 @@ angular.module(
                             if (!event.layerType) {
                                 event.layerType = 'polygon';
                             }
-                             if(DEVELOPMENT_MODE === true)console.log('draw:created: ' + event.layerType);
+                            if(DEVELOPMENT_MODE === true)console.log('draw:created: ' + event.layerType);
                             setSearchGeometry(event.layer, event.layerType);
                             // this is madness!
                             sharedDatamodel.selectedSearchLocation.id = 1;
-                             if(DEVELOPMENT_MODE === true)console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                            if(DEVELOPMENT_MODE === true)console.log('draw:created -> searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
 
                             // directly switch to expand mode after drawing polyline
                             if (event.layerType === 'polyline') {
-                                // FIXME: prevent search in line geometry if user skiops or cancels expand
+                                // FIXME: prevent search in line geometry if user skips or cancels expand
                                 drawControl._toolbars.edit._modes.buffer.handler.enable();
                             }
                         });
 
-                        /*map.on('draw:edited', function (event) {
-                         console.log('draw:edited: ' + event.layers.getLayers().length);
-                         console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
-                         });*/
+                        map.on('draw:edited', function (event) {
+                            if(DEVELOPMENT_MODE === true)console.log('draw:edited: ' + event.layers.getLayers().length);
+                            if(DEVELOPMENT_MODE === true)console.log('draw:edited -> searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                        });
 
-                        /*map.on('draw:deleted', function (event) {
-                         console.log('draw:deleted: ' + event.layers.getLayers().length);
-                         if (event.layers.getLayers().length > 0) {
-                         // ugly workaround for leafleft.buffer plugin which does not remove expanded polyline layers
-                         event.layers.eachLayer(function (deletedLayer) {
-                         searchGeometryLayerGroup.removeLayer(deletedLayer);
+                        map.on('draw:deleted', function (event) {
+                            if(DEVELOPMENT_MODE === true)console.log('draw:deleted: ' + event.layers.getLayers().length);
+                            if(DEVELOPMENT_MODE === true)console.log('draw:deleted -> searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                            
+                            
+                            
+                            /*if (event.layers.getLayers().length > 0) {
+                                // ugly workaround for leafleft.buffer plugin which does not remove expanded polyline layers
+                                event.layers.eachLayer(function (deletedLayer) {
+                                searchGeometryLayerGroup.removeLayer(deletedLayer);
+                                });
+                            }*/
+
+                            console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                                if (searchGeometryLayerGroup.getLayers().length === 0) {
+                                sharedDatamodel.selectedSearchLocation.id = 0;
+                            }
                          });
-                         }
-                         
-                         console.log('searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
-                         if (searchGeometryLayerGroup.getLayers().length === 0) {
-                         sharedDatamodel.selectedSearchLocation.id = 0;
-                         }
-                         });*/
 
-                        /*map.on('draw:buffered', function (event) {
-                         console.log('draw:buffered: ' + event.layers.getLayers().length);
-                         });*/
+                        map.on('draw:buffered', function (event) {
+                            if(DEVELOPMENT_MODE === true)console.log('draw:buffered: ' + event.layers.getLayers().length);
+                            if(DEVELOPMENT_MODE === true)console.log('draw:buffered -> searchGeometryLayerGroup size: ' + searchGeometryLayerGroup.getLayers().length);
+                        });
+                        
+                        map.on('draw:bufferstart', function (event) {
+                            if(DEVELOPMENT_MODE === true)console.log('draw:bufferstart');
+                            searchGeometryLayerGroup.getLayers()[0].options.clickable = false;
+                            searchGeometryLayerGroup.getLayers()[0].unbindPopup();
+                        });
+                        
+                        map.on('draw:bufferstop', function (event) {
+                             if(DEVELOPMENT_MODE === true)console.log('draw:bufferstop');
+                             searchGeometryLayerGroup.getLayers()[0].options.clickable = true;
+                             // TODO: restore popup!
+                        });
                     }
 
                     map.addControl(layerControl);
@@ -3348,7 +3385,7 @@ angular.module(
 
                     map.on('layerremove', function (layerEvent) {
                         var removedLayer = layerEvent.layer;
-                         if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::layerremove -> key:' + removedLayer.$key + ', type: ' + removedLayer.constructor.name);
+                        if(DEVELOPMENT_MODE === true)console.log(mapController.mode + '-map::layerremove -> key:' + removedLayer.$key + ', type: ' + removedLayer.constructor.name);
 
                         if (removedLayer.StyledLayerControl &&
                                 layerControl._layers[L.stamp(removedLayer)]) {
@@ -4614,6 +4651,15 @@ angular.module(
                              updateWhenIdle: false,
                              unloadInvisibleTiles: true
                              }*/
+                };
+                
+                configurationService.map.bufferStyle = {
+                    fillOpacity: 0.2,
+                    fill: true,
+                    weight: 1,
+                    fillColor: '#1589FF',
+                    riseOnHover: true,
+                    clickable: true
                 };
 
                 /**
