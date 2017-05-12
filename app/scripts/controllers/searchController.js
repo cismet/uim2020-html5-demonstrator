@@ -321,8 +321,6 @@ angular.module(
                                             sharedDatamodel.resultNodes.forEach(function (resultNode) {
                                                 if (resultNode.objectKey === analysisNode.objectKey) {
                                                     resultNode.$analysis = true;
-                                                } else {
-                                                    resultNode.$analysis = false;
                                                 }
                                             });
                                         });
