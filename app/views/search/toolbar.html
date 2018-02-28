@@ -32,9 +32,22 @@
                     id="reset-search" 
                     class="btn btn-default btn-primary navbar-btn"
                     ng-click="searchController.reset()"
-                    title="Recherche Zurücksetzen">
+                    title="Recherche zurücksetzen">
                 <span class="fa fa-ban"></span>
             </button>
+        </form>
+        
+        <!-- Alle Ergebnise zur Merkliste hinzufügen -->
+        <form class="navbar-form navbar-left cs-toolbar-form">
+            <button type="button" 
+                    id="add-analysis-nodes" 
+                    class="btn btn-default btn-primary navbar-btn"
+                    ng-click="mainController.addAnalysisNodes()"
+                    ng-disabled="!searchController.hasNodes()"
+                    title="Alle Ergebnise zur Merkliste hinzufügen">
+                <span class="fa fa-plus-circle"></span>
+            </button>
+            <!-- Recherche Zurücksetzen -->
         </form>
 
         <!-- Einschränkungen ----------------------------------------------- -->
