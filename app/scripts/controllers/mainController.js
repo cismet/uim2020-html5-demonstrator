@@ -50,6 +50,14 @@ angular.module(
                         console.warn("mainController::removeAnalysisNode: analysisNode '" + analysisNode.name + "' not in list of analysis nodes!");
                     }
                 };
+                
+                mainController.removeAnalysisNodes = function () {
+                    sharedDatamodel.analysisNodes.length = 0;
+                    sharedControllers.analysisMapController.clearNodes();
+                    sharedDatamodel.resultNodes.forEach(function (resultNode) {
+                        resultNode.$analysis = false;
+                    });
+                };
 
                 /**
                  * 
@@ -93,6 +101,14 @@ angular.module(
                             sharedControllers.analysisMapController.addNode(analysisNode);
                         }
                     }
+                };
+                
+                mainController.addAnalysisNodes = function () {
+                    sharedDatamodel.resultNodes.forEach(function (resultNode) {
+                        if (!resultNode.$filtered) {
+                            mainController.addAnalysisNode(resultNode);
+                        }
+                    });
                 };
 
                 /**

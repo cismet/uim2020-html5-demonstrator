@@ -30,6 +30,19 @@
             <span class="fa fa-arrows-alt"></span>
         </button>
     </form>
+    
+    <!-- Alle Ergebnise aus Merkliste löschen -->
+    <form class="navbar-form navbar-left cs-toolbar-form">
+        <button type="button" 
+                id="remove-analysis-nodes" 
+                class="btn btn-default btn-primary navbar-btn"
+                ng-click="mainController.removeAnalysisNodes()"
+                ng-disabled="!analysisController.hasNodes()"
+                title="Merkliste leeren">
+            <span class="fa fa-minus-circle"></span>
+        </button>
+        <!-- Recherche Zurücksetzen -->
+    </form>
 
     <!-- Merkliste importierten / exportieren 
     <form class="navbar-form navbar-left cs-toolbar-form">
