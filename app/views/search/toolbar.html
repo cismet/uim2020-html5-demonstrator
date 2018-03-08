@@ -52,7 +52,7 @@
 
         <!-- Einschränkungen ----------------------------------------------- -->
         <form class="navbar-form navbar-left cs-toolbar-form">
-            <label>Einschränkungen</label>
+            <!--<label>Einschränkungen</label>-->
 
             <!-- Search Locations -->
             <div class="btn-group">
@@ -99,40 +99,53 @@
                 </div>
             </div>   
             
-            <!--
-            <div class="input-group">
+            <!-- Timeperiod Search -->
+            <div class="input-group" ng-class="{'has-error': searchController.selectedTimeperiod.minDate !== null && searchController.selectedTimeperiod.maxDate === null || searchController.selectedTimeperiod.minDate > searchController.selectedTimeperiod.maxDate}">
               <input type="text" 
+                     id="mindate"
+                     name="mindate"
                      class="form-control" 
                      uib-datepicker-popup="dd.MM.yyyy" 
-                     ng-model="dt" 
-                     is-open="popup1.opened" 
-                     datepicker-options="dateOptions" 
-                     ng-required="true" 
-                     close-text="Close" 
-                     alt-input-formats="altInputFormats" />
+                     ng-model="searchController.selectedTimeperiod.minDate" 
+                     is-open="mindateopened" 
+                     datepicker-options="searchController.minDateOptions" 
+                     ng-required="false" 
+                     close-text="Schließen" 
+                     current-text="Heute"
+                     clear-text="Zurücksetzen"
+                     size="6"/>
               <span class="input-group-btn">
-                <button type="button" class="btn btn-default" ng-click="open1()"><i class="fa fa-calendar-minus-o"></i></button>
+                <button type="button" class="btn btn-default" ng-click="mindateopened = true;"><i class="fa fa-calendar-minus-o"></i></button>
               </span>
             </div>
-            <div class="input-group">
-              <input type="text" 
-                     class="form-control" 
-                     uib-datepicker-popup 
-                     ng-model="dt" 
-                     is-open="popup2.opened" 
-                     datepicker-options="dateOptions" 
-                     ng-required="true" 
-                     close-text="Close" />
-              <span class="input-group-btn">
-                <button type="button" class="btn btn-default" ng-click="open2()"><i class="fa fa-calendar-plus-o"></i></button>
-              </span>
-            </div>
-            -->
             
+            <div class="input-group" ng-class="{'has-error': searchController.selectedTimeperiod.maxDate !== null && searchController.selectedTimeperiod.minDate === null || searchController.selectedTimeperiod.maxDate < searchController.selectedTimeperiod.minDate}">
+              <input type="text" 
+                     id="maxdate"
+                     name="maxdate"
+                     class="form-control" 
+                     uib-datepicker-popup="dd.MM.yyyy" 
+                     ng-model="searchController.selectedTimeperiod.maxDate" 
+                     ng-disabled="searchController.selectedTimeperiod.minDate === null" 
+                     is-open="maxdateopened" 
+                     datepicker-options="searchController.maxDateOptions" 
+                     ng-required="false" 
+                     close-text="Schließen" 
+                     current-text="Heute"
+                     clear-text="Zurücksetzen"
+                     size="6"/>
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" ng-click="maxdateopened = true;"><i class="fa fa-calendar-plus-o"></i></button>
+              </span>
+            </div>
+            
+            <!-- Submit Button -->
             <button type="submit" 
                     title="Suche mit ausgewählten Einschränkungen durchführen"
                     class="btn btn-success navbar-btn cs-toolbar-form-action"
-                    ng-disabled="(searchController.selectedSearchThemes.length === 0 || searchController.selectedSearchPollutants.length === 0)"
+                    ng-disabled="(searchController.selectedSearchThemes.length === 0 || searchController.selectedSearchPollutants.length === 0
+                                || ((searchController.selectedTimeperiod.minDate !== null && searchController.selectedTimeperiod.maxDate === null)
+                                || (searchController.selectedTimeperiod.minDate === null && searchController.selectedTimeperiod.maxDate !== null)))"
                     ng-click="searchController.search()">
                 <span class="fa fa-search"></span>
             </button>

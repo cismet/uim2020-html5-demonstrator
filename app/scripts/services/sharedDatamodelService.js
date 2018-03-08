@@ -27,6 +27,10 @@ angular.module(
                 // search selection
                 _this.selectedSearchThemes = [];
                 _this.selectedSearchPollutants = [];
+                _this.selectedTimeperiod = {
+                    'minDate' : null,
+                    'maxDate' : null
+                };
                 _this.selectedGazetteerLocation = {};
                 //_this.selectedSearchGeometry = {};
                 _this.selectedSearchLocation = {
@@ -53,7 +57,9 @@ angular.module(
                 
                 _this.reset = function() {
                     _this.selectedSearchThemes.length = 0;     
-                    _this.selectedSearchPollutants.length = 0;    
+                    _this.selectedSearchPollutants.length = 0;
+                    _this.selectedTimeperiod.minDate = null;
+                    _this.selectedTimeperiod.maxDate = null;
                     _this.resultNodes.length = 0;      
                     _this.selectedGazetteerLocation = {};
                     //_this.selectedSearchGeometry = {};

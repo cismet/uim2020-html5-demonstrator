@@ -113,6 +113,44 @@ angular.module(
                             dynamicButtonTextSuffix: 'Schadstoffe ausgewählt'
                         });
                 // </editor-fold>
+
+                // <editor-fold defaultstate="collapsed" desc="   - Timperiod Popup Configuration">
+               
+                searchController.minDateOptions = {
+                    formatYear: 'yyyy',
+                    maxDate: new Date(2020,1,1),
+                    minDate: new Date(1990,1,1),
+                    startingDay: 1,
+                    initDate: null,
+                    dateDisabled: minDateDisabled
+                };
+                
+                searchController.maxDateOptions = {
+                    formatYear: 'yyyy',
+                    maxDate: new Date(2020,1,1),
+                    minDate: new Date(1990,1,1),
+                    startingDay: 1,
+                    initDate: null,
+                    dateDisabled: maxDateDisabled
+                };
+                
+                function minDateDisabled(data) {
+                    var minDate = data.date;
+                    return searchController.selectedTimeperiod.maxDate !== null && searchController.selectedTimeperiod.maxDate < minDate;
+                };
+                
+                function maxDateDisabled(data) {
+                    var maxDate = data.date;
+                    return searchController.selectedTimeperiod.minDate === null || searchController.selectedTimeperiod.minDate > maxDate;
+                    
+                    //var date = data.date,
+                   // mode = data.mode;
+                    //return mode === 'day' && (date.getDay() === 0 || date.getDay() === 6);
+                };  
+
+                searchController.selectedTimeperiod = sharedDatamodel.selectedTimeperiod;
+               // </editor-fold>
+               
                 // <editor-fold defaultstate="collapsed" desc="   - Gazetteer Locations Selection Box Configuration">
                 if (dataService.getGazetteerLocations().$resolved) {
                     searchController.gazetteerLocations = dataService.getGazetteerLocations();
