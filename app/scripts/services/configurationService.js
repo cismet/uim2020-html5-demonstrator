@@ -28,13 +28,12 @@ angular.module(
                 
                 // <editor-fold defaultstate="collapsed" desc="=== cidsRestApi ===========================">
                 configurationService.cidsRestApi = {};
-                configurationService.cidsRestApi.host = 'http://cismettest1:8890';
+                //configurationService.cidsRestApi.host = 'http://cismettest1:8890';
                 //configurationService.cidsRestApi.host = 'http://DEMO-NOTEBOOK:8890';
+                configurationService.cidsRestApi.host = 'http://localhost:8890';
                 configurationService.cidsRestApi.domain = 'UDM2020-DI';
                 configurationService.cidsRestApi.defaultRestApiSearch = 'de.cismet.cids.custom.udm2020di.serversearch.rest.DefaultRestApiSearch';
                 configurationService.cidsRestApi.restApiExportAction = 'restApiExportAction';
-                //configurationService.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
-                //configurationService.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
                 // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="=== authentication ===========================">
                 configurationService.authentication = {};
