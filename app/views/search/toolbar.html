@@ -52,7 +52,7 @@
 
         <!-- Einschränkungen ----------------------------------------------- -->
         <form class="navbar-form navbar-left cs-toolbar-form">
-            <label>Einschränkungen</label>
+            <!--<label>Einschränkungen</label>-->
 
             <!-- Search Locations -->
             <div class="btn-group">
@@ -70,7 +70,7 @@
                     class="btn btn-default disabled"
                     title="Geografische Einschränkungen"
                     ng-disabled="true">
-                    {{searchController.selectedSearchLocation.id > 0 ? 'Ausgewählte Geometrie' : 'Gesamter Kartenausschnitt'}}
+                    {{searchController.selectedSearchLocation.id > 0 ? 'Geometrie' : 'Kartenausschnitt'}}
                 </div>
             </div>    
 
@@ -98,11 +98,54 @@
                      title="Einschränkungen nach Schadstoffen"> 
                 </div>
             </div>   
-
+            
+            <!-- Timeperiod Search -->
+            <div class="input-group" ng-class="{'has-error': searchController.selectedTimeperiod.minDate !== null && searchController.selectedTimeperiod.maxDate === null || searchController.selectedTimeperiod.minDate > searchController.selectedTimeperiod.maxDate}">
+              <input type="text" 
+                     id="mindate"
+                     name="mindate"
+                     class="form-control" 
+                     uib-datepicker-popup="dd.MM.yyyy" 
+                     ng-model="searchController.selectedTimeperiod.minDate" 
+                     is-open="mindateopened" 
+                     datepicker-options="searchController.minDateOptions" 
+                     ng-required="false" 
+                     close-text="Schließen" 
+                     current-text="Heute"
+                     clear-text="Zurücksetzen"
+                     size="6"/>
+              <span class="input-group-btn">
+                <button type="button" title="Startdatum" class="btn btn-default" ng-click="mindateopened = true;"><i class="fa fa-calendar-minus-o"></i></button>
+              </span>
+            </div>
+            
+            <div class="input-group" ng-class="{'has-error': searchController.selectedTimeperiod.maxDate !== null && searchController.selectedTimeperiod.minDate === null || searchController.selectedTimeperiod.maxDate < searchController.selectedTimeperiod.minDate}">
+              <input type="text" 
+                     id="maxdate"
+                     name="maxdate"
+                     class="form-control" 
+                     uib-datepicker-popup="dd.MM.yyyy" 
+                     ng-model="searchController.selectedTimeperiod.maxDate" 
+                     ng-disabled="searchController.selectedTimeperiod.minDate === null" 
+                     is-open="maxdateopened" 
+                     datepicker-options="searchController.maxDateOptions" 
+                     ng-required="false" 
+                     close-text="Schließen" 
+                     current-text="Heute"
+                     clear-text="Zurücksetzen"
+                     size="6"/>
+              <span class="input-group-btn">
+                <button type="button" title="Enddatum" class="btn btn-default" ng-click="maxdateopened = true;"><i class="fa fa-calendar-plus-o"></i></button>
+              </span>
+            </div>
+            
+            <!-- Submit Button -->
             <button type="submit" 
                     title="Suche mit ausgewählten Einschränkungen durchführen"
                     class="btn btn-success navbar-btn cs-toolbar-form-action"
-                    ng-disabled="(searchController.selectedSearchThemes.length === 0 || searchController.selectedSearchPollutants.length === 0)"
+                    ng-disabled="(searchController.selectedSearchThemes.length === 0 || searchController.selectedSearchPollutants.length === 0
+                                || ((searchController.selectedTimeperiod.minDate !== null && searchController.selectedTimeperiod.maxDate === null)
+                                || (searchController.selectedTimeperiod.minDate === null && searchController.selectedTimeperiod.maxDate !== null)))"
                     ng-click="searchController.search()">
                 <span class="fa fa-search"></span>
             </button>
@@ -110,7 +153,7 @@
 
         <!-- Gazzetteer  -->
         <form class="navbar-form navbar-left cs-toolbar-form  navbar-right">
-            <label>Gehe zu</label>
+            <!--<label>Gehe zu</label>-->
 
             <div class="btn-group">
                 <div ng-dropdown-multiselect=""

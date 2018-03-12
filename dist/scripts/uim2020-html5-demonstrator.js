@@ -18,8 +18,8 @@ var app = angular.module(
             'de.cismet.uim2020-html5-demonstrator.types',
             'de.cismet.uim2020-html5-demonstrator.filters',
             'ngResource', 'ngAnimate', 'ngSanitize', 'ngCookies',
-            'ui.bootstrap', 'ui.bootstrap.modal', 'angular.filter',
-            'ui.router', 'ui.router.modal',
+            'ui.bootstrap', 'ui.bootstrap.modal', 'ui.bootstrap.datepickerPopup', 
+            'angular.filter','ui.router', 'ui.router.modal',
             'ct.ui.router.extras.sticky', 'ct.ui.router.extras.dsr', 'ct.ui.router.extras.previous',
             'ui-leaflet', 'nemLogging',
             'ngTable', 'angularjs-dropdown-multiselect',
@@ -2393,6 +2393,14 @@ angular.module(
                         console.warn("mainController::removeAnalysisNode: analysisNode '" + analysisNode.name + "' not in list of analysis nodes!");
                     }
                 };
+                
+                mainController.removeAnalysisNodes = function () {
+                    sharedDatamodel.analysisNodes.length = 0;
+                    sharedControllers.analysisMapController.clearNodes();
+                    sharedDatamodel.resultNodes.forEach(function (resultNode) {
+                        resultNode.$analysis = false;
+                    });
+                };
 
                 /**
                  * 
@@ -2436,6 +2444,14 @@ angular.module(
                             sharedControllers.analysisMapController.addNode(analysisNode);
                         }
                     }
+                };
+                
+                mainController.addAnalysisNodes = function () {
+                    sharedDatamodel.resultNodes.forEach(function (resultNode) {
+                        if (!resultNode.$filtered) {
+                            mainController.addAnalysisNode(resultNode);
+                        }
+                    });
                 };
 
                 /**
@@ -3550,14 +3566,14 @@ angular.module(
                             idProp: 'className',
                             smartButtonTextConverter: function (itemText, originalItem) {
                                 return searchController.selectedSearchThemes.length === 1 ?
-                                        '1 Thema ausgewählt' : '';
+                                        '1 Thema' : '';
                             }
                         });
                 searchController.searchThemesTranslationTexts = angular.extend(
                         {},
                         configurationService.multiselect.translationTexts, {
-                            buttonDefaultText: 'Themen auswählen',
-                            dynamicButtonTextSuffix: 'Themen ausgewählt'
+                            buttonDefaultText: 'Themen',
+                            dynamicButtonTextSuffix: 'Themen'
                         });
                 // FIXME: translationTexts not updated in directive
                 // See https://github.com/cismet/uim2020-html5-demonstrator/issues/2
@@ -3595,10 +3611,48 @@ angular.module(
                 searchController.searchPollutantsTranslationTexts = angular.extend(
                         {},
                         configurationService.multiselect.translationTexts, {
-                            buttonDefaultText: 'Schadstoffe auswählen',
-                            dynamicButtonTextSuffix: 'Schadstoffe ausgewählt'
+                            buttonDefaultText: 'Schadstoffe',
+                            dynamicButtonTextSuffix: 'Schadstoffe'
                         });
                 // </editor-fold>
+
+                // <editor-fold defaultstate="collapsed" desc="   - Timperiod Popup Configuration">
+               
+                searchController.minDateOptions = {
+                    formatYear: 'yyyy',
+                    maxDate: new Date(2020,1,1),
+                    minDate: new Date(1990,1,1),
+                    startingDay: 1,
+                    initDate: null,
+                    dateDisabled: minDateDisabled
+                };
+                
+                searchController.maxDateOptions = {
+                    formatYear: 'yyyy',
+                    maxDate: new Date(2020,1,1),
+                    minDate: new Date(1990,1,1),
+                    startingDay: 1,
+                    initDate: null,
+                    dateDisabled: maxDateDisabled
+                };
+                
+                function minDateDisabled(data) {
+                    var minDate = data.date;
+                    return searchController.selectedTimeperiod.maxDate !== null && searchController.selectedTimeperiod.maxDate < minDate;
+                }
+                
+                function maxDateDisabled(data) {
+                    var maxDate = data.date;
+                    return searchController.selectedTimeperiod.minDate === null || searchController.selectedTimeperiod.minDate > maxDate;
+                    
+                    //var date = data.date,
+                   // mode = data.mode;
+                    //return mode === 'day' && (date.getDay() === 0 || date.getDay() === 6);
+                }  
+
+                searchController.selectedTimeperiod = sharedDatamodel.selectedTimeperiod;
+               // </editor-fold>
+               
                 // <editor-fold defaultstate="collapsed" desc="   - Gazetteer Locations Selection Box Configuration">
                 if (dataService.getGazetteerLocations().$resolved) {
                     searchController.gazetteerLocations = dataService.getGazetteerLocations();
@@ -3764,11 +3818,12 @@ angular.module(
                  * @returns {undefined}
                  */
                 searchController.search = function (mockNodes) {
-                    var geometry, themes, pollutants, limit, offset;
+                    var geometry, themes, pollutants, timeperiod, limit, offset;
 
                     geometry = sharedControllers.searchMapController.getSearchWktString();
                     themes = [];
                     pollutants = [];
+                    timeperiod = sharedDatamodel.selectedTimeperiod;
                     limit = configurationService.searchService.defautLimit;
                     offset = 0;
 
@@ -3786,6 +3841,7 @@ angular.module(
                             geometry,
                             themes,
                             pollutants,
+                            timeperiod,
                             limit,
                             offset,
                             searchProgressCallback).$promise.then(
@@ -3807,8 +3863,6 @@ angular.module(
                                             sharedDatamodel.resultNodes.forEach(function (resultNode) {
                                                 if (resultNode.objectKey === analysisNode.objectKey) {
                                                     resultNode.$analysis = true;
-                                                } else {
-                                                    resultNode.$analysis = false;
                                                 }
                                             });
                                         });
@@ -4397,13 +4451,12 @@ angular.module(
                 
                 // <editor-fold defaultstate="collapsed" desc="=== cidsRestApi ===========================">
                 configurationService.cidsRestApi = {};
-                configurationService.cidsRestApi.host = 'http://localhost:8890';
+                configurationService.cidsRestApi.host = 'http://cismettest1:8890';
                 //configurationService.cidsRestApi.host = 'http://DEMO-NOTEBOOK:8890';
+                //configurationService.cidsRestApi.host = 'http://localhost:8890';
                 configurationService.cidsRestApi.domain = 'UDM2020-DI';
                 configurationService.cidsRestApi.defaultRestApiSearch = 'de.cismet.cids.custom.udm2020di.serversearch.rest.DefaultRestApiSearch';
                 configurationService.cidsRestApi.restApiExportAction = 'restApiExportAction';
-                //configurationService.cidsRestApi.host = 'http://switchon.cismet.de/legacy-rest1';
-                //configurationService.cidsRestApi.host = 'http://tl-243.xtr.deltares.nl/switchon_server_rest';
                 // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="=== authentication ===========================">
                 configurationService.authentication = {};
@@ -6033,12 +6086,14 @@ angular.module(
                         geometry,
                         themes,
                         pollutants,
+                        timeperiod,
                         limit,
                         offset,
                         progressCallback) {
                     var deferred, noop, queryObject, defaultSearchResult, defaultRestApiSearch,
-                            defaultRestApiSearchResult, timer, fakeProgress;
+                            defaultRestApiSearchResult, timer, fakeProgress, dataFormat;
 
+                    dataFormat = {year: 'numeric', month: 'numeric', day: 'numeric'};
                     //console.log('searchService::defaultSearchFunction()');
 
                     // FIXME: get rid of this noop stuff -> makes code unreadable
@@ -6053,25 +6108,55 @@ angular.module(
 
                     deferred = $q.defer();
 
-                    queryObject = {
-                        'list': [
-                            {
-                                'key': 'geometry', 'value': geometry
-                            },
-                            {
-                                'key': 'themes', 'value': themes
-                            },
-                            {
-                                'key': 'pollutants', 'value': pollutants
-                            },
-                            {
-                                'key': 'limit', 'value': limit
-                            },
-                            {
-                                'key': 'offset', 'value': offset
-                            }
-                        ]
-                    };
+                    if (timeperiod.minDate !== null && timeperiod.minDate instanceof Date && 
+                            timeperiod.maxDate !== null && timeperiod.maxDate instanceof Date)
+                    {
+                        queryObject = {
+                            'list': [
+                                {
+                                    'key': 'geometry', 'value': geometry
+                                },
+                                {
+                                    'key': 'themes', 'value': themes
+                                },
+                                {
+                                    'key': 'pollutants', 'value': pollutants
+                                },
+                                {
+                                    'key': 'mindate', 'value': timeperiod.minDate.toLocaleDateString('de-AT', dataFormat)
+                                },
+                                {
+                                    'key': 'maxdate', 'value': timeperiod.maxDate.toLocaleDateString('de-AT', dataFormat)
+                                },
+                                {
+                                    'key': 'limit', 'value': limit
+                                },
+                                {
+                                    'key': 'offset', 'value': offset
+                                }
+                            ]
+                        };
+                    } else {
+                        queryObject = {
+                            'list': [
+                                {
+                                    'key': 'geometry', 'value': geometry
+                                },
+                                {
+                                    'key': 'themes', 'value': themes
+                                },
+                                {
+                                    'key': 'pollutants', 'value': pollutants
+                                },
+                                {
+                                    'key': 'limit', 'value': limit
+                                },
+                                {
+                                    'key': 'offset', 'value': offset
+                                }
+                            ]
+                        };
+                    }
 
                     if (offset && limit && limit > 0 && offset > 0 && (offset % limit !== 0)) {
                         offset = 0;
@@ -6228,6 +6313,10 @@ angular.module(
                 // search selection
                 _this.selectedSearchThemes = [];
                 _this.selectedSearchPollutants = [];
+                _this.selectedTimeperiod = {
+                    'minDate' : null,
+                    'maxDate' : null
+                };
                 _this.selectedGazetteerLocation = {};
                 //_this.selectedSearchGeometry = {};
                 _this.selectedSearchLocation = {
@@ -6254,7 +6343,9 @@ angular.module(
                 
                 _this.reset = function() {
                     _this.selectedSearchThemes.length = 0;     
-                    _this.selectedSearchPollutants.length = 0;    
+                    _this.selectedSearchPollutants.length = 0;
+                    _this.selectedTimeperiod.minDate = null;
+                    _this.selectedTimeperiod.maxDate = null;
                     _this.resultNodes.length = 0;      
                     _this.selectedGazetteerLocation = {};
                     //_this.selectedSearchGeometry = {};

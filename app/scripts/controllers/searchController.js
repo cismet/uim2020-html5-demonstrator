@@ -64,14 +64,14 @@ angular.module(
                             idProp: 'className',
                             smartButtonTextConverter: function (itemText, originalItem) {
                                 return searchController.selectedSearchThemes.length === 1 ?
-                                        '1 Thema ausgewählt' : '';
+                                        '1 Thema' : '';
                             }
                         });
                 searchController.searchThemesTranslationTexts = angular.extend(
                         {},
                         configurationService.multiselect.translationTexts, {
-                            buttonDefaultText: 'Themen auswählen',
-                            dynamicButtonTextSuffix: 'Themen ausgewählt'
+                            buttonDefaultText: 'Themen',
+                            dynamicButtonTextSuffix: 'Themen'
                         });
                 // FIXME: translationTexts not updated in directive
                 // See https://github.com/cismet/uim2020-html5-demonstrator/issues/2
@@ -109,10 +109,48 @@ angular.module(
                 searchController.searchPollutantsTranslationTexts = angular.extend(
                         {},
                         configurationService.multiselect.translationTexts, {
-                            buttonDefaultText: 'Schadstoffe auswählen',
-                            dynamicButtonTextSuffix: 'Schadstoffe ausgewählt'
+                            buttonDefaultText: 'Schadstoffe',
+                            dynamicButtonTextSuffix: 'Schadstoffe'
                         });
                 // </editor-fold>
+
+                // <editor-fold defaultstate="collapsed" desc="   - Timperiod Popup Configuration">
+               
+                searchController.minDateOptions = {
+                    formatYear: 'yyyy',
+                    maxDate: new Date(2020,1,1),
+                    minDate: new Date(1990,1,1),
+                    startingDay: 1,
+                    initDate: null,
+                    dateDisabled: minDateDisabled
+                };
+                
+                searchController.maxDateOptions = {
+                    formatYear: 'yyyy',
+                    maxDate: new Date(2020,1,1),
+                    minDate: new Date(1990,1,1),
+                    startingDay: 1,
+                    initDate: null,
+                    dateDisabled: maxDateDisabled
+                };
+                
+                function minDateDisabled(data) {
+                    var minDate = data.date;
+                    return searchController.selectedTimeperiod.maxDate !== null && searchController.selectedTimeperiod.maxDate < minDate;
+                }
+                
+                function maxDateDisabled(data) {
+                    var maxDate = data.date;
+                    return searchController.selectedTimeperiod.minDate === null || searchController.selectedTimeperiod.minDate > maxDate;
+                    
+                    //var date = data.date,
+                   // mode = data.mode;
+                    //return mode === 'day' && (date.getDay() === 0 || date.getDay() === 6);
+                }  
+
+                searchController.selectedTimeperiod = sharedDatamodel.selectedTimeperiod;
+               // </editor-fold>
+               
                 // <editor-fold defaultstate="collapsed" desc="   - Gazetteer Locations Selection Box Configuration">
                 if (dataService.getGazetteerLocations().$resolved) {
                     searchController.gazetteerLocations = dataService.getGazetteerLocations();
@@ -278,11 +316,12 @@ angular.module(
                  * @returns {undefined}
                  */
                 searchController.search = function (mockNodes) {
-                    var geometry, themes, pollutants, limit, offset;
+                    var geometry, themes, pollutants, timeperiod, limit, offset;
 
                     geometry = sharedControllers.searchMapController.getSearchWktString();
                     themes = [];
                     pollutants = [];
+                    timeperiod = sharedDatamodel.selectedTimeperiod;
                     limit = configurationService.searchService.defautLimit;
                     offset = 0;
 
@@ -300,6 +339,7 @@ angular.module(
                             geometry,
                             themes,
                             pollutants,
+                            timeperiod,
                             limit,
                             offset,
                             searchProgressCallback).$promise.then(
