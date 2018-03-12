@@ -34,12 +34,14 @@ angular.module(
                         geometry,
                         themes,
                         pollutants,
+                        timeperiod,
                         limit,
                         offset,
                         progressCallback) {
                     var deferred, noop, queryObject, defaultSearchResult, defaultRestApiSearch,
-                            defaultRestApiSearchResult, timer, fakeProgress;
+                            defaultRestApiSearchResult, timer, fakeProgress, dataFormat;
 
+                    dataFormat = {year: 'numeric', month: 'numeric', day: 'numeric'};
                     //console.log('searchService::defaultSearchFunction()');
 
                     // FIXME: get rid of this noop stuff -> makes code unreadable
@@ -54,25 +56,55 @@ angular.module(
 
                     deferred = $q.defer();
 
-                    queryObject = {
-                        'list': [
-                            {
-                                'key': 'geometry', 'value': geometry
-                            },
-                            {
-                                'key': 'themes', 'value': themes
-                            },
-                            {
-                                'key': 'pollutants', 'value': pollutants
-                            },
-                            {
-                                'key': 'limit', 'value': limit
-                            },
-                            {
-                                'key': 'offset', 'value': offset
-                            }
-                        ]
-                    };
+                    if (timeperiod.minDate !== null && timeperiod.minDate instanceof Date && 
+                            timeperiod.maxDate !== null && timeperiod.maxDate instanceof Date)
+                    {
+                        queryObject = {
+                            'list': [
+                                {
+                                    'key': 'geometry', 'value': geometry
+                                },
+                                {
+                                    'key': 'themes', 'value': themes
+                                },
+                                {
+                                    'key': 'pollutants', 'value': pollutants
+                                },
+                                {
+                                    'key': 'mindate', 'value': timeperiod.minDate.toLocaleDateString('de-AT', dataFormat)
+                                },
+                                {
+                                    'key': 'maxdate', 'value': timeperiod.maxDate.toLocaleDateString('de-AT', dataFormat)
+                                },
+                                {
+                                    'key': 'limit', 'value': limit
+                                },
+                                {
+                                    'key': 'offset', 'value': offset
+                                }
+                            ]
+                        };
+                    } else {
+                        queryObject = {
+                            'list': [
+                                {
+                                    'key': 'geometry', 'value': geometry
+                                },
+                                {
+                                    'key': 'themes', 'value': themes
+                                },
+                                {
+                                    'key': 'pollutants', 'value': pollutants
+                                },
+                                {
+                                    'key': 'limit', 'value': limit
+                                },
+                                {
+                                    'key': 'offset', 'value': offset
+                                }
+                            ]
+                        };
+                    }
 
                     if (offset && limit && limit > 0 && offset > 0 && (offset % limit !== 0)) {
                         offset = 0;

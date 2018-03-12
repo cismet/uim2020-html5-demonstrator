@@ -70,7 +70,7 @@
                     class="btn btn-default disabled"
                     title="Geografische Einschränkungen"
                     ng-disabled="true">
-                    {{searchController.selectedSearchLocation.id > 0 ? 'Ausgewählte Geometrie' : 'Gesamter Kartenausschnitt'}}
+                    {{searchController.selectedSearchLocation.id > 0 ? 'Geometrie' : 'Kartenausschnitt'}}
                 </div>
             </div>    
 
@@ -115,7 +115,7 @@
                      clear-text="Zurücksetzen"
                      size="6"/>
               <span class="input-group-btn">
-                <button type="button" class="btn btn-default" ng-click="mindateopened = true;"><i class="fa fa-calendar-minus-o"></i></button>
+                <button type="button" title="Startdatum" class="btn btn-default" ng-click="mindateopened = true;"><i class="fa fa-calendar-minus-o"></i></button>
               </span>
             </div>
             
@@ -135,7 +135,7 @@
                      clear-text="Zurücksetzen"
                      size="6"/>
               <span class="input-group-btn">
-                <button type="button" class="btn btn-default" ng-click="maxdateopened = true;"><i class="fa fa-calendar-plus-o"></i></button>
+                <button type="button" title="Enddatum" class="btn btn-default" ng-click="maxdateopened = true;"><i class="fa fa-calendar-plus-o"></i></button>
               </span>
             </div>
             
@@ -153,7 +153,7 @@
 
         <!-- Gazzetteer  -->
         <form class="navbar-form navbar-left cs-toolbar-form  navbar-right">
-            <label>Gehe zu</label>
+            <!--<label>Gehe zu</label>-->
 
             <div class="btn-group">
                 <div ng-dropdown-multiselect=""
