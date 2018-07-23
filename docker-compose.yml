@@ -1,0 +1,13 @@
+version: '3.6'
+
+services:
+  nginx:
+    container_name: nginx
+    image: reg.cismet.de/uba/cids-distribution:1.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args: 
+        CLIENT_VERSION: ${CLIENT_VERSION}
+    ports:
+        - 80:80
