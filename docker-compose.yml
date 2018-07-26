@@ -1,9 +1,9 @@
-version: '3.6'
+version: '2'
 
 services:
   nginx:
     container_name: nginx
-    image: reg.cismet.de/uba/cids-distribution:1.0
+    image: reg.cismet.de/uba/uim2020-html5-demonstrator:${CLIENT_VERSION}
     build:
       context: .
       dockerfile: Dockerfile
