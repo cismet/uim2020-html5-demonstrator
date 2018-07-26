@@ -5,6 +5,11 @@
         <data xmlns="http://www.netbeans.org/ns/clientside-project/1">
             <name>uim2020-html5-demonstrator</name>
         </data>
+        <grunt-tasks xmlns="http://www.netbeans.org/ns/build-tool-tasks/1">
+            <workdir path="" showSimpleTasks="true">
+                <task index="0" name="dist --force" options="--force" parameters="" tasks="dist"/>
+            </workdir>
+        </grunt-tasks>
         <libraries xmlns="http://www.netbeans.org/ns/cdnjs-libraries/1">
             <library name="angular-audio" version="1.7.2">
                 <file localPath="js/libs/angular-audio/angular.audio.min.js" path="angular.audio.min.js"/>
