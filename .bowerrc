@@ -4,5 +4,6 @@
   "timeout": 60000,
   "save": true,
   "save-exact": true,
-  "strict-ssl": true
+  "strict-ssl": true,
+  "registry": "https://registry.bower.io"    
 }
